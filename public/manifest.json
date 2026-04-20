@@ -1,0 +1,56 @@
+{
+  "name": "OneMint",
+  "short_name": "OneMint",
+  "description": "India's trusted knowledge platform for finance, technology, health and more",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F8F7F4",
+  "theme_color": "#1B6B3A",
+  "orientation": "portrait-primary",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["news", "finance", "education"],
+  "shortcuts": [
+    {
+      "name": "Financial Tools",
+      "short_name": "Tools",
+      "url": "/tools",
+      "description": "Use our free financial calculators"
+    },
+    {
+      "name": "Browse Topics",
+      "short_name": "Topics",
+      "url": "/topics",
+      "description": "Explore all content categories"
+    },
+    {
+      "name": "Glossary",
+      "short_name": "Glossary",
+      "url": "/glossary",
+      "description": "Financial terms explained simply"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ]
+}

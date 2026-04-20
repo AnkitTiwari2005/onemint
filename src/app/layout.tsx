@@ -97,6 +97,14 @@ export default function RootLayout({
         {/* PWA theme colors */}
         <meta name="theme-color" content="#F8F7F4" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+        {/* PWA manifest + Apple meta */}
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="OneMint" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="OneMint" />
       </head>
       <body className={`${fontVars} min-h-screen flex flex-col`} suppressHydrationWarning>
         <a href="#main-content" className="skip-to-content">

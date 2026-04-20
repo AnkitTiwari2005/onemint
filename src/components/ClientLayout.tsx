@@ -9,6 +9,8 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { SearchOverlay } from '@/components/SearchOverlay';
 import { ToastProvider } from '@/components/Toast';
 import { ReadingProgressBar } from '@/components/ReadingProgressBar';
+import { CookieBanner } from '@/components/CookieBanner';
+import { BackToTop } from '@/components/BackToTop';
 
 const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
@@ -63,6 +65,8 @@ export function ClientLayout({ children }: { children: ReactNode }) {
       </AnimatePresence>
       <Footer />
       <MobileBottomNav />
+      <CookieBanner />
+      <BackToTop />
     </ToastProvider>
   );
 }
