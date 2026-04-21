@@ -56,7 +56,8 @@ export default async function TagPage({ params }: Props) {
     .map(([t]) => t);
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
         <Link href="/" style={{ color: 'var(--color-ink-tertiary)', textDecoration: 'none' }}>Home</Link>
@@ -212,6 +213,7 @@ export default async function TagPage({ params }: Props) {
           aside { position: static !important; }
         }
       `}</style>
+    </div>
     </div>
   );
 }

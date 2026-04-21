@@ -160,11 +160,6 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] transition-colors">
-                  Sitemap ↗
-                </a>
-              </li>
             </ul>
           </div>
 

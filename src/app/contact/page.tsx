@@ -64,7 +64,8 @@ export default function ContactPage() {
   });
 
   return (
-    <div style={{ maxWidth: 1060, margin: '0 auto', padding: '64px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 1060, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 40, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
@@ -195,13 +196,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          [style*="grid-template-columns: 2fr 3fr"] { grid-template-columns: 1fr !important; }
-          [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-          [style*="padding: '36px 40px'"] { padding: 24px !important; }
-        }
-      `}</style>
+    </div>
     </div>
   );
 }

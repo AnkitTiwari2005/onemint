@@ -11,16 +11,18 @@ const EFFECTIVE_DATE = 'April 19, 2026';
 
 export default function PrivacyPolicyPage() {
   return (
+    <div className="pt-16 lg:pt-[72px]">
     <div
       style={{
         maxWidth: 1100,
         margin: '0 auto',
-        padding: '48px 24px 80px',
+        padding: '32px 24px 80px',
         display: 'grid',
         gridTemplateColumns: '1fr 260px',
         gap: 48,
         alignItems: 'start',
       }}
+      className="lg:grid-cols-[1fr_260px] block lg:grid"
     >
       {/* Main content */}
       <article>
@@ -405,6 +407,7 @@ export default function PrivacyPolicyPage() {
         }
         .legal-toc-link:hover { color: var(--color-accent) !important; }
       `}</style>
+    </div>
     </div>
   );
 }

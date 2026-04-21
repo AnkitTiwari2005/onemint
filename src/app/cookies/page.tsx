@@ -16,7 +16,8 @@ const COOKIE_TABLE = [
 
 export default function CookiePolicyPage() {
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '64px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 36, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
@@ -115,6 +116,7 @@ export default function CookiePolicyPage() {
           <a href="mailto:privacy@onemint.com" style={{ color: 'var(--color-accent)' }}>privacy@onemint.com</a>.
         </p>
       </div>
+    </div>
     </div>
   );
 }

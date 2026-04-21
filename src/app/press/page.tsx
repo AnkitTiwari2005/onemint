@@ -35,7 +35,8 @@ const PRESS_MENTIONS = [
 
 export default function PressPage() {
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '64px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 32, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
@@ -60,7 +61,7 @@ export default function PressPage() {
       </div>
 
       {/* Quick facts */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '28px 32px', marginBottom: 48, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-7 mb-12">
         {[
           { label: 'Founded', value: '2010' },
           { label: 'Monthly Readers', value: '5,00,000+' },
@@ -110,11 +111,7 @@ export default function PressPage() {
         </button>
       </div>
 
-      <style>{`
-        @media (max-width: 640px) {
-          [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+    </div>
     </div>
   );
 }

@@ -7,7 +7,8 @@ export const metadata: Metadata = {
 
 export default function AdvertisePage() {
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '64px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 860, margin: '0 auto', padding: '24px 24px 80px' }}>
       <div style={{ textAlign: 'center', marginBottom: 56 }}>
         <span style={{ display: 'inline-block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent)', marginBottom: 16, background: 'var(--color-surface-alt)', padding: '6px 14px', borderRadius: 20, border: '1px solid var(--color-border)' }}>
           Advertise
@@ -91,11 +92,7 @@ export default function AdvertisePage() {
         </p>
       </div>
 
-      <style>{`
-        @media (max-width: 640px) {
-          [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+    </div>
     </div>
   );
 }

@@ -70,6 +70,10 @@ export default function AdminDashboard() {
           { label: 'View Suggestions', href: '/admin/suggestions', icon: Lightbulb, primary: false },
           { label: 'Manage Glossary', href: '/admin/glossary', icon: BookMarked, primary: false },
           { label: 'View Messages', href: '/admin/messages', icon: MessageSquare, primary: false },
+          { label: 'Categories', href: '/admin/categories', icon: TrendingUp, primary: false },
+          { label: 'Authors', href: '/admin/authors', icon: Users, primary: false },
+          { label: 'Series', href: '/admin/series', icon: BookMarked, primary: false },
+          { label: 'Applications', href: '/admin/applications', icon: PenSquare, primary: false },
         ].map((a) => (
           <Link key={a.label} href={a.href} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 8, border: `1px solid ${a.primary ? 'var(--color-accent)' : 'var(--color-border)'}`, background: a.primary ? 'var(--color-accent)' : 'var(--color-surface)', color: a.primary ? 'white' : 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
             <a.icon size={14} /> {a.label}

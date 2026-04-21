@@ -32,7 +32,8 @@ export default function SeriesHubPage() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Header */}
       <div style={{ marginBottom: 48 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -148,12 +149,7 @@ export default function SeriesHubPage() {
           );
         })}
       </div>
-
-      <style>{`
-        @media (max-width: 640px) {
-          [style*="repeat(auto-fill, minmax(380px"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+    </div>
     </div>
   );
 }

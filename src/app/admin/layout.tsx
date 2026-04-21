@@ -24,6 +24,7 @@ const NAV = [
     section: 'Community',
     items: [
       { label: 'Topic Suggestions', href: '/admin/suggestions', icon: Lightbulb },
+      { label: 'Author Applications', href: '/admin/applications', icon: Users },
       { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
     ],
   },

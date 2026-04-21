@@ -57,6 +57,16 @@ export function Header({ onSearchOpen }: HeaderProps) {
     setDark(theme === 'dark');
   }, []);
 
+  // Scroll lock when mobile drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -284,64 +294,115 @@ export function Header({ onSearchOpen }: HeaderProps) {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer — slides in from right with backdrop */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="lg:hidden fixed inset-0 top-16 bg-[var(--color-surface)] z-40 overflow-y-auto pb-24"
-          >
-            <div className="p-6 space-y-6">
-              <div className="space-y-1">
-                {[...navLinks, ...MORE_ITEMS.map(m => ({ label: m.label, href: m.href }))].map((link, i) => (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden fixed inset-0 bg-black/40 z-[45]"
+              onClick={() => setMobileOpen(false)}
+            />
+
+            {/* Drawer panel — slides from right */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="lg:hidden fixed top-0 right-0 bottom-0 w-[85vw] max-w-[360px] bg-[var(--color-surface)] z-[46] flex flex-col shadow-2xl"
+              style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface)] z-10">
+                <span className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--color-ink)]">Menu</span>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-alt)] transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-1">
+                {/* Main nav links */}
+                {navLinks.map((link, i) => (
                   <motion.div
                     key={link.label}
-                    initial={{ opacity: 0, x: -12 }}
+                    initial={{ opacity: 0, x: 16 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
+                    transition={{ delay: i * 0.04, duration: 0.2 }}
                   >
                     <Link
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block px-4 py-3 text-base font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-alt)] rounded-lg transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 text-base font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-alt)] rounded-xl transition-colors"
                     >
                       {link.label}
                     </Link>
                   </motion.div>
                 ))}
-              </div>
 
-              <div className="border-t border-[var(--color-border)] pt-6">
-                <p className="px-4 text-xs font-semibold uppercase tracking-wider text-[var(--color-ink-tertiary)] mb-3">
-                  Categories
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {categories.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      href={`/topics/${cat.slug}`}
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-alt)] text-sm"
+                {/* More items with icons */}
+                <div className="pt-2 mt-2 border-t border-[var(--color-border)]">
+                  {MORE_ITEMS.map((item, i) => (
+                    <motion.div
+                      key={item.href}
+                      initial={{ opacity: 0, x: 16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: (navLinks.length + i) * 0.04, duration: 0.2 }}
                     >
-                      <span style={{ color: cat.accentColor }}><CategoryIcon categoryId={cat.id} size={16} /></span>
-                      <span className="text-[var(--color-ink-secondary)]">{cat.name}</span>
-                    </Link>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors"
+                      >
+                        <item.icon size={16} className="text-[var(--color-ink-tertiary)]" />
+                        <span className="text-base font-medium text-[var(--color-ink)]">{item.label}</span>
+                      </Link>
+                    </motion.div>
                   ))}
+                </div>
+
+                {/* Browse Topics */}
+                <div className="pt-2 mt-2 border-t border-[var(--color-border)]">
+                  <p className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--color-ink-tertiary)]">
+                    Browse Topics
+                  </p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/topics/${cat.slug}`}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors"
+                      >
+                        <span style={{ color: cat.accentColor }}><CategoryIcon categoryId={cat.id} size={15} /></span>
+                        <span className="text-sm text-[var(--color-ink-secondary)] truncate">{cat.name}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <Link
-                href="/newsletter"
-                onClick={() => setMobileOpen(false)}
-                className="block w-full py-3 rounded-full bg-[var(--color-accent-warm)] text-white text-center font-semibold"
-              >
-                Subscribe to Newsletter
-              </Link>
-            </div>
-          </motion.div>
+              {/* Subscribe CTA — pinned to bottom */}
+              <div className="p-4 border-t border-[var(--color-border)]">
+                <Link
+                  href="/newsletter"
+                  onClick={() => setMobileOpen(false)}
+                  className="block w-full py-3 rounded-full bg-[var(--color-accent-warm)] text-white text-center font-semibold text-sm"
+                >
+                  Subscribe to Newsletter
+                </Link>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </motion.header>

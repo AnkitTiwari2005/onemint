@@ -40,7 +40,8 @@ export default function TagsPage() {
   });
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Header */}
       <div style={{ marginBottom: 48 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -195,6 +196,7 @@ export default function TagsPage() {
             </div>
           </div>
         ))}
+    </div>
     </div>
   );
 }

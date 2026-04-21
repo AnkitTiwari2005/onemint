@@ -35,12 +35,13 @@ export function CookieBanner() {
             bottom: 0,
             left: 0,
             right: 0,
-            zIndex: 49,
+            zIndex: 51,
             background: 'var(--color-surface)',
             borderTop: '1px solid var(--color-border)',
             boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
             padding: '16px 24px',
           }}
+          className="md:!bottom-0 !bottom-14"
         >
           <div
             style={{

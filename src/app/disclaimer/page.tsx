@@ -11,7 +11,8 @@ const EFFECTIVE_DATE = 'April 19, 2026';
 
 export default function DisclaimerPage() {
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 80px' }}>
       {/* Header */}
       <div style={{ marginBottom: 40 }}>
         <div
@@ -188,6 +189,7 @@ export default function DisclaimerPage() {
           <a href="mailto:privacy@onemint.com">privacy@onemint.com</a>.
         </p>
       </div>
+    </div>
     </div>
   );
 }

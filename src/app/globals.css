@@ -156,6 +156,11 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Anchor clearance for sticky header */
+[id] {
+  scroll-margin-top: 90px;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-ink);

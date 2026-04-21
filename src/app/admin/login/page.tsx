@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 
-const ADMIN_PASSWORD = 'onemint2025';
+
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,7 +17,8 @@ export default function AdminLoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    const storedPassword = localStorage.getItem('admin_password') || 'onemint2025';
+    if (password === storedPassword) {
       localStorage.setItem('admin_authenticated', 'true');
       router.push('/admin');
     } else {

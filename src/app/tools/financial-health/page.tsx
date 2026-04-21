@@ -87,7 +87,8 @@ export default function FinancialHealthPage() {
   };
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
         <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -223,6 +224,7 @@ export default function FinancialHealthPage() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
     </div>
   );
 }

@@ -48,7 +48,8 @@ export function SeriesDetailClient({ series: s }: Props) {
   const isFinished = totalRead === seriesArticles.length && seriesArticles.length > 0;
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
@@ -164,6 +165,7 @@ export function SeriesDetailClient({ series: s }: Props) {
           <ArrowLeft size={14} /> Back to all series
         </Link>
       </div>
+    </div>
     </div>
   );
 }

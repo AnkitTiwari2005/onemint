@@ -37,7 +37,8 @@ export default async function AuthorPage({ params }: Props) {
   const joinedYear = new Date(author.joinedDate).getFullYear();
 
   return (
-    <div style={{ maxWidth: 1060, margin: '0 auto', padding: '64px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 1060, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 40, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
@@ -105,6 +106,7 @@ export default async function AuthorPage({ params }: Props) {
           No articles published yet.
         </div>
       )}
+    </div>
     </div>
   );
 }

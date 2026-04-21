@@ -17,7 +17,10 @@ const COMPARISONS = [
 function sipVsLumpsum(monthly: number, lumpsum: number, rate: number, years: number) {
   const r = rate / 100 / 12;
   const n = years * 12;
-  const sipFV = monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
+  // Guard against r=0 (division by zero)
+  const sipFV = r === 0
+    ? monthly * n
+    : monthly * ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
   const lumpsumFV = lumpsum * Math.pow(1 + rate / 100, years);
   const sipInvested = monthly * n;
 
@@ -26,7 +29,7 @@ function sipVsLumpsum(monthly: number, lumpsum: number, rate: number, years: num
     const ny = y * 12;
     rows.push({
       year: y,
-      SIP: Math.round(monthly * ((Math.pow(1 + r, ny) - 1) / r) * (1 + r)),
+      SIP: Math.round(r === 0 ? monthly * ny : monthly * ((Math.pow(1 + r, ny) - 1) / r) * (1 + r)),
       Lumpsum: Math.round(lumpsum * Math.pow(1 + rate / 100, y)),
     });
   }
@@ -97,7 +100,8 @@ export default function CompareToolsPage() {
   const fdResult = useMemo(() => fdVsDebtMF(fdAmount, fdRate, mfRate, fdYears), [fdAmount, fdRate, mfRate, fdYears]);
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 80px' }}>
+    <div className="pt-16 lg:pt-[72px]">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Header */}
       <div style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -292,12 +296,7 @@ export default function CompareToolsPage() {
         </div>
       )}
 
-      <style>{`
-        @media (max-width: 640px) {
-          [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-          [style*="grid-template-rows: 1fr 1fr"] { grid-template-rows: auto auto !important; }
-        }
-      `}</style>
+    </div>
     </div>
   );
 }
