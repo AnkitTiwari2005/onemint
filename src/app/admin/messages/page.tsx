@@ -1,31 +1,53 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, Circle, CheckCircle2, Trash2, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Circle, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
+import { supabaseAdmin } from '@/lib/supabase';
 
-const INIT_MESSAGES = [
-  { id: '1', from: 'Priya Sharma', email: 'priya.sharma@example.com', subject: 'Partnership inquiry — mutual content promotion', date: '19 Apr 2026', read: false, body: 'Hi OneMint team, I run a financial planning blog with 50K monthly readers. I\'d love to explore a content partnership where we cross-promote each other\'s articles. Would you be open to a quick call this week?' },
-  { id: '2', from: 'Rohan Mehra', email: 'rohan.m@example.com', subject: 'Correction in SIP calculator article', date: '18 Apr 2026', read: false, body: 'Hi, I noticed the SIP article mentions the maximum investment for ELSS is ₹1.5L per year, but it doesn\'t clarify this is the 80C limit, not the ELSS-specific limit. Could you add a clarification? Great site otherwise!' },
-  { id: '3', from: 'Aditi Gupta', email: 'aditi.gupta@example.com', subject: 'Guest post proposal — Women & Investing', date: '17 Apr 2026', read: true, body: 'Hello! I\'m a SEBI-registered advisor with 8 years of experience. I\'d love to contribute a guest article on investing for women in India, covering goal planning, risk appetite, and portfolio construction. Please let me know your guest post guidelines.' },
-  { id: '4', from: 'Vikram Nair', email: 'vikram.nair@example.com', subject: 'Question about rent-vs-buy calculator', date: '16 Apr 2026', read: true, body: 'The rent vs buy calculator doesn\'t seem to account for property transaction costs (stamp duty, registration). Could you add that? It would make the comparison much more realistic for actual buyers.' },
-  { id: '5', from: 'Sana Khan', email: 'sana.k@example.com', subject: 'Amazing resource — feedback', date: '15 Apr 2026', read: true, body: 'Just wanted to say — OneMint is the best Indian personal finance site I\'ve found. The calculators are clean, the articles don\'t try to sell me anything, and the dark mode works perfectly. Keep going!' },
-];
+interface Message {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
 
 export default function AdminMessagesPage() {
-  const [messages, setMessages] = useState(INIT_MESSAGES);
-  const [selected, setSelected] = useState<string | null>(INIT_MESSAGES[0].id);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const markRead = (id: string) => setMessages((prev) => prev.map((m) => m.id === id ? { ...m, read: true } : m));
-  const deleteMsg = (id: string) => {
-    const remaining = messages.filter((m) => m.id !== id);
+  useEffect(() => {
+    supabaseAdmin
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) { setMessages(data as Message[]); setSelected(data[0]?.id ?? null); }
+        setLoading(false);
+      });
+  }, []);
+
+  const markRead = async (id: string) => {
+    await supabaseAdmin.from('contact_messages').update({ read: true }).eq('id', id);
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
+  };
+
+  const deleteMsg = async (id: string) => {
+    await supabaseAdmin.from('contact_messages').delete().eq('id', id);
+    const remaining = messages.filter(m => m.id !== id);
     setMessages(remaining);
     setSelected(remaining[0]?.id ?? null);
     setDeleteTarget(null);
   };
 
-  const current = messages.find((m) => m.id === selected);
-  const unread = messages.filter((m) => !m.read).length;
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14, gap: 10 }}><Loader2 size={18} className="animate-spin" /> Loading messages…</div>;
+
+  const current = messages.find(m => m.id === selected);
+  const unread = messages.filter(m => !m.read).length;
 
   return (
     <div>
@@ -47,11 +69,11 @@ export default function AdminMessagesPage() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 {!m.read ? <Circle size={8} color="var(--color-accent)" fill="var(--color-accent)" style={{ flexShrink: 0 }} /> : <span style={{ width: 8 }} />}
-                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: m.read ? 400 : 600, color: 'var(--color-ink)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.from}</p>
-                <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', flexShrink: 0 }}>{m.date.split(' ')[0]}</span>
+                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: m.read ? 400 : 600, color: 'var(--color-ink)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
+                <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', flexShrink: 0 }}>{new Date(m.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
               </div>
               <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-secondary)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 16 }}>{m.subject}</p>
-              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 16 }}>{m.body.slice(0, 60)}…</p>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 16 }}>{m.message.slice(0, 60)}…</p>
             </div>
           ))}
         </div>
@@ -62,15 +84,15 @@ export default function AdminMessagesPage() {
             <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--color-border)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 600, color: 'var(--color-ink)', margin: '0 0 8px', lineHeight: 1.3 }}>{current.subject}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'white' }}>{current.from[0]}</div>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'white' }}>{current.name[0]}</div>
                 <div>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>{current.from}</p>
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>{current.name}</p>
                   <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>{current.email}</p>
                 </div>
-                <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{current.date}</span>
+                <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{new Date(current.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
               </div>
             </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', lineHeight: 1.75, flex: 1 }}>{current.body}</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', lineHeight: 1.75, flex: 1 }}>{current.message}</p>
             <div style={{ display: 'flex', gap: 10, paddingTop: 16, borderTop: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
               <a href={`mailto:${current.email}?subject=Re: ${encodeURIComponent(current.subject)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: 'var(--color-accent)', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
                 <Mail size={14} /> Reply

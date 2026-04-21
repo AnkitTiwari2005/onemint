@@ -136,7 +136,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        background: 'var(--color-bg)',
+        overflow: 'hidden',
+      }}
+    >
       {/* Desktop sidebar */}
       <div className="admin-sidebar-desktop">
         <Sidebar />
@@ -144,25 +153,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex' }}>
           <div onClick={() => setSidebarOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
-          <div style={{ position: 'relative', zIndex: 101 }}>
+          <div style={{ position: 'relative', zIndex: 10001 }}>
             <Sidebar />
           </div>
         </div>
       )}
 
       {/* Main content */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Mobile header bar */}
-        <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+        <div className="admin-mobile-header" style={{ display: 'none', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)', flexShrink: 0 }}>
           <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink)', padding: 4 }}>
             <Menu size={20} />
           </button>
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)' }}>OneMint Admin</span>
         </div>
 
-        <main style={{ flex: 1, padding: '32px 32px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
           {children}
         </main>
       </div>

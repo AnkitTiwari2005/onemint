@@ -304,7 +304,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="lg:hidden fixed inset-0 bg-black/40 z-[45]"
+              className="lg:hidden fixed inset-0 bg-black/50 z-[55]"
               onClick={() => setMobileOpen(false)}
             />
 
@@ -314,7 +314,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="lg:hidden fixed top-0 right-0 bottom-0 w-[85vw] max-w-[360px] bg-[var(--color-surface)] z-[46] flex flex-col shadow-2xl"
+              className="lg:hidden fixed top-0 right-0 bottom-0 w-[85vw] max-w-[360px] bg-[var(--color-surface)] z-[60] flex flex-col shadow-2xl"
               style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
             >
               {/* Drawer header */}

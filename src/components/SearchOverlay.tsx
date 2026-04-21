@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -75,7 +75,41 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
     }
   }, [isOpen]);
 
-  const results: SearchResult[] = useMemo(() => searchAll(query), [query]);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  // Debounced search: try Typesense API first, fall back to Fuse.js
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          // Map Typesense hits to SearchResult shape
+          const mapped: SearchResult[] = data.results.map((r: Record<string, unknown>) => ({
+            id: String(r.id),
+            type: 'article' as SearchResultType,
+            title: String(r.title),
+            excerpt: String(r.excerpt || ''),
+            href: `/articles/${r.slug}`,
+            categoryId: String(r.categoryId || ''),
+            readTimeMinutes: Number(r.readTimeMinutes || 5),
+          }));
+          setResults(mapped);
+        } else {
+          // Fall back to Fuse.js
+          setResults(searchAll(query));
+        }
+      } catch {
+        setResults(searchAll(query));
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const saveRecent = (q: string) => {
     if (!q.trim()) return;

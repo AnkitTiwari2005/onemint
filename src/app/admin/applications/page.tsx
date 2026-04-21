@@ -2,27 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, XCircle, Clock, Mail, ExternalLink } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, Clock, Mail, ExternalLink, Loader2 } from 'lucide-react';
+import { supabaseAdmin } from '@/lib/supabase';
 
 interface Application {
   id: string;
   name: string;
   email: string;
-  linkedin: string;
+  linkedin_url: string;
   category: string;
   pitch: string;
-  sample: string;
-  submittedAt: string;
+  sample_url: string;
+  created_at: string;
   status: 'pending' | 'approved' | 'rejected';
 }
-
-const MOCK_APPLICATIONS: Application[] = [
-  { id: '1', name: 'Riya Patel', email: 'riya.patel@gmail.com', linkedin: 'https://linkedin.com/in/riyapatel', category: 'Personal Finance', pitch: 'A beginner\'s guide to understanding EPF withdrawals and what to do when you switch jobs.', sample: 'https://medium.com/@riyapatel/epf-guide', submittedAt: '2026-04-18T10:32:00Z', status: 'pending' },
-  { id: '2', name: 'Arjun Mehta', email: 'arjun.mehta@outlook.com', linkedin: 'https://linkedin.com/in/arjunmehta', category: 'Technology & AI', pitch: 'How AI-powered robo-advisors are changing retail investing in India, and which ones to trust.', sample: 'https://arjunwrites.substack.com/robo-advisors', submittedAt: '2026-04-17T14:15:00Z', status: 'pending' },
-  { id: '3', name: 'Sneha Reddy', email: 'sneha.reddy@gmail.com', linkedin: 'https://linkedin.com/in/snehareddy', category: 'Health & Wellness', pitch: 'The real science behind intermittent fasting: what works for Indians and what doesn\'t.', sample: 'https://snehahealth.medium.com/intermittent-fasting', submittedAt: '2026-04-15T09:00:00Z', status: 'approved' },
-  { id: '4', name: 'Vikrant Singh', email: 'vikrant.s@yahoo.com', linkedin: '', category: 'Career & Growth', pitch: 'How to negotiate a 30–40% hike during appraisal season using data and benchmarks.', sample: '', submittedAt: '2026-04-12T18:45:00Z', status: 'rejected' },
-  { id: '5', name: 'Pooja Gupta', email: 'pooja.gupta@proton.me', linkedin: 'https://linkedin.com/in/poojas', category: 'Insurance', pitch: 'Term life insurance myths debunked: what the agent doesn\'t tell you.', sample: 'https://docs.google.com/document/d/sample', submittedAt: '2026-04-10T11:20:00Z', status: 'approved' },
-];
 
 const STATUS_CONFIG = {
   pending: { label: 'Pending', bg: '#FFF7ED', text: '#C2410C', icon: Clock },
@@ -32,29 +25,25 @@ const STATUS_CONFIG = {
 
 export default function AdminApplicationsPage() {
   const [apps, setApps] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [saved, setSaved] = useState('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin_applications');
-    const contrib = localStorage.getItem('onemint_applications');
-    const existing: Application[] = stored ? JSON.parse(stored) : MOCK_APPLICATIONS;
-    // merge user-submitted applications from contribute form
-    if (contrib) {
-      const userApps: Application[] = JSON.parse(contrib);
-      const ids = new Set(existing.map(a => a.id));
-      const merged = [...existing, ...userApps.filter(a => !ids.has(a.id))];
-      setApps(merged);
-    } else {
-      setApps(existing);
-    }
+    supabaseAdmin
+      .from('author_applications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setApps(data as Application[]);
+        setLoading(false);
+      });
   }, []);
 
-  const updateStatus = (id: string, status: 'approved' | 'rejected') => {
-    const updated = apps.map(a => a.id === id ? { ...a, status } : a);
-    setApps(updated);
-    localStorage.setItem('admin_applications', JSON.stringify(updated));
+  const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    await supabaseAdmin.from('author_applications').update({ status }).eq('id', id);
+    setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     setSaved(id);
     setTimeout(() => setSaved(''), 2000);
   };
@@ -67,6 +56,8 @@ export default function AdminApplicationsPage() {
     approved: apps.filter(a => a.status === 'approved').length,
     rejected: apps.filter(a => a.status === 'rejected').length,
   };
+
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14, gap: 10 }}><Loader2 size={18} className="animate-spin" /> Loading applications…</div>;
 
   return (
     <div style={{ padding: '32px 24px', maxWidth: 900, margin: '0 auto' }}>
@@ -119,7 +110,7 @@ export default function AdminApplicationsPage() {
                     <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{app.email}</span>
                     <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>Category: <strong style={{ color: 'var(--color-ink)' }}>{app.category}</strong></span>
                     <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
-                      {new Date(app.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(app.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
@@ -136,13 +127,13 @@ export default function AdminApplicationsPage() {
                     <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-ink)', lineHeight: 1.65, margin: 0 }}>{app.pitch}</p>
                   </div>
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
-                    {app.linkedin && (
-                      <a href={app.linkedin} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none' }}>
+                    {app.linkedin_url && (
+                      <a href={app.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none' }}>
                         <ExternalLink size={13} /> LinkedIn
                       </a>
                     )}
-                    {app.sample && (
-                      <a href={app.sample} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none' }}>
+                    {app.sample_url && (
+                      <a href={app.sample_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none' }}>
                         <ExternalLink size={13} /> Writing Sample
                       </a>
                     )}

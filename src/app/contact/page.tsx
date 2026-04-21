@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, CheckCircle2, Loader2, Mail, Megaphone, Handshake, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -45,7 +46,21 @@ export default function ContactPage() {
     setTouched({ name: true, email: true, subject: true, message: true });
     if (!isValid) return;
     setFormState('loading');
-    await new Promise(r => setTimeout(r, 1800));
+
+    const { error } = await supabase.from('contact_messages').insert([{
+      name: fields.name,
+      email: fields.email,
+      subject: fields.subject,
+      message: fields.message,
+    }]);
+
+    if (error) {
+      console.error('Contact insert error:', error);
+      setFormState('error');
+      setTimeout(() => setFormState('idle'), 4000);
+      return;
+    }
+
     setFormState('success');
   };
 

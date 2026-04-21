@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, CheckCircle2, Loader2, Star, Users, Zap } from 'lucide-react';
 
-type FormState = 'idle' | 'loading' | 'success';
+type FormState = 'idle' | 'loading' | 'success' | 'error';
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState('');
@@ -14,8 +14,18 @@ export default function NewsletterPage() {
     e.preventDefault();
     if (!email.trim() || formState === 'loading') return;
     setFormState('loading');
-    await new Promise(r => setTimeout(r, 1800));
-    setFormState('success');
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error('failed');
+      setFormState('success');
+    } catch {
+      setFormState('error');
+      setTimeout(() => setFormState('idle'), 4000);
+    }
   };
 
   return (

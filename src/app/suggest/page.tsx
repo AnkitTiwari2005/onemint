@@ -1,21 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Loader2, Lightbulb, TrendingUp, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
-type FormState = 'idle' | 'loading' | 'success';
+type FormState = 'idle' | 'loading' | 'success' | 'error';
 
 interface Suggestion {
   id: string;
   title: string;
   category: string;
   votes: number;
-  status: 'planned' | 'under-review' | 'written';
+  status: 'planned' | 'under-review' | 'written' | 'requested';
 }
 
-const INITIAL_SUGGESTIONS: Suggestion[] = [
+const SEED_SUGGESTIONS: Suggestion[] = [
   { id: '1', title: 'How to choose between term life insurance and ULIPs?', category: 'Insurance', votes: 142, status: 'planned' },
   { id: '2', title: 'Step-by-step guide to filing ITR-2 for salaried professionals', category: 'Tax', votes: 118, status: 'planned' },
   { id: '3', title: 'NPS vs EPF: Which is better for retirement?', category: 'Retirement', votes: 97, status: 'under-review' },
@@ -26,69 +27,103 @@ const INITIAL_SUGGESTIONS: Suggestion[] = [
   { id: '8', title: 'Is buying a house still a good investment in 2026?', category: 'Real Estate', votes: 51, status: 'planned' },
   { id: '9', title: 'Managing money as a freelancer: a practical guide', category: 'Career', votes: 43, status: 'planned' },
   { id: '10', title: 'How to build an emergency fund from scratch', category: 'Personal Finance', votes: 37, status: 'planned' },
-  { id: '11', title: 'Electric vehicles vs petrol: real cost comparison', category: 'Lifestyle', votes: 29, status: 'planned' },
-  { id: '12', title: 'Understanding AI in healthcare — what it means for patients', category: 'Technology', votes: 22, status: 'planned' },
-  { id: '13', title: 'How to negotiate a salary hike in 2026', category: 'Career', votes: 18, status: 'planned' },
-  { id: '14', title: 'A beginner\'s guide to sovereign gold bonds', category: 'Investing', votes: 15, status: 'under-review' },
-  { id: '15', title: 'Digital detox: does it actually help productivity?', category: 'Health', votes: 11, status: 'planned' },
 ];
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   'planned': { bg: '#EFF6FF', text: '#1D4ED8', label: 'Planned' },
   'under-review': { bg: '#FFF7ED', text: '#C2410C', label: 'Under Review' },
   'written': { bg: '#F0FDF4', text: '#15803D', label: 'Published' },
+  'requested': { bg: '#F5F3FF', text: '#7C3AED', label: 'Requested' },
 };
 
 export default function SuggestPage() {
-  const [suggestions, setSuggestions] = useState<Suggestion[]>(() => {
-    // Merge with any locally saved votes
-    if (typeof window === 'undefined') return INITIAL_SUGGESTIONS;
-    try {
-      const votedIds: string[] = JSON.parse(localStorage.getItem('onemint_voted_suggestions') || '[]');
-      return INITIAL_SUGGESTIONS.sort((a, b) => b.votes - a.votes);
-    } catch {
-      return INITIAL_SUGGESTIONS;
-    }
-  });
-
-  const [votedIds, setVotedIds] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      return JSON.parse(localStorage.getItem('onemint_voted_suggestions') || '[]');
-    } catch {
-      return [];
-    }
-  });
-
+  const [suggestions, setSuggestions] = useState<Suggestion[]>(SEED_SUGGESTIONS);
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [newTopic, setNewTopic] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
 
-  const handleVote = (id: string) => {
-    if (votedIds.includes(id)) return; // already voted
-    const updated = suggestions.map(s => s.id === id ? { ...s, votes: s.votes + 1 } : s)
-      .sort((a, b) => b.votes - a.votes);
-    const newVoted = [...votedIds, id];
-    setSuggestions(updated);
-    setVotedIds(newVoted);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('onemint_voted_suggestions', JSON.stringify(newVoted));
+  // Load from localStorage for vote dedup
+  useEffect(() => {
+    try {
+      const stored: string[] = JSON.parse(localStorage.getItem('onemint_voted_suggestions') || '[]');
+      setVotedIds(new Set(stored));
+    } catch { /* ignore */ }
+  }, []);
+
+  // Fetch real data from Supabase, merge with seed
+  useEffect(() => {
+    supabase
+      .from('topic_suggestions')
+      .select('*')
+      .order('votes', { ascending: false })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setSuggestions(data as Suggestion[]);
+        }
+      });
+  }, []);
+
+  const handleVote = useCallback(async (id: string) => {
+    if (votedIds.has(id)) return;
+
+    // Optimistic update
+    setVotedIds(prev => new Set([...prev, id]));
+    setSuggestions(prev =>
+      prev.map(s => s.id === id ? { ...s, votes: s.votes + 1 } : s)
+        .sort((a, b) => b.votes - a.votes)
+    );
+
+    try {
+      const res = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suggestionId: id }),
+      });
+      const data = await res.json();
+
+      if (data.alreadyVoted || !data.success) {
+        // Revert optimistic update
+        setVotedIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+        setSuggestions(prev =>
+          prev.map(s => s.id === id ? { ...s, votes: s.votes - 1 } : s)
+        );
+        return;
+      }
+
+      // Persist to localStorage
+      localStorage.setItem(
+        'onemint_voted_suggestions',
+        JSON.stringify([...votedIds, id])
+      );
+    } catch {
+      // Revert on network error
+      setVotedIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+      setSuggestions(prev =>
+        prev.map(s => s.id === id ? { ...s, votes: s.votes - 1 } : s)
+      );
     }
-  };
+  }, [votedIds]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTopic.trim() || !newCategory) return;
     setFormState('loading');
-    await new Promise(r => setTimeout(r, 1400));
-    const newSugg: Suggestion = {
-      id: Date.now().toString(),
-      title: newTopic.trim(),
-      category: newCategory,
-      votes: 1,
-      status: 'under-review',
-    };
-    setSuggestions(prev => [newSugg, ...prev]);
+
+    const { data, error } = await supabase
+      .from('topic_suggestions')
+      .insert([{ title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' }])
+      .select()
+      .single();
+
+    if (error) {
+      // Fallback: add locally anyway so the user sees their submission
+      const newSugg: Suggestion = { id: Date.now().toString(), title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' };
+      setSuggestions(prev => [newSugg, ...prev]);
+    } else if (data) {
+      setSuggestions(prev => [data as Suggestion, ...prev]);
+    }
+
     setNewTopic('');
     setNewCategory('');
     setFormState('success');
@@ -128,7 +163,7 @@ export default function SuggestPage() {
 
           <div className="flex flex-col gap-3">
             {suggestions.map((s, i) => {
-              const voted = votedIds.includes(s.id);
+              const voted = votedIds.has(s.id);
               const statusConfig = STATUS_COLORS[s.status];
               return (
                 <motion.div

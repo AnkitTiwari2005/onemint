@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Lora, Source_Serif_4, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ClientLayout } from "@/components/ClientLayout";
+import { ENV } from "@/lib/env";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://onemint.in",
+    url: "https://onemint-alpha.vercel.app",
     siteName: "OneMint",
     title: "OneMint — India's Most Trusted Knowledge Platform",
     description: "Expert articles on finance, tech, health & more. Free tools. Zero spam.",
@@ -105,6 +106,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="OneMint" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="OneMint" />
+        {/* Plausible Analytics */}
+        <script
+          defer
+          data-domain={ENV.PLAUSIBLE_DOMAIN}
+          src="https://plausible.io/js/script.js"
+        />
       </head>
       <body className={`${fontVars} min-h-screen flex flex-col`} suppressHydrationWarning>
         <a href="#main-content" className="skip-to-content">

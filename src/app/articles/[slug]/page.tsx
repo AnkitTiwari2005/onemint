@@ -11,7 +11,8 @@ import { RelatedArticles } from '@/components/RelatedArticles';
 import { TableOfContents } from '@/components/TableOfContents';
 import { FontSizeControl } from '@/components/FontSizeControl';
 import { GlossaryTooltip } from '@/components/GlossaryTooltip';
-import { Lightbulb, MessageSquare, ExternalLink, Clock, BookOpen } from 'lucide-react';
+import { GiscusComments } from '@/components/GiscusComments';
+import { Lightbulb, Clock, BookOpen } from 'lucide-react';
 
 export async function generateStaticParams() {
   return articles.map((article) => ({
@@ -261,29 +262,14 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             </div>
           )}
 
-          {/* ── Giscus Comments Placeholder ──────────────────── */}
+          {/* ── Giscus Comments ──────────────────────────────── */}
           <div className="comments-section mt-12 mb-16 border border-[var(--color-border)] rounded-3xl overflow-hidden">
             <div className="bg-[var(--color-surface-alt)] px-6 py-4 border-b border-[var(--color-border)] flex items-center gap-2">
-              <MessageSquare size={16} className="text-[var(--color-ink-secondary)]" />
               <h2 className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Discussion</h2>
               <span className="ml-auto text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">Powered by Giscus</span>
             </div>
-            <div className="p-8 text-center">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] flex items-center justify-center mx-auto mb-4">
-                <MessageSquare size={20} className="text-[var(--color-ink-tertiary)]" />
-              </div>
-              <p className="text-sm font-semibold text-[var(--color-ink)] mb-1 font-[family-name:var(--font-ui)]">Comments powered by Giscus</p>
-              <p className="text-xs text-[var(--color-ink-tertiary)] mb-4 font-[family-name:var(--font-ui)]">
-                Sign in with GitHub to join the discussion. Comments are backed by GitHub Discussions.
-              </p>
-              <a
-                href="https://giscus.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-accent)] hover:underline font-[family-name:var(--font-ui)]"
-              >
-                Configure Giscus for this repo <ExternalLink size={11} />
-              </a>
+            <div className="p-4">
+              <GiscusComments />
             </div>
           </div>
 

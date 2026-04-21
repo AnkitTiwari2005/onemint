@@ -51,13 +51,23 @@ export function Footer() {
     e.preventDefault();
     if (!email.trim() || formState === 'loading') return;
     setFormState('loading');
-    await new Promise(r => setTimeout(r, 1500));
-    setFormState('success');
-    setTimeout(() => { setFormState('idle'); setEmail(''); }, 5000);
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error('failed');
+      setFormState('success');
+      setTimeout(() => { setFormState('idle'); setEmail(''); }, 5000);
+    } catch {
+      setFormState('error');
+      setTimeout(() => setFormState('idle'), 4000);
+    }
   };
 
   return (
-    <footer style={{ background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)' }} className="hidden md:block">
+    <footer style={{ background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)' }} className="pb-16 md:pb-0">
       {/* Category color strip */}
       <div className="category-strip" />
 
