@@ -4,17 +4,20 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, Layout, Wrench, Search, Menu } from 'lucide-react';
+import { Home, Layout, Wrench, Search, Bookmark } from 'lucide-react';
 
-const navItems = [
+interface MobileBottomNavProps {
+  onSearchOpen?: () => void;
+}
+
+const staticItems = [
   { icon: Home, label: 'Home', href: '/' },
   { icon: Layout, label: 'Topics', href: '/topics' },
   { icon: Wrench, label: 'Tools', href: '/tools' },
-  { icon: Search, label: 'Search', href: '/search' },
-  { icon: Menu, label: 'More', href: '/about' },
+  { icon: Bookmark, label: 'Saved', href: '/saved' },
 ];
 
-export function MobileBottomNav() {
+export function MobileBottomNav({ onSearchOpen }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
@@ -36,7 +39,7 @@ export function MobileBottomNav() {
       aria-label="Mobile navigation"
     >
       <div className="flex items-center justify-around h-14 px-2">
-        {navItems.map(({ icon: Icon, label, href }) => {
+        {staticItems.map(({ icon: Icon, label, href }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href));
           return (
             <Link
@@ -44,10 +47,7 @@ export function MobileBottomNav() {
               href={href}
               className="relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] rounded-lg transition-colors"
             >
-              <motion.div
-                whileTap={{ scale: 1.2 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              >
+              <motion.div whileTap={{ scale: 1.2 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
                 <Icon
                   size={20}
                   strokeWidth={active ? 2.5 : 1.5}
@@ -67,6 +67,18 @@ export function MobileBottomNav() {
             </Link>
           );
         })}
+
+        {/* Search button — opens overlay, not /search route */}
+        <button
+          onClick={onSearchOpen}
+          className="relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] rounded-lg transition-colors"
+          aria-label="Open search"
+        >
+          <motion.div whileTap={{ scale: 1.2 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
+            <Search size={20} strokeWidth={1.5} className="text-[var(--color-ink-tertiary)]" />
+          </motion.div>
+          <span className="text-[10px] font-medium text-[var(--color-ink-tertiary)]">Search</span>
+        </button>
       </div>
       <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>

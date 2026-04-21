@@ -64,7 +64,7 @@ export function ClientLayout({ children }: { children: ReactNode }) {
         </motion.main>
       </AnimatePresence>
       <Footer />
-      <MobileBottomNav />
+      <MobileBottomNav onSearchOpen={() => setSearchOpen(true)} />
       <CookieBanner />
       <BackToTop />
     </ToastProvider>

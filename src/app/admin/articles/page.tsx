@@ -1,17 +1,39 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { articles } from '@/data/articles';
+import { articles as baseArticles, Article } from '@/data/articles';
 import { categories } from '@/data/categories';
-import { Plus, Search, Eye, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Search, Eye, Pencil, Trash2, ChevronUp, ChevronDown, ExternalLink } from 'lucide-react';
 
 type SortField = 'title' | 'date' | 'readTime';
 type SortDir = 'asc' | 'desc';
 
 const PAGE_SIZE = 10;
 
+function getAllArticles(): Article[] {
+  try {
+    const custom = JSON.parse(localStorage.getItem('admin_articles_custom') || '[]') as Article[];
+    const customIds = new Set(custom.map((a) => a.id));
+    return [...custom, ...baseArticles.filter((a) => !customIds.has(a.id))]
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  } catch {
+    return baseArticles;
+  }
+}
+
+function deleteArticle(id: string) {
+  try {
+    const custom = JSON.parse(localStorage.getItem('admin_articles_custom') || '[]') as Article[];
+    const updated = custom.filter((a) => a.id !== id);
+    localStorage.setItem('admin_articles_custom', JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+}
+
 export default function AdminArticlesPage() {
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [query, setQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortField, setSortField] = useState<SortField>('date');
@@ -19,14 +41,16 @@ export default function AdminArticlesPage() {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+  useEffect(() => { setAllArticles(getAllArticles()); }, []);
+
   const filtered = useMemo(() => {
-    let list = [...articles];
+    let list = [...allArticles];
     if (query) list = list.filter((a) => a.title.toLowerCase().includes(query.toLowerCase()));
     if (sortField === 'title') list.sort((a, b) => sortDir === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
     if (sortField === 'date') list.sort((a, b) => sortDir === 'asc' ? a.publishedAt.localeCompare(b.publishedAt) : b.publishedAt.localeCompare(a.publishedAt));
     if (sortField === 'readTime') list.sort((a, b) => sortDir === 'asc' ? a.readTimeMinutes - b.readTimeMinutes : b.readTimeMinutes - a.readTimeMinutes);
     return list;
-  }, [query, sortField, sortDir]);
+  }, [allArticles, query, sortField, sortDir]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -44,7 +68,7 @@ export default function AdminArticlesPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 4px' }}>Articles</h1>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>{articles.length} total articles</p>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>{allArticles.length} total articles</p>
         </div>
         <Link href="/admin/articles/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--color-accent)', color: 'white', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
           <Plus size={15} /> New Article
@@ -105,9 +129,13 @@ export default function AdminArticlesPage() {
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                      <Link href={`/articles/${a.slug}`} title="View" style={{ color: 'var(--color-ink-tertiary)', padding: 4, borderRadius: 4, display: 'flex' }}>
-                        <Eye size={15} />
-                      </Link>
+                      <button
+                        title="View live"
+                        onClick={() => window.open(`/articles/${a.slug}`, '_blank')}
+                        style={{ color: 'var(--color-ink-tertiary)', padding: 4, borderRadius: 4, display: 'flex', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        <ExternalLink size={15} />
+                      </button>
                       <Link href={`/admin/articles/${a.id}/edit`} title="Edit" style={{ color: 'var(--color-ink-secondary)', padding: 4, borderRadius: 4, display: 'flex' }}>
                         <Pencil size={15} />
                       </Link>
@@ -143,7 +171,13 @@ export default function AdminArticlesPage() {
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 20 }}>This action cannot be undone. The article will be permanently removed.</p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+              <button onClick={() => {
+                if (deleteTarget) {
+                  deleteArticle(deleteTarget);
+                  setAllArticles(getAllArticles());
+                }
+                setDeleteTarget(null);
+              }} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         </div>

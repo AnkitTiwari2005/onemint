@@ -2,111 +2,71 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy',
-  description: 'Understand what cookies OneMint uses, why, and how you can control them.',
-  robots: { index: true, follow: true },
+  title: 'Cookie Policy — OneMint',
+  description: 'How OneMint uses cookies and how you can control them. Clear breakdown of functional, analytics, and advertising cookies.',
 };
 
-const EFFECTIVE_DATE = 'April 19, 2026';
-
-const COOKIES = [
-  { name: 'onemint-prefs', purpose: 'Stores your theme (light/dark), font size, and bookmarks', duration: '1 year', type: 'Functional' },
-  { name: '_ga, _gid', purpose: 'Google Analytics — tracks aggregate page views and user behaviour', duration: '2 years / 24 hours', type: 'Analytics' },
-  { name: '_gat', purpose: 'Google Analytics — rate limiter', duration: '1 minute', type: 'Analytics' },
-  { name: '__gads, __gpi', purpose: 'Google AdSense — frequency capping and ad performance tracking', duration: '13 months', type: 'Advertising' },
-  { name: 'CONSENT, NID', purpose: 'Google consent and preference tracking for ads', duration: 'Session / 6 months', type: 'Advertising' },
-  { name: 'cookie_consent', purpose: 'Remembers whether you accepted or declined optional cookies', duration: '1 year', type: 'Functional' },
+const COOKIE_TABLE = [
+  { name: 'onemint-prefs', purpose: 'Stores your theme, font size, and bookmarked articles', duration: '1 year', type: 'Functional' },
+  { name: 'cookie_consent', purpose: 'Records whether you accepted or declined optional cookies', duration: '1 year', type: 'Functional' },
+  { name: '_ga', purpose: 'Google Analytics — distinguishes users', duration: '2 years', type: 'Analytics' },
+  { name: '_ga_*', purpose: 'Google Analytics — maintains session state', duration: '2 years', type: 'Analytics' },
+  { name: 'NID, DSID, IDE', purpose: 'Google AdSense — personalises and measures ads', duration: 'Session / 13 months', type: 'Advertising' },
 ];
 
 export default function CookiePolicyPage() {
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 40 }}>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            background: 'var(--color-surface-alt)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 20,
-            padding: '6px 14px',
-            fontFamily: 'var(--font-ui)',
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--color-ink-secondary)',
-            marginBottom: 20,
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase' as const,
-          }}
-        >
-          Last Updated: {EFFECTIVE_DATE}
-        </div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(28px, 5vw, 42px)',
-            fontWeight: 700,
-            color: 'var(--color-ink)',
-            lineHeight: 1.2,
-            marginBottom: 16,
-          }}
-        >
-          Cookie Policy
-        </h1>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 18, color: 'var(--color-ink-secondary)', lineHeight: 1.7 }}>
-          This policy explains what cookies are, which ones OneMint uses, and how you can manage them.
-        </p>
-      </div>
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '64px 24px 80px' }}>
+      {/* Breadcrumb */}
+      <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 36, display: 'flex', gap: 8 }}>
+        <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
+        <span>›</span>
+        <span style={{ color: 'var(--color-ink)' }}>Cookie Policy</span>
+      </nav>
 
-      <div className="article-body">
-        <h2 id="what-are-cookies">1. What Are Cookies?</h2>
-        <p>
-          Cookies are small text files placed on your device (computer, phone, or tablet) by websites
-          you visit. They help websites remember your preferences, understand how you use the site, and
-          show you relevant content and ads.
-        </p>
-        <p>
-          Cookies do not contain personally identifiable information by themselves. They store small
-          pieces of data — like a unique ID or your preference settings — that are read by the website
-          each time you visit.
+      <span style={{ display: 'inline-block', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 6, padding: '4px 10px', marginBottom: 16 }}>
+        Last updated: April 2026
+      </span>
+
+      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 24 }}>Cookie Policy</h1>
+
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.8 }}>
+        <p style={{ marginBottom: 20 }}>
+          This Cookie Policy explains how OneMint (&quot;we,&quot; &quot;our,&quot; &quot;us&quot;) uses cookies and similar technologies when you visit onemint.com. By using our site, you consent to the use of cookies as described in this policy. You can change your preferences at any time using our Cookie Consent banner.
         </p>
 
-        <h2 id="cookies-we-use">2. Cookies OneMint Uses</h2>
-        <p>
-          The table below lists all cookies currently in use on OneMint, their purpose, and how long
-          they last.
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>What Are Cookies?</h2>
+        <p style={{ marginBottom: 20 }}>
+          Cookies are small text files stored on your device when you visit a website. They allow the site to remember your preferences, keep you logged in, and understand how you use the site. Cookies cannot run programs or deliver viruses to your computer.
+        </p>
+        <p style={{ marginBottom: 20 }}>
+          We also use technologies similar to cookies, such as <strong>localStorage</strong> and <strong>sessionStorage</strong>, which store data in your browser rather than on the server. These are used to save your reading preferences and bookmarks.
         </p>
 
-        {/* Cookie table */}
-        <div style={{ overflowX: 'auto', margin: '1.5em 0' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>Cookies We Use</h2>
+        <p style={{ marginBottom: 20 }}>The table below describes every cookie and local storage item placed by OneMint or our trusted third-party partners:</p>
+
+        {/* Cookie Table */}
+        <div style={{ overflowX: 'auto', marginBottom: 28, borderRadius: 10, border: '1px solid var(--color-border)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
             <thead>
               <tr style={{ background: 'var(--color-surface-alt)' }}>
-                <th style={{ padding: '10px 14px', textAlign: 'left', borderBottom: '2px solid var(--color-border-strong)', fontWeight: 600 }}>Cookie Name</th>
-                <th style={{ padding: '10px 14px', textAlign: 'left', borderBottom: '2px solid var(--color-border-strong)', fontWeight: 600 }}>Purpose</th>
-                <th style={{ padding: '10px 14px', textAlign: 'left', borderBottom: '2px solid var(--color-border-strong)', fontWeight: 600, whiteSpace: 'nowrap' }}>Duration</th>
-                <th style={{ padding: '10px 14px', textAlign: 'left', borderBottom: '2px solid var(--color-border-strong)', fontWeight: 600 }}>Type</th>
+                {['Cookie Name', 'Purpose', 'Duration', 'Type'].map((h) => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: 'var(--color-ink)', fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {COOKIES.map((c, i) => (
-                <tr key={c.name} style={{ background: i % 2 === 0 ? 'transparent' : 'var(--color-surface-alt)' }}>
-                  <td style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>{c.name}</td>
-                  <td style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)', color: 'var(--color-ink-secondary)' }}>{c.purpose}</td>
-                  <td style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap', color: 'var(--color-ink-secondary)' }}>{c.duration}</td>
-                  <td style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)' }}>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '2px 8px',
-                      borderRadius: 10,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: c.type === 'Functional' ? 'var(--color-cat-finance-light)' : c.type === 'Analytics' ? 'var(--color-cat-technology-light)' : '#FEF3C7',
-                      color: c.type === 'Functional' ? 'var(--color-cat-finance)' : c.type === 'Analytics' ? 'var(--color-cat-technology)' : '#92400E',
-                    }}>
-                      {c.type}
-                    </span>
+              {COOKIE_TABLE.map((row, i) => (
+                <tr key={row.name} style={{ borderBottom: i < COOKIE_TABLE.length - 1 ? '1px solid var(--color-border)' : 'none', background: i % 2 === 1 ? 'var(--color-surface-alt)' : 'var(--color-surface)' }}>
+                  <td style={{ padding: '11px 14px', fontWeight: 600, color: 'var(--color-ink)', fontFamily: 'monospace', fontSize: 13, whiteSpace: 'nowrap' }}>{row.name}</td>
+                  <td style={{ padding: '11px 14px', color: 'var(--color-ink-secondary)', lineHeight: 1.5 }}>{row.purpose}</td>
+                  <td style={{ padding: '11px 14px', color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap' }}>{row.duration}</td>
+                  <td style={{ padding: '11px 14px' }}>
+                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700,
+                      background: row.type === 'Functional' ? '#ECFDF5' : row.type === 'Analytics' ? '#EFF6FF' : '#FFF7ED',
+                      color: row.type === 'Functional' ? '#065F46' : row.type === 'Analytics' ? '#1D4ED8' : '#92400E',
+                    }}>{row.type}</span>
                   </td>
                 </tr>
               ))}
@@ -114,61 +74,45 @@ export default function CookiePolicyPage() {
           </table>
         </div>
 
-        <h2 id="how-to-control">3. How to Control Cookies</h2>
-        <p>
-          You can control or delete cookies at any time through your browser settings. Here&rsquo;s how
-          for the most popular browsers:
-        </p>
-        <ul>
-          <li>
-            <strong>Google Chrome:</strong> Settings → Privacy and security → Cookies and other site data
-          </li>
-          <li>
-            <strong>Mozilla Firefox:</strong> Settings → Privacy &amp; Security → Cookies and Site Data
-          </li>
-          <li>
-            <strong>Safari (iOS/macOS):</strong> Settings/Preferences → Privacy → Manage Website Data
-          </li>
-          <li>
-            <strong>Microsoft Edge:</strong> Settings → Cookies and site permissions → Manage and delete cookies
-          </li>
-        </ul>
-        <p>
-          Note: disabling all cookies will prevent some OneMint features from working, such as your
-          saved theme preference and bookmarks.
-        </p>
-        <p>
-          To opt out of Google Analytics specifically, install the{' '}
-          <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">
-            Google Analytics Opt-out Browser Add-on
-          </a>
-          . To manage Google ad preferences, visit{' '}
-          <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">
-            Google Ad Settings
-          </a>
-          .
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>How to Control Cookies</h2>
+        <p style={{ marginBottom: 16 }}>You can control and/or delete cookies at any time. You can opt out of optional cookies using the cookie banner at the bottom of our site. Here&apos;s how to manage cookies in common browsers:</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
+          {[
+            { browser: 'Google Chrome', steps: 'Open Chrome → click the three-dot menu (⋮) → Settings → Privacy and security → Cookies and other site data → See all cookies and site data → search for "onemint" → click the trash icon.' },
+            { browser: 'Mozilla Firefox', steps: 'Open Firefox → click the menu (☰) → Settings → Privacy & Security → Cookies and Site Data → Manage Data → search for "onemint.com" → Remove Selected.' },
+            { browser: 'Apple Safari', steps: 'Open Safari → Preferences → Privacy → Manage Website Data → search for "onemint" → Remove. On iPhone: Settings → Safari → Advanced → Website Data → search for "onemint" → swipe left to delete.' },
+          ].map((b) => (
+            <div key={b.browser} style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '16px 20px' }}>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 6 }}>{b.browser}</p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.6 }}>{b.steps}</p>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ marginBottom: 20 }}>
+          Please note that disabling cookies may affect the functionality of our site — for example, your theme preference and bookmarked articles may not be saved.
         </p>
 
-        <h2 id="consent">4. Cookie Consent</h2>
-        <p>
-          When you first visit OneMint, you will see a cookie consent banner at the bottom of the screen.
-          You may:
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>Third-Party Cookies</h2>
+        <p style={{ marginBottom: 20 }}>
+          We use the following third-party services that may set their own cookies:
         </p>
-        <ul>
-          <li><strong>Accept all:</strong> Enables all cookies, including analytics and advertising cookies.</li>
-          <li><strong>Decline optional:</strong> Disables analytics and advertising cookies. Only strictly
-          functional cookies (like your theme preference) are used.</li>
+        <ul style={{ paddingLeft: 20, marginBottom: 20 }}>
+          <li style={{ marginBottom: 8 }}><strong>Google Analytics (Umami)</strong> — Privacy-first analytics using anonymised data. No cross-site tracking.</li>
+          <li style={{ marginBottom: 8 }}><strong>Google AdSense</strong> — Advertising cookies. Opt out via <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-accent)' }}>Google&apos;s Ad Settings</a>.</li>
+          <li style={{ marginBottom: 8 }}><strong>Brevo (newsletter)</strong> — Used only for newsletter subscribers. No tracking on the main site.</li>
         </ul>
-        <p>
-          Your choice is stored in the <code>cookie_consent</code> cookie for 1 year. You can change
-          your choice at any time by clearing your cookies.
+
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>Updates to This Policy</h2>
+        <p style={{ marginBottom: 20 }}>
+          We may update this Cookie Policy from time to time. When we do, we will update the &quot;last updated&quot; date at the top of the page. Continued use of our site after updates constitutes acceptance of the revised policy.
         </p>
 
-        <h2 id="contact">5. Questions?</h2>
-        <p>
-          For any questions about our use of cookies, contact us at{' '}
-          <a href="mailto:privacy@onemint.com">privacy@onemint.com</a>. You can also read our full{' '}
-          <Link href="/privacy-policy">Privacy Policy</Link> for more information on how we handle data.
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>Contact</h2>
+        <p style={{ marginBottom: 0 }}>
+          If you have questions about our use of cookies, please contact us at{' '}
+          <a href="mailto:privacy@onemint.com" style={{ color: 'var(--color-accent)' }}>privacy@onemint.com</a>.
         </p>
       </div>
     </div>

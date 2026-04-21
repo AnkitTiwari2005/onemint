@@ -3,7 +3,7 @@
 import { AlertTriangle } from 'lucide-react';
 
 interface DisclaimerBoxProps {
-  variant?: 'calculator' | 'article' | 'full';
+  variant?: 'calculator' | 'article' | 'full' | 'compact';
 }
 
 export function DisclaimerBox({ variant = 'calculator' }: DisclaimerBoxProps) {

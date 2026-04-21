@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, AlertTriangle } from 'lucide-react';
+import { Save, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 type SettingsState = {
   siteName: string;
@@ -78,18 +78,35 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULTS);
   const [saved, setSaved] = useState(false);
   const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const DEFAULT_ADMIN_PW = 'onemint2025';
 
   const set = (key: keyof SettingsState, value: string | boolean | number) => setSettings((prev) => ({ ...prev, [key]: value }));
 
   const inputStyle = { width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' as const };
 
   const saveAll = () => {
-    if (settings.newPassword && settings.newPassword !== settings.confirmPassword) {
-      setPwError('Passwords do not match.'); return;
+    // Handle password change if fields are filled
+    if (settings.currentPassword || settings.newPassword || settings.confirmPassword) {
+      const storedPw = localStorage.getItem('admin_password') || DEFAULT_ADMIN_PW;
+      if (settings.currentPassword !== storedPw) {
+        setPwError('Incorrect current password.'); return;
+      }
+      if (!settings.newPassword || settings.newPassword.length < 6) {
+        setPwError('New password must be at least 6 characters.'); return;
+      }
+      if (settings.newPassword !== settings.confirmPassword) {
+        setPwError('Passwords do not match.'); return;
+      }
+      localStorage.setItem('admin_password', settings.newPassword);
+      setPwSuccess(true);
+      setTimeout(() => setPwSuccess(false), 3000);
+      setSettings(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
     }
+    setPwError('');
     localStorage.setItem('onemint_admin_settings', JSON.stringify(settings));
     setSaved(true); setTimeout(() => setSaved(false), 2500);
-    setPwError('');
   };
 
   return (
@@ -184,6 +201,11 @@ export default function AdminSettingsPage() {
           {pwError && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#DC2626', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
               <AlertTriangle size={14} /> {pwError}
+            </div>
+          )}
+          {pwSuccess && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#16A34A', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
+              <CheckCircle2 size={14} /> Password changed successfully.
             </div>
           )}
         </div>

@@ -6,30 +6,38 @@ import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence }
 import Image from 'next/image';
 import { categories } from '@/data/categories';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Search, Moon, Sun, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, Moon, Sun, Menu, X, ChevronDown, BookOpen, Users, Lightbulb, Bookmark, PenSquare, Info, Phone } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 interface HeaderProps {
   onSearchOpen: () => void;
 }
 
+const MORE_ITEMS = [
+  { label: 'About OneMint', href: '/about', icon: Info, sub: 'Our story and mission' },
+  { label: 'Contact Us', href: '/contact', icon: Phone, sub: 'Get in touch' },
+  { label: 'Write for Us', href: '/contribute', icon: PenSquare, sub: 'Share your expertise' },
+  { label: 'Saved Articles', href: '/saved', icon: Bookmark, sub: 'Your reading list' },
+  { label: 'Suggest a Topic', href: '/suggest', icon: Lightbulb, sub: 'Vote on future articles' },
+  { label: 'Article Series', href: '/series', icon: BookOpen, sub: 'Multi-part deep dives' },
+];
+
 export function Header({ onSearchOpen }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const [hidden, setHidden] = useState(false);
   const prevScrollY = useRef(0);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
 
-  // Derived values from scroll
   const headerBg = useTransform(scrollY, [0, 60], ['rgba(255,255,255,0)', 'rgba(255,255,255,0.92)']);
   const headerBgDark = useTransform(scrollY, [0, 60], ['rgba(28,28,26,0)', 'rgba(28,28,26,0.92)']);
   const headerShadow = useTransform(scrollY, [0, 60], ['0 0 0 rgba(0,0,0,0)', '0 1px 3px rgba(0,0,0,0.06)']);
   const headerHeight = useTransform(scrollY, [0, 60], [72, 60]);
-  const logoSize = useTransform(scrollY, [0, 60], [24, 20]);
 
-  // Hide header on mobile scroll down
   useMotionValueEvent(scrollY, 'change', (latest) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       const direction = latest > prevScrollY.current ? 'down' : 'up';
@@ -55,13 +63,25 @@ export function Header({ onSearchOpen }: HeaderProps) {
         e.preventDefault();
         onSearchOpen();
       }
-      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
-        // could open shortcuts modal here
+      if (e.key === 'Escape') {
+        setMoreOpen(false);
+        setMegaOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onSearchOpen]);
+
+  // Close "More" on outside click
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    if (moreOpen) document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [moreOpen]);
 
   const toggleDark = () => {
     const next = dark ? 'light' : 'dark';
@@ -97,10 +117,10 @@ export function Header({ onSearchOpen }: HeaderProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center group" aria-label="OneMint Home">
             <div className="relative w-[140px] h-[36px] transition-transform duration-300 group-hover:scale-105">
-              <Image 
-                src="/logo.png" 
-                alt="OneMint" 
-                fill 
+              <Image
+                src="/logo.png"
+                alt="OneMint"
+                fill
                 className="object-contain object-left"
                 priority
               />
@@ -145,6 +165,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
                             key={cat.id}
                             href={`/topics/${cat.slug}`}
                             className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--color-surface-alt)] transition-colors group/cat"
+                            onClick={() => setMegaOpen(false)}
                           >
                             <span style={{ color: cat.accentColor }}><CategoryIcon categoryId={cat.id} size={20} /></span>
                             <div>
@@ -163,6 +184,46 @@ export function Header({ onSearchOpen }: HeaderProps) {
                 </AnimatePresence>
               </div>
             ))}
+
+            {/* More Dropdown */}
+            <div ref={moreRef} className="relative">
+              <button
+                onClick={() => setMoreOpen(!moreOpen)}
+                className="relative px-4 py-2 text-sm font-medium text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors flex items-center gap-1 rounded-lg"
+              >
+                More
+                <motion.span animate={{ rotate: moreOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown size={14} />
+                </motion.span>
+              </button>
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="absolute top-full right-0 w-56 bg-[var(--color-surface)] rounded-xl shadow-[var(--shadow-modal)] p-2 border border-[var(--color-border)]"
+                    style={{ marginTop: 4 }}
+                  >
+                    {MORE_ITEMS.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMoreOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--color-surface-alt)] transition-colors group/more"
+                      >
+                        <item.icon size={15} className="text-[var(--color-ink-tertiary)] group-hover/more:text-[var(--color-accent)] transition-colors flex-shrink-0" />
+                        <div>
+                          <div className="text-sm font-medium text-[var(--color-ink)] group-hover/more:text-[var(--color-accent)] transition-colors">{item.label}</div>
+                          <div className="text-xs text-[var(--color-ink-tertiary)]">{item.sub}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Utility */}
@@ -235,17 +296,17 @@ export function Header({ onSearchOpen }: HeaderProps) {
           >
             <div className="p-6 space-y-6">
               <div className="space-y-1">
-                {navLinks.map((link, i) => (
+                {[...navLinks, ...MORE_ITEMS.map(m => ({ label: m.label, href: m.href }))].map((link, i) => (
                   <motion.div
                     key={link.label}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: i * 0.04 }}
                   >
                     <Link
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block px-4 py-3 text-lg font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-alt)] rounded-lg transition-colors"
+                      className="block px-4 py-3 text-base font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-alt)] rounded-lg transition-colors"
                     >
                       {link.label}
                     </Link>
