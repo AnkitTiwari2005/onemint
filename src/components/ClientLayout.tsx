@@ -32,8 +32,12 @@ export function ClientLayout({ children }: { children: ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
 
+  // Admin routes get a completely clean slate — no site chrome, no motion wrappers
+  const isAdmin = pathname?.startsWith('/admin');
+
   // Keyboard shortcut: Cmd+K / Ctrl+K to open search
   useEffect(() => {
+    if (isAdmin) return;
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -42,7 +46,12 @@ export function ClientLayout({ children }: { children: ReactNode }) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [isAdmin]);
+
+  // Admin: render children directly, no site header/footer/nav/motion wrapper
+  if (isAdmin) {
+    return <ToastProvider>{children}</ToastProvider>;
+  }
 
   return (
     <ToastProvider>
