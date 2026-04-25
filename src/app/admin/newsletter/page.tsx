@@ -57,15 +57,15 @@ export default function AdminNewsletterPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+      {/* Stats — 2×2 grid on mobile, 4-col on desktop */}
+      <div className="admin-stat-grid" style={{ display: 'grid', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Total Subscribers', value: '5,00,000', icon: Users, color: '#7C3AED' },
           { label: 'Active', value: active.toLocaleString(), icon: CheckCircle2, color: '#16A34A' },
           { label: 'Unsubscribed', value: subscribers.filter((s) => s.status === 'unsubscribed').length.toString(), icon: Mail, color: '#DC2626' },
           { label: 'Open Rate', value: '34.7%', icon: TrendingUp, color: '#D97706' },
         ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} style={{ flex: 1, minWidth: 140, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '14px 18px' }}>
+          <div key={label} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '14px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <Icon size={15} color={color} />
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{label}</span>
@@ -85,19 +85,20 @@ export default function AdminNewsletterPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="admin-table-wrap" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--color-surface-alt)' }}>
               {['Name', 'Email', 'Subscribed', 'Interests', 'Status', 'Action'].map((h) => (
-                <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</th>
+                <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.map((s, i) => (
               <tr key={s.id} style={{ borderTop: '1px solid var(--color-border)', background: i % 2 === 1 ? 'var(--color-surface-alt)' : 'transparent' }}>
-                <td style={{ padding: '11px 16px', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)' }}>{s.name}</td>
+                <td style={{ padding: '11px 16px', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', whiteSpace: 'nowrap' }}>{s.name}</td>
                 <td style={{ padding: '11px 16px', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)' }}>{s.email}</td>
                 <td style={{ padding: '11px 16px', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap' }}>{s.date}</td>
                 <td style={{ padding: '11px 16px' }}>
@@ -106,19 +107,20 @@ export default function AdminNewsletterPage() {
                   </div>
                 </td>
                 <td style={{ padding: '11px 16px' }}>
-                  <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: s.status === 'active' ? '#D1FAE5' : 'var(--color-surface-alt)', color: s.status === 'active' ? '#065F46' : 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600 }}>
+                  <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: s.status === 'active' ? '#D1FAE5' : 'var(--color-surface-alt)', color: s.status === 'active' ? '#065F46' : 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
                   </span>
                 </td>
                 <td style={{ padding: '11px 16px' }}>
                   {s.status === 'active' && (
-                    <button onClick={() => unsubscribe(s.id)} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 11, cursor: 'pointer' }}>Unsubscribe</button>
+                    <button onClick={() => unsubscribe(s.id)} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>Unsubscribe</button>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Toast */}

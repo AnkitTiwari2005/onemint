@@ -796,9 +796,9 @@ input[type="range"]::-moz-range-thumb {
 /* Admin page inner content padding */
 .admin-page-inner { padding: 32px; }
 
-/* Dashboard stat cards: 2-col on desktop, 2-col on mobile (smaller cards) */
+/* Dashboard stat cards: auto-fill cols on desktop, 2-col on mobile */
 .admin-stat-grid {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
 
 /* Dashboard 2-col panels (Recent Articles + Suggestions) */
