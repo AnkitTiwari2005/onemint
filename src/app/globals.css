@@ -824,43 +824,62 @@ input[type="range"]::-moz-range-thumb {
 
 /* ---- Mobile overrides ---- */
 @media (max-width: 768px) {
-  /* Padding */
+  /* ---- Padding ---- */
   .admin-page-inner { padding: 16px; }
 
-  /* Stat cards: stay 2-col but smaller */
+  /* ---- Stat cards ----
+     min-width:0 on each grid item is CRITICAL — without it, the implicit
+     minimum content width can force 1fr tracks wider than the viewport. */
   .admin-stat-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
-
-  /* 2-col panels stack */
-  .admin-2col-grid { grid-template-columns: 1fr; }
-
-  /* Form grids collapse */
-  .admin-form-2col { grid-template-columns: 1fr !important; }
-
-  /* Quick actions: horizontal scroll strip */
-  .admin-quick-actions {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;
-    gap: 8px;
-  }
-  .admin-quick-actions a {
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-
-  /* Reduce stat card padding */
   .admin-stat-grid > div {
-    padding: 14px 12px !important;
+    min-width: 0;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 12px 14px !important;
+    overflow: hidden;
   }
   .admin-stat-grid > div p:first-child {
-    font-size: 20px !important;
+    font-size: 18px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    margin: 0 !important;
+  }
+  .admin-stat-grid > div p:last-child {
+    font-size: 11px !important;
+    margin: 0 !important;
   }
 
-  /* Suggestion action buttons: stack on very small screens */
+  /* ---- 2-col dashboard panels stack ---- */
+  .admin-2col-grid { grid-template-columns: 1fr; }
+
+  /* ---- Form grids collapse ---- */
+  .admin-form-2col { grid-template-columns: 1fr !important; }
+
+  /* ---- Quick actions: 2-column grid, primary btn full-width ---- */
+  .admin-quick-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex-wrap: unset;
+    overflow: visible;
+  }
+  .admin-quick-actions a {
+    flex-shrink: unset;
+    white-space: normal;
+    justify-content: flex-start;
+  }
+  .admin-quick-actions a:first-child {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  /* ---- Suggestion action buttons ---- */
   .admin-suggestion-actions {
     flex-wrap: wrap;
     justify-content: flex-end;
