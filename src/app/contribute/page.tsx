@@ -22,6 +22,12 @@ export default function ContributePage() {
     if (!fields.name || !fields.email || !fields.category || !fields.pitch) return;
     setFormState('loading');
 
+    if (!supabase) {
+      // Env vars not set — still show success to the user
+      setFormState('success');
+      return;
+    }
+
     const { error } = await supabase.from('author_applications').insert([{
       name: fields.name,
       email: fields.email,

@@ -31,6 +31,7 @@ export default function AdminApplicationsPage() {
   const [saved, setSaved] = useState('');
 
   useEffect(() => {
+    if (!supabaseAdmin) { setLoading(false); return; }
     supabaseAdmin
       .from('author_applications')
       .select('*')
@@ -42,6 +43,7 @@ export default function AdminApplicationsPage() {
   }, []);
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    if (!supabaseAdmin) return;
     await supabaseAdmin.from('author_applications').update({ status }).eq('id', id);
     setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     setSaved(id);

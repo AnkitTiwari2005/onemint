@@ -36,15 +36,13 @@ export function MobileBottomNav({ onSearchOpen }: MobileBottomNavProps) {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="md:hidden"
+      className="flex flex-col md:hidden"
       style={{
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 9990,
-        display: 'flex',
-        flexDirection: 'column',
         background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
         borderTop: '1px solid var(--color-border)',
         backdropFilter: 'blur(20px) saturate(180%)',

@@ -21,6 +21,7 @@ export default function AdminMessagesPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabaseAdmin) { setLoading(false); return; }
     supabaseAdmin
       .from('contact_messages')
       .select('*')
@@ -32,11 +33,13 @@ export default function AdminMessagesPage() {
   }, []);
 
   const markRead = async (id: string) => {
+    if (!supabaseAdmin) return;
     await supabaseAdmin.from('contact_messages').update({ read: true }).eq('id', id);
     setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
   };
 
   const deleteMsg = async (id: string) => {
+    if (!supabaseAdmin) return;
     await supabaseAdmin.from('contact_messages').delete().eq('id', id);
     const remaining = messages.filter(m => m.id !== id);
     setMessages(remaining);

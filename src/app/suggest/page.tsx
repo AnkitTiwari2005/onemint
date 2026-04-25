@@ -53,6 +53,7 @@ export default function SuggestPage() {
 
   // Fetch real data from Supabase, merge with seed
   useEffect(() => {
+    if (!supabase) return;
     supabase
       .from('topic_suggestions')
       .select('*')
@@ -110,18 +111,23 @@ export default function SuggestPage() {
     if (!newTopic.trim() || !newCategory) return;
     setFormState('loading');
 
-    const { data, error } = await supabase
-      .from('topic_suggestions')
-      .insert([{ title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' }])
-      .select()
-      .single();
-
-    if (error) {
-      // Fallback: add locally anyway so the user sees their submission
+    if (!supabase) {
+      // No DB connection — add locally
       const newSugg: Suggestion = { id: Date.now().toString(), title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' };
       setSuggestions(prev => [newSugg, ...prev]);
-    } else if (data) {
-      setSuggestions(prev => [data as Suggestion, ...prev]);
+    } else {
+      const { data, error } = await supabase
+        .from('topic_suggestions')
+        .insert([{ title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' }])
+        .select()
+        .single();
+
+      if (error) {
+        const newSugg: Suggestion = { id: Date.now().toString(), title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' };
+        setSuggestions(prev => [newSugg, ...prev]);
+      } else if (data) {
+        setSuggestions(prev => [data as Suggestion, ...prev]);
+      }
     }
 
     setNewTopic('');

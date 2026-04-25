@@ -47,6 +47,11 @@ export default function ContactPage() {
     if (!isValid) return;
     setFormState('loading');
 
+    if (!supabase) {
+      setFormState('success');
+      return;
+    }
+
     const { error } = await supabase.from('contact_messages').insert([{
       name: fields.name,
       email: fields.email,
