@@ -94,22 +94,30 @@ export default function AdminSuggestionsPage() {
           const open = expanded === s.id;
           return (
             <div key={s.id} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
-                <input type="checkbox" checked={selected.includes(s.id)} onChange={() => toggleSelect(s.id)} style={{ width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }} />
+              {/* Card header — just checkbox + text column */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px' }}>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(s.id)}
+                  onChange={() => toggleSelect(s.id)}
+                  style={{ width: 16, height: 16, flexShrink: 0, cursor: 'pointer', marginTop: 2 }}
+                />
+                {/* Full-width text column — title, votes, then controls */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 3px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</p>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 4px', lineHeight: 1.4 }}>{s.title}</p>
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: '0 0 10px' }}>
                     👍 {s.votes} votes · {s.category}
                   </p>
-                </div>
-                <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 10, background: style.bg, color: style.color, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>{style.label}</span>
-                <div className="admin-suggestion-actions" style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap' }}>
-                  {s.status === 'pending' && <button onClick={() => update(s.id, 'in-progress')} title="Mark In Progress" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #2563EB', background: '#EFF6FF', color: '#1D4ED8', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><Clock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />In Progress</button>}
-                  {s.status !== 'published' && s.status !== 'dismissed' && <button onClick={() => update(s.id, 'published')} title="Mark Published" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #16A34A', background: '#D1FAE5', color: '#065F46', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><CheckCircle2 size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Published</button>}
-                  {s.status !== 'dismissed' && <button onClick={() => update(s.id, 'dismissed')} title="Dismiss" style={{ padding: '5px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex' }}><XCircle size={13} /></button>}
-                  <button onClick={() => setExpanded(open ? null : s.id)} style={{ padding: '5px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex' }}>
-                    {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                  </button>
+                  {/* Badge + actions row — wraps naturally on narrow screens */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 10, background: style.bg, color: style.color, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{style.label}</span>
+                    {s.status === 'pending' && <button onClick={() => update(s.id, 'in-progress')} title="Mark In Progress" style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #2563EB', background: '#EFF6FF', color: '#1D4ED8', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><Clock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />In Progress</button>}
+                    {s.status !== 'published' && s.status !== 'dismissed' && <button onClick={() => update(s.id, 'published')} title="Mark Published" style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #16A34A', background: '#D1FAE5', color: '#065F46', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><CheckCircle2 size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Published</button>}
+                    {s.status !== 'dismissed' && <button onClick={() => update(s.id, 'dismissed')} title="Dismiss" style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><XCircle size={13} /></button>}
+                    <button onClick={() => setExpanded(open ? null : s.id)} style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                      {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                    </button>
+                  </div>
                 </div>
               </div>
               {open && (
@@ -119,6 +127,7 @@ export default function AdminSuggestionsPage() {
                 </div>
               )}
             </div>
+
           );
         })}
       </div>
