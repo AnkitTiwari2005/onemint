@@ -56,44 +56,41 @@ export function ArticleCard({ article, variant = 'standard', index = 0, priority
             alt={article.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
             priority={priority}
           />
         </motion.div>
 
-        <div className="p-5">
+        <div className="p-3 sm:p-5">
           {category && (
             <span
-              className="inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider mb-3"
+              className="inline-block px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-2 sm:mb-3"
               style={{ background: category.lightColor, color: category.accentColor }}
             >
               {category.name}
             </span>
           )}
-          <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold text-[var(--color-ink)] line-clamp-2 mb-2 group-hover:text-[var(--color-accent)] transition-colors leading-snug">
+          <h3 className="font-[family-name:var(--font-heading)] text-sm sm:text-lg font-semibold text-[var(--color-ink)] line-clamp-2 mb-1.5 sm:mb-2 group-hover:text-[var(--color-accent)] transition-colors leading-snug">
             {article.title}
           </h3>
-          <p className="text-sm text-[var(--color-ink-secondary)] line-clamp-1 mb-3 font-[family-name:var(--font-body)]">
+          <p className="hidden sm:block text-sm text-[var(--color-ink-secondary)] line-clamp-1 mb-3 font-[family-name:var(--font-body)]">
             {article.excerpt}
           </p>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-[var(--color-ink-tertiary)]">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-[var(--color-ink-tertiary)]">
               {author && (
                 <>
-                  <Image src={author.avatar} alt={author.name} width={20} height={20} className="rounded-full" />
-                  <span className="font-medium">{author.name}</span>
-                  <span>·</span>
+                  <Image src={author.avatar} alt={author.name} width={16} height={16} className="rounded-full hidden sm:block" />
+                  <span className="font-medium hidden sm:inline">{author.name}</span>
+                  <span className="hidden sm:inline">·</span>
                 </>
               )}
-              <span>{formatDate(article.publishedAt)}</span>
+              <span className="text-[10px] sm:text-xs">{formatDate(article.publishedAt)}</span>
             </div>
-            <span className="text-xs text-[var(--color-ink-tertiary)] bg-[var(--color-surface-alt)] px-2 py-0.5 rounded font-[family-name:var(--font-mono)] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {article.readTimeMinutes} min
+            <span className="text-[10px] sm:text-xs text-[var(--color-ink-tertiary)] bg-[var(--color-surface-alt)] px-1.5 sm:px-2 py-0.5 rounded font-[family-name:var(--font-mono)]">
+              {article.readTimeMinutes}m
             </span>
           </div>
-          <span className="block mt-3 text-xs font-semibold text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-[-4px] group-hover:translate-x-0">
-            Read article →
-          </span>
         </div>
       </Link>
     </motion.div>

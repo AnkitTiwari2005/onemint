@@ -71,10 +71,11 @@ export function Footer() {
       {/* Category color strip */}
       <div className="category-strip" />
 
-      <div className="max-w-[var(--content-max)] mx-auto px-6 lg:px-8 py-14">
-        <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr 1fr 1fr', gap: 40 }}>
+      <div className="max-w-[var(--content-max)] mx-auto px-6 lg:px-8 py-10 lg:py-14">
+        {/* Responsive grid: 1-col on mobile → 2-col on sm → brand+3-cols on lg */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[220px_1fr_1fr_1fr] gap-10 lg:gap-10">
           {/* Brand + Newsletter */}
-          <div>
+          <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center group mb-4">
               <div className="relative w-[130px] h-[32px] transition-transform duration-300 group-hover:scale-105">
                 <Image
@@ -191,11 +192,11 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div style={{ borderTop: '1px solid var(--color-border)' }}>
-        <div className="max-w-[var(--content-max)] mx-auto px-6 lg:px-8 py-4" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
+        <div className="max-w-[var(--content-max)] mx-auto px-6 lg:px-8 py-4 flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3">
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0, textAlign: 'center' }}>
             © {new Date().getFullYear()} OneMint. All rights reserved. Not SEBI registered. Educational content only.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5">
             <Link href="/privacy-policy" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textDecoration: 'none' }} className="hover:text-[var(--color-ink)] transition-colors">Privacy Policy</Link>
             <Link href="/terms" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textDecoration: 'none' }} className="hover:text-[var(--color-ink)] transition-colors">Terms</Link>
             <Link href="/disclaimer" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textDecoration: 'none' }} className="hover:text-[var(--color-ink)] transition-colors">Disclaimer</Link>

@@ -36,64 +36,80 @@ export function MobileBottomNav({ onSearchOpen }: MobileBottomNavProps) {
   return (
     <nav
       aria-label="Mobile navigation"
+      className="md:hidden"
       style={{
-        display: 'flex',
-        flexDirection: 'column',
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 9990,
-        background: 'var(--color-surface)',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'color-mix(in srgb, var(--color-surface) 88%, transparent)',
         borderTop: '1px solid var(--color-border)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        boxShadow: '0 -1px 0 var(--color-border), 0 -4px 20px rgba(0,0,0,0.06)',
       }}
-      className="md:hidden"
     >
-      <div className="flex items-center justify-around h-14 px-2">
+      <div className="flex items-stretch justify-around px-1" style={{ height: 56 }}>
         {staticItems.map(({ icon: Icon, label, href }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href));
           return (
             <Link
               key={label}
               href={href}
-              className="relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] rounded-lg transition-colors"
+              className="relative flex flex-col items-center justify-center gap-[3px] flex-1 py-2 rounded-lg transition-colors select-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <motion.div whileTap={{ scale: 1.2 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
+              {active && (
+                <motion.div
+                  layoutId="mobile-nav-pill"
+                  className="absolute inset-x-2 top-1.5 h-[30px] rounded-lg"
+                  style={{ background: 'var(--color-accent-light)' }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <motion.div
+                className="relative z-10"
+                whileTap={{ scale: 0.88 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+              >
                 <Icon
-                  size={20}
-                  strokeWidth={active ? 2.5 : 1.5}
+                  size={19}
+                  strokeWidth={active ? 2.5 : 1.6}
                   className={active ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-tertiary)]'}
                 />
               </motion.div>
-              <span className={`text-[10px] font-medium ${active ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-tertiary)]'}`}>
+              <span
+                className="relative z-10 text-[9.5px] font-semibold leading-none"
+                style={{ color: active ? 'var(--color-accent)' : 'var(--color-ink-tertiary)' }}
+              >
                 {label}
               </span>
-              {active && (
-                <motion.div
-                  layoutId="mobile-nav-indicator"
-                  className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[var(--color-accent)]"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
             </Link>
           );
         })}
 
-        {/* Search button — opens overlay, not /search route */}
+        {/* Search button */}
         <button
           onClick={onSearchOpen}
-          className="relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] rounded-lg transition-colors"
+          className="relative flex flex-col items-center justify-center gap-[3px] flex-1 py-2 rounded-lg transition-colors select-none"
           aria-label="Open search"
+          style={{ WebkitTapHighlightColor: 'transparent', background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <motion.div whileTap={{ scale: 1.2 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
-            <Search size={20} strokeWidth={1.5} className="text-[var(--color-ink-tertiary)]" />
+          <motion.div
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          >
+            <Search size={19} strokeWidth={1.6} className="text-[var(--color-ink-tertiary)]" />
           </motion.div>
-          <span className="text-[10px] font-medium text-[var(--color-ink-tertiary)]">Search</span>
+          <span className="text-[9.5px] font-semibold leading-none text-[var(--color-ink-tertiary)]">Search</span>
         </button>
       </div>
-      <div className="h-[env(safe-area-inset-bottom)]" />
+
+      {/* Safe area spacer for iOS home indicator */}
+      <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
     </nav>
   );
 }

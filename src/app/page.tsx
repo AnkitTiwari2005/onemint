@@ -40,7 +40,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="pt-16 lg:pt-[72px] pb-24 md:pb-0">
+    <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">
 
       {/* ── Market Ticker ──────────────────────────────────── */}
       <MarketTicker />
@@ -124,59 +124,106 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          {/* Secondary stack */}
+          {/* Secondary stack — vertical on desktop, horizontal scroll on mobile */}
           <motion.div
-            className="lg:col-span-5 flex flex-col gap-5"
+            className="lg:col-span-5"
             variants={prefersReduced ? undefined : heroVariants.secondary}
             initial="initial"
             animate="animate"
             data-motion="true"
           >
-            {secondary.map(article => {
-              const cat = getCategoryById(article.categoryId);
-              const author = getAuthorById(article.authorId);
-              return (
-                <Link
-                  key={article.id}
-                  href={`/articles/${article.slug}`}
-                  className="group flex gap-4 p-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors"
-                >
-                  <div className="relative w-24 h-20 shrink-0 rounded-lg overflow-hidden bg-[var(--color-surface-alt)]">
-                    <Image
-                      src={article.featuredImage}
-                      alt={article.title}
-                      fill
-                      className="object-cover group-hover:scale-[1.05] transition-transform duration-500"
-                      sizes="96px"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {cat && (
-                      <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>
-                        {cat.name}
-                      </span>
-                    )}
-                    <h2 className="font-[family-name:var(--font-heading)] text-sm font-semibold text-[var(--color-ink)] line-clamp-2 leading-snug mt-0.5 mb-1 group-hover:text-[var(--color-accent)] transition-colors">
-                      {article.title}
-                    </h2>
-                    <div className="flex items-center gap-2 text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-                      {author && <span>{author.name}</span>}
-                      <span>·</span>
-                      <Clock size={10} />
-                      <span>{article.readTimeMinutes} min</span>
+            {/* Mobile: horizontal scroll cards */}
+            <div className="flex lg:hidden gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+              {secondary.map(article => {
+                const cat = getCategoryById(article.categoryId);
+                return (
+                  <Link
+                    key={article.id}
+                    href={`/articles/${article.slug}`}
+                    className="group shrink-0 w-[200px] bg-[var(--color-surface)] rounded-xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-all shadow-[var(--shadow-card)]"
+                  >
+                    <div className="relative h-28 w-full overflow-hidden">
+                      <Image
+                        src={article.featuredImage}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                        sizes="200px"
+                      />
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
+                    <div className="p-3">
+                      {cat && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>
+                          {cat.name}
+                        </span>
+                      )}
+                      <p className="font-[family-name:var(--font-heading)] text-sm font-semibold text-[var(--color-ink)] line-clamp-2 leading-snug mt-0.5 group-hover:text-[var(--color-accent)] transition-colors">
+                        {article.title}
+                      </p>
+                      <p className="text-[10px] text-[var(--color-ink-tertiary)] mt-1 font-[family-name:var(--font-ui)] flex items-center gap-1">
+                        <Clock size={9} />{article.readTimeMinutes} min
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+              {/* View all card */}
+              <Link
+                href="/articles"
+                className="shrink-0 w-[140px] flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)] p-4 text-center"
+              >
+                <ArrowRight size={18} />
+                <span className="text-xs">View all</span>
+              </Link>
+            </div>
 
-            {/* All articles CTA */}
-            <Link
-              href="/articles"
-              className="mt-auto flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
-            >
-              View all articles <ArrowRight size={15} />
-            </Link>
+            {/* Desktop: vertical stack */}
+            <div className="hidden lg:flex flex-col gap-5">
+              {secondary.map(article => {
+                const cat = getCategoryById(article.categoryId);
+                const author = getAuthorById(article.authorId);
+                return (
+                  <Link
+                    key={article.id}
+                    href={`/articles/${article.slug}`}
+                    className="group flex gap-4 p-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors"
+                  >
+                    <div className="relative w-24 h-20 shrink-0 rounded-lg overflow-hidden bg-[var(--color-surface-alt)]">
+                      <Image
+                        src={article.featuredImage}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                        sizes="96px"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {cat && (
+                        <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>
+                          {cat.name}
+                        </span>
+                      )}
+                      <h2 className="font-[family-name:var(--font-heading)] text-sm font-semibold text-[var(--color-ink)] line-clamp-2 leading-snug mt-0.5 mb-1 group-hover:text-[var(--color-accent)] transition-colors">
+                        {article.title}
+                      </h2>
+                      <div className="flex items-center gap-2 text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
+                        {author && <span>{author.name}</span>}
+                        <span>·</span>
+                        <Clock size={10} />
+                        <span>{article.readTimeMinutes} min</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+              {/* All articles CTA */}
+              <Link
+                href="/articles"
+                className="mt-auto flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
+              >
+                View all articles <ArrowRight size={15} />
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -251,7 +298,7 @@ export default function HomePage() {
             </div>
 
             {/* Article grid */}
-            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {catArticles.map((article, i) => (
                 <motion.div key={article.id} variants={cardVariants} data-motion="true">
                   <ArticleCard article={article} variant="standard" index={i} />
@@ -264,39 +311,12 @@ export default function HomePage() {
 
       {/* ── Most Read ──────────────────────────────────────── */}
       <AnimatedSection className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8">
-            <div className="flex items-center gap-3 mb-6">
-              <TrendingUp size={18} className="text-[var(--color-accent-warm)]" />
-              <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">Most Read This Week</h2>
-            </div>
-            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl divide-y divide-[var(--color-border)]">
-              {mostRead.map((article, i) => {
-                const cat = getCategoryById(article.categoryId);
-                return (
-                  <Link key={article.id} href={`/articles/${article.slug}`}
-                    className="group flex items-center gap-4 p-5 hover:bg-[var(--color-surface-alt)] transition-colors first:rounded-t-2xl last:rounded-b-2xl">
-                    <span className="text-3xl font-bold font-[family-name:var(--font-display)] text-[var(--color-border-strong)] w-8 shrink-0 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      {cat && <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
-                      <h3 className="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-ink)] line-clamp-1 mt-0.5 group-hover:text-[var(--color-accent)] transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-xs text-[var(--color-ink-tertiary)] mt-1 font-[family-name:var(--font-ui)]">{article.readTimeMinutes} min read</p>
-                    </div>
-                    <ArrowRight size={14} className="text-[var(--color-ink-tertiary)] group-hover:text-[var(--color-accent)] shrink-0 transition-colors" />
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
-          {/* Newsletter CTA sidebar */}
-          <div className="lg:col-span-4">
-            <div className="bg-[var(--color-cat-finance-light)] border border-[var(--color-border)] rounded-2xl p-6 sticky top-24">
-              <div className="flex items-center gap-2 mb-4">
+          {/* Newsletter CTA — appears FIRST on mobile, sidebar on desktop */}
+          <div className="lg:col-span-4 lg:order-last">
+            <div className="bg-[var(--color-cat-finance-light)] border border-[var(--color-border)] rounded-2xl p-5 sm:p-6 lg:sticky lg:top-24">
+              <div className="flex items-center gap-2 mb-3">
                 <BookOpen size={18} className="text-[var(--color-cat-finance)]" />
                 <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--color-ink)]">Stay Informed</h2>
               </div>
@@ -342,6 +362,35 @@ export default function HomePage() {
               )}
             </div>
           </div>
+
+          {/* Most Read list */}
+          <div className="lg:col-span-8">
+            <div className="flex items-center gap-3 mb-5">
+              <TrendingUp size={18} className="text-[var(--color-accent-warm)]" />
+              <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">Most Read This Week</h2>
+            </div>
+            <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl divide-y divide-[var(--color-border)]">
+              {mostRead.map((article, i) => {
+                const cat = getCategoryById(article.categoryId);
+                return (
+                  <Link key={article.id} href={`/articles/${article.slug}`}
+                    className="group flex items-center gap-3 sm:gap-4 px-4 py-4 sm:p-5 hover:bg-[var(--color-surface-alt)] transition-colors first:rounded-t-2xl last:rounded-b-2xl">
+                    <span className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-display)] text-[var(--color-border-strong)] w-7 sm:w-8 shrink-0 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      {cat && <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
+                      <h3 className="font-[family-name:var(--font-heading)] text-sm sm:text-base font-semibold text-[var(--color-ink)] line-clamp-2 sm:line-clamp-1 mt-0.5 group-hover:text-[var(--color-accent)] transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-xs text-[var(--color-ink-tertiary)] mt-1 font-[family-name:var(--font-ui)]">{article.readTimeMinutes} min read</p>
+                    </div>
+                    <ArrowRight size={14} className="text-[var(--color-ink-tertiary)] group-hover:text-[var(--color-accent)] shrink-0 transition-colors" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </AnimatedSection>
 
@@ -368,7 +417,7 @@ export default function HomePage() {
                 View all <ArrowRight size={14} />
               </Link>
             </div>
-            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
               {catArticles.map((article, i) => (
                 <motion.div key={article.id} variants={cardVariants} data-motion="true">
                   <ArticleCard article={article} variant="standard" index={i} />
