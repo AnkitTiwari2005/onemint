@@ -798,7 +798,18 @@ input[type="range"]::-moz-range-thumb {
 
 /* Dashboard stat cards: auto-fill cols on desktop, 2-col on mobile */
 .admin-stat-grid {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Prevent numbers from visually overflowing card borders */
+.admin-stat-grid > div {
+  overflow: hidden;
+  min-width: 0;
+}
+.admin-stat-grid > div p:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Dashboard 2-col panels (Recent Articles + Suggestions) */
