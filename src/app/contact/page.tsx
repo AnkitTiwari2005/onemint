@@ -218,12 +218,5 @@ export default function ContactPage() {
 
     </div>
     </div>
-    <style>{`
-      @media (max-width: 768px) {
-        .contact-layout { grid-template-columns: 1fr !important; gap: 24px !important; }
-        .contact-form-card { padding: 20px 16px !important; }
-        .contact-name-grid { grid-template-columns: 1fr !important; }
-      }
-    `}</style>
   );
 }

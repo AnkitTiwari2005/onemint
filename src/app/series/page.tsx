@@ -151,15 +151,5 @@ export default function SeriesHubPage() {
       </div>
     </div>
     </div>
-    <style>{`
-      @media (max-width: 640px) {
-        .series-page-wrap [style*="grid-template-columns"] {
-          grid-template-columns: 1fr !important;
-        }
-        .series-page-wrap [style*="minmax(380px"] {
-          grid-template-columns: 1fr !important;
-        }
-      }
-    `}</style>
   );
 }

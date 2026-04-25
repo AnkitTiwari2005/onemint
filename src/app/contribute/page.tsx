@@ -179,15 +179,5 @@ export default function ContributePage() {
 
     </div>
     </div>
-    <style>{`
-      @media (max-width: 640px) {
-        .contrib-who-grid { grid-template-columns: 1fr !important; }
-        .contrib-form-card { padding: 20px 16px !important; }
-        .contrib-name-grid { grid-template-columns: 1fr !important; }
-      }
-      @media (min-width: 641px) and (max-width: 860px) {
-        .contrib-who-grid { grid-template-columns: repeat(2, 1fr) !important; }
-      }
-    `}</style>
   );
 }

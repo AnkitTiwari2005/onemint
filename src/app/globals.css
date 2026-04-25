@@ -753,3 +753,39 @@ input[type="range"]::-moz-range-thumb {
     page-break-inside: avoid;
   }
 }
+
+/* ============================================
+   Page-specific mobile responsive overrides
+   ============================================ */
+
+/* Contact page */
+@media (max-width: 768px) {
+  .contact-layout { grid-template-columns: 1fr !important; gap: 24px !important; }
+  .contact-form-card { padding: 20px 16px !important; }
+  .contact-name-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Contribute page */
+@media (max-width: 640px) {
+  .contrib-who-grid { grid-template-columns: 1fr !important; }
+  .contrib-form-card { padding: 20px 16px !important; }
+  .contrib-name-grid { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 641px) and (max-width: 860px) {
+  .contrib-who-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* Series page */
+@media (max-width: 640px) {
+  .series-page-wrap { padding-left: 16px !important; padding-right: 16px !important; }
+  .series-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Advertise page */
+@media (max-width: 640px) {
+  .adv-stats-grid { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 641px) and (max-width: 860px) {
+  .adv-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
