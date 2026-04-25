@@ -50,7 +50,7 @@ export default function ContributePage() {
 
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div style={{ maxWidth: 920, margin: '0 auto', padding: '24px 24px 80px' }}>
+    <div style={{ maxWidth: 920, margin: '0 auto', padding: '24px 16px 100px' }}>
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 40, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
@@ -71,7 +71,7 @@ export default function ContributePage() {
       {/* What we're looking for */}
       <div style={{ marginBottom: 48 }}>
         <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Who we're looking for</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div className="contrib-who-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {[
             { icon: Lightbulb, color: '#D97706', title: 'Finance Experts', desc: 'Certified Financial Planners (CFPs), Chartered Accountants, SEBI-registered advisors, experienced investors.' },
             { icon: PenSquare, color: '#2563EB', title: 'Tech Writers', desc: 'Software engineers, product managers, AI/ML researchers who can explain complex technology in plain English.' },
@@ -121,7 +121,7 @@ export default function ContributePage() {
       </div>
 
       {/* Application form */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 16, padding: '36px 40px' }}>
+      <div className="contrib-form-card" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 16, padding: '28px 28px' }}>
         <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 24 }}>Apply to Contribute</h2>
         <AnimatePresence mode="wait">
           {formState === 'success' ? (
@@ -136,7 +136,7 @@ export default function ContributePage() {
             </motion.div>
           ) : (
             <motion.form key="form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="contrib-name-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {([['Name *', 'name', 'text', 'Priya Sharma'], ['Email *', 'email', 'email', 'priya@example.com']] as const).map(([label, key, type, ph]) => (
                   <div key={key}>
                     <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>{label}</label>
@@ -144,7 +144,7 @@ export default function ContributePage() {
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="contrib-name-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
                   <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>LinkedIn / Website</label>
                   <input type="url" value={fields.linkedin} onChange={set('linkedin')} placeholder="https://linkedin.com/in/yourname" style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontSize: 15, color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', outline: 'none', boxSizing: 'border-box' }} />
@@ -179,5 +179,15 @@ export default function ContributePage() {
 
     </div>
     </div>
+    <style>{`
+      @media (max-width: 640px) {
+        .contrib-who-grid { grid-template-columns: 1fr !important; }
+        .contrib-form-card { padding: 20px 16px !important; }
+        .contrib-name-grid { grid-template-columns: 1fr !important; }
+      }
+      @media (min-width: 641px) and (max-width: 860px) {
+        .contrib-who-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      }
+    `}</style>
   );
 }

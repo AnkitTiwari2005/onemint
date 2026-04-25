@@ -85,15 +85,15 @@ export default function ContactPage() {
 
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div style={{ maxWidth: 1060, margin: '0 auto', padding: '24px 24px 80px' }}>
+    <div style={{ maxWidth: 1060, margin: '0 auto', padding: '24px 16px 100px' }}>
       {/* Breadcrumb */}
-      <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 40, display: 'flex', gap: 8 }}>
+      <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 24, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
         <span>›</span>
         <span style={{ color: 'var(--color-ink)' }}>Contact</span>
       </nav>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 56, alignItems: 'start' }}>
+      <div className="contact-layout" style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 56, alignItems: 'start' }}>
         {/* Left — info */}
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.2, marginBottom: 12 }}>
@@ -133,7 +133,7 @@ export default function ContactPage() {
         </div>
 
         {/* Right — Form */}
-        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 16, padding: '36px 40px' }}>
+        <div className="contact-form-card" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 16, padding: '32px 36px' }}>
           <AnimatePresence mode="wait">
             {formState === 'success' ? (
               <motion.div
@@ -163,7 +163,7 @@ export default function ContactPage() {
               </motion.div>
             ) : (
               <motion.form key="form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="contact-name-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <div>
                     <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Name *</label>
                     <input id="contact-name" type="text" value={fields.name} onChange={set('name')} onBlur={blur('name')} style={inputStyle('name')} placeholder="Priya Sharma" disabled={formState === 'loading'} />
@@ -218,5 +218,12 @@ export default function ContactPage() {
 
     </div>
     </div>
+    <style>{`
+      @media (max-width: 768px) {
+        .contact-layout { grid-template-columns: 1fr !important; gap: 24px !important; }
+        .contact-form-card { padding: 20px 16px !important; }
+        .contact-name-grid { grid-template-columns: 1fr !important; }
+      }
+    `}</style>
   );
 }

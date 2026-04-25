@@ -33,9 +33,9 @@ export default function SeriesHubPage() {
 
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 80px' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px 100px' }} className="series-page-wrap">
       {/* Header */}
-      <div style={{ marginBottom: 48 }}>
+      <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div
             style={{
@@ -151,5 +151,15 @@ export default function SeriesHubPage() {
       </div>
     </div>
     </div>
+    <style>{`
+      @media (max-width: 640px) {
+        .series-page-wrap [style*="grid-template-columns"] {
+          grid-template-columns: 1fr !important;
+        }
+        .series-page-wrap [style*="minmax(380px"] {
+          grid-template-columns: 1fr !important;
+        }
+      }
+    `}</style>
   );
 }
