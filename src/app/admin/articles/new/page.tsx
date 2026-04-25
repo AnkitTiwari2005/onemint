@@ -97,7 +97,7 @@ export default function NewArticlePage() {
         {saved && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#16A34A', background: '#D1FAE5', padding: '3px 10px', borderRadius: 10 }}>✓ Saved</span>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+      <div className="article-editor-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
         {/* Left: Editor */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Title */}
@@ -213,7 +213,7 @@ export default function NewArticlePage() {
       </div>
 
       {/* Sticky action bar */}
-      <div style={{ position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px', display: 'flex', gap: 12, zIndex: 50 }}>
+      <div className="article-action-bar" style={{ position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px', display: 'flex', gap: 12, zIndex: 50, alignItems: 'center', justifyContent: 'center' }}>
         <button onClick={() => saveArticle(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
           <Save size={14} /> Save Draft
         </button>
@@ -225,14 +225,6 @@ export default function NewArticlePage() {
         </button>
       </div>
 
-      <div style={{ height: 70 }} />
-
-      <style>{`
-        @media (max-width: 768px) {
-          [style*="grid-template-columns: 1fr 320px"] { grid-template-columns: 1fr !important; }
-          [style*="left: 240px"] { left: 0 !important; }
-        }
-      `}</style>
     </div>
   );
 }
