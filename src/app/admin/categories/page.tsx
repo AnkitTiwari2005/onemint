@@ -65,7 +65,7 @@ export default function AdminCategoriesPage() {
   };
 
   return (
-    <div style={{ padding: '32px 24px', maxWidth: 900, margin: '0 auto' }}>
+    <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
         <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-ink-tertiary)', textDecoration: 'none', fontSize: 14 }}>
           <ArrowLeft size={16} /> Dashboard
@@ -83,7 +83,7 @@ export default function AdminCategoriesPage() {
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>
             {isNew ? 'New Category' : `Edit: ${editing.name}`}
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             {[
               { label: 'Name', key: 'name' },
               { label: 'Slug', key: 'slug' },
@@ -132,8 +132,9 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="admin-table-wrap" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <table style={{ width: '100%', minWidth: 580, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}>
               {['Color', 'Name', 'Slug', 'Description', 'Articles', 'Actions'].map(h => (
@@ -161,6 +162,7 @@ export default function AdminCategoriesPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -789,3 +789,82 @@ input[type="range"]::-moz-range-thumb {
   .adv-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
+/* ============================================
+   Admin Panel — Reliable className-based CSS
+   ============================================ */
+
+/* Admin page inner content padding */
+.admin-page-inner { padding: 32px; }
+
+/* Dashboard stat cards: 2-col on desktop, 2-col on mobile (smaller cards) */
+.admin-stat-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Dashboard 2-col panels (Recent Articles + Suggestions) */
+.admin-2col-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Admin form 2-col grids */
+.admin-form-2col {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Quick action buttons: wrap on all sizes */
+.admin-quick-actions {
+  flex-wrap: wrap;
+}
+
+/* Admin table wrapper: always overflow-x scroll */
+.admin-table-wrap > div {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Mobile overrides ---- */
+@media (max-width: 768px) {
+  /* Padding */
+  .admin-page-inner { padding: 16px; }
+
+  /* Stat cards: stay 2-col but smaller */
+  .admin-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* 2-col panels stack */
+  .admin-2col-grid { grid-template-columns: 1fr; }
+
+  /* Form grids collapse */
+  .admin-form-2col { grid-template-columns: 1fr !important; }
+
+  /* Quick actions: horizontal scroll strip */
+  .admin-quick-actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    gap: 8px;
+  }
+  .admin-quick-actions a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Reduce stat card padding */
+  .admin-stat-grid > div {
+    padding: 14px 12px !important;
+  }
+  .admin-stat-grid > div p:first-child {
+    font-size: 20px !important;
+  }
+
+  /* Suggestion action buttons: stack on very small screens */
+  .admin-suggestion-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+

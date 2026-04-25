@@ -89,8 +89,9 @@ export default function AdminArticlesPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="admin-table-wrap" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <table style={{ width: '100%', minWidth: 640, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--color-surface-alt)' }}>
               <th style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('title')}>
@@ -149,6 +150,7 @@ export default function AdminArticlesPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}

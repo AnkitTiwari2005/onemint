@@ -56,7 +56,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+      <div className="admin-stat-grid" style={{ display: 'grid', gap: 16, marginBottom: 32 }}>
         <StatCard label="Total Articles" value={String(articles.length)} icon={FileText} color="#16A34A" />
         <StatCard label="Total Views" value={formatIndianNumber(totalViews)} icon={Eye} color="#2563EB" />
         <StatCard label="Newsletter Subscribers" value="5,00,000" icon={Users} color="#7C3AED" />
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 32, flexWrap: 'wrap' }}>
+      <div className="admin-quick-actions" style={{ display: 'flex', gap: 10, marginBottom: 32, flexWrap: 'wrap' }}>
         {[
           { label: 'Write New Article', href: '/admin/articles/new', icon: Plus, primary: true },
           { label: 'View Suggestions', href: '/admin/suggestions', icon: Lightbulb, primary: false },
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+      <div className="admin-2col-grid" style={{ display: 'grid', gap: 24, marginBottom: 24 }}>
         {/* Recent Articles */}
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -142,11 +142,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

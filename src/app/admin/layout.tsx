@@ -179,7 +179,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              style={{ minHeight: '100%', willChange: 'opacity, transform', padding: '32px' }}
+              className="admin-page-inner"
+              style={{ minHeight: '100%', willChange: 'opacity, transform' }}
             >
               {children}
             </motion.div>
@@ -188,39 +189,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       <style>{`
+        .admin-sidebar-desktop { display: flex !important; }
+        .admin-mobile-header { display: none !important; }
         @media (max-width: 768px) {
           .admin-sidebar-desktop { display: none !important; }
           .admin-mobile-header { display: flex !important; }
-          .admin-main > div { padding: 16px !important; }
-
-          /* Collapse all inline 2-col grids */
-          [style*="grid-template-columns: 1fr 1fr"],
-          [style*="grid-template-columns: 300px 1fr"],
-          [style*="grid-template-columns: repeat(auto-fill, minmax(200px"],
-          [style*="grid-template-columns: repeat(3, 1fr)"] {
-            grid-template-columns: 1fr !important;
-          }
-
-          /* Make stat cards wrap */
-          [style*="repeat(auto-fill, minmax(200px"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-
-          /* Scrollable quick-action buttons */
-          [style*="display: flex"][style*="flexWrap: wrap"] {
-            overflow-x: auto;
-            flex-wrap: nowrap !important;
-            padding-bottom: 4px;
-          }
-
-          /* Messages list full width on mobile */
-          [style*="grid-template-columns: 300px 1fr"] {
-            grid-template-columns: 1fr !important;
-            height: auto !important;
-          }
-
-          /* Reduce table cell padding */
-          td { padding: 10px 12px !important; }
         }
       `}</style>
     </div>

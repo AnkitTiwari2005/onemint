@@ -67,7 +67,7 @@ export default function AdminSeriesPage() {
   const filtered = filter === 'all' ? series : series.filter(s => s.status === filter);
 
   return (
-    <div style={{ padding: '32px 24px', maxWidth: 1000, margin: '0 auto' }}>
+    <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
         <Link href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-ink-tertiary)', textDecoration: 'none', fontSize: 14 }}>
           <ArrowLeft size={16} /> Dashboard
@@ -85,7 +85,7 @@ export default function AdminSeriesPage() {
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>
             {isNew ? 'New Series' : `Edit: ${editing.name}`}
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             {([['name', 'Series Name'], ['slug', 'Slug'], ['categoryId', 'Category ID'], ['coverImage', 'Cover Image URL']]).map(([key, label]) => (
               <div key={key}>
                 <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>{label}</label>
@@ -155,8 +155,9 @@ export default function AdminSeriesPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="admin-table-wrap" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <table style={{ width: '100%', minWidth: 580, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}>
               {['Series', 'Category', 'Articles', 'Read Time', 'Status', 'Actions'].map(h => (
@@ -192,6 +193,7 @@ export default function AdminSeriesPage() {
             ))}
           </tbody>
         </table>
+        </div>
         {filtered.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>No series found</div>
         )}
