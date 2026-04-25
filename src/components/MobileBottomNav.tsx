@@ -35,8 +35,21 @@ export function MobileBottomNav({ onSearchOpen }: MobileBottomNavProps) {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-surface)]/95 backdrop-blur-lg border-t border-[var(--color-border)]"
       aria-label="Mobile navigation"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9990,
+        background: 'var(--color-surface)',
+        borderTop: '1px solid var(--color-border)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
+      className="md:hidden"
     >
       <div className="flex items-center justify-around h-14 px-2">
         {staticItems.map(({ icon: Icon, label, href }) => {

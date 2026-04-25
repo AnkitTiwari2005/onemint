@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { categories } from '@/data/categories';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Search, Moon, Sun, Menu, X, ChevronDown, BookOpen, Users, Lightbulb, Bookmark, PenSquare, Info, Phone } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import { Search, Moon, Sun, Menu, X, ChevronDown, BookOpen, Lightbulb, Bookmark, PenSquare, Info, Phone } from 'lucide-react';
 
 interface HeaderProps {
   onSearchOpen: () => void;
@@ -27,8 +26,6 @@ export function Header({ onSearchOpen }: HeaderProps) {
   const [megaOpen, setMegaOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [dark, setDark] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  const prevScrollY = useRef(0);
   const moreRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
@@ -37,20 +34,6 @@ export function Header({ onSearchOpen }: HeaderProps) {
   const headerBgDark = useTransform(scrollY, [0, 60], ['rgba(28,28,26,0)', 'rgba(28,28,26,0.92)']);
   const headerShadow = useTransform(scrollY, [0, 60], ['0 0 0 rgba(0,0,0,0)', '0 1px 3px rgba(0,0,0,0.06)']);
   const headerHeight = useTransform(scrollY, [0, 60], [72, 60]);
-
-  useMotionValueEvent(scrollY, 'change', (latest) => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      const direction = latest > prevScrollY.current ? 'down' : 'up';
-      if (direction === 'down' && latest > 100 && !mobileOpen) {
-        setHidden(true);
-      } else {
-        setHidden(false);
-      }
-    } else {
-      setHidden(false);
-    }
-    prevScrollY.current = latest;
-  });
 
   useEffect(() => {
     const theme = document.documentElement.getAttribute('data-theme');
@@ -111,19 +94,14 @@ export function Header({ onSearchOpen }: HeaderProps) {
 
   return (
     <>
-      {/* ─── Main header bar ─── */}
+      {/* ─── Main header bar — always pinned, never auto-hides ─── */}
       <motion.header
-        className={cn(
-          'fixed top-0 left-0 right-0 z-50 backdrop-blur-xl',
-          hidden && 'pointer-events-none'
-        )}
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl"
         style={{
           backgroundColor: dark ? headerBgDark : headerBg,
           boxShadow: headerShadow,
           height: headerHeight,
         }}
-        animate={{ y: hidden ? -80 : 0 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
