@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, FileText, Tag, Users, BookOpen, Lightbulb,
   MessageSquare, Calculator, BookMarked, Mail, BarChart3,
@@ -171,8 +172,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)' }}>OneMint Admin</span>
         </div>
 
-        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
-          {children}
+        <main style={{ flex: 1, padding: '32px', overflowY: 'auto', minHeight: '100%', position: 'relative' }}>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              style={{ minHeight: '100%', willChange: 'opacity, transform' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 

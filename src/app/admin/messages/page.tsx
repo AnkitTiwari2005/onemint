@@ -47,7 +47,36 @@ export default function AdminMessagesPage() {
     setDeleteTarget(null);
   };
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14, gap: 10 }}><Loader2 size={18} className="animate-spin" /> Loading messages…</div>;
+  if (loading) return (
+    <div>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ height: 26, width: 180, borderRadius: 8, background: 'var(--color-border)', marginBottom: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ height: 14, width: 120, borderRadius: 6, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16, height: 'calc(100vh - 180px)', minHeight: 400 }}>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ height: 13, width: '50%', borderRadius: 5, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div style={{ height: 11, width: 40, borderRadius: 5, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              </div>
+              <div style={{ height: 11, width: '70%', borderRadius: 5, background: 'var(--color-border)', marginBottom: 4, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div style={{ height: 10, width: '85%', borderRadius: 5, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 28 }}>
+          <div style={{ height: 22, width: '60%', borderRadius: 8, background: 'var(--color-border)', marginBottom: 16, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: 14, width: '40%', borderRadius: 6, background: 'var(--color-border)', marginBottom: 32, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          {[100, 90, 95, 80, 70].map((w, i) => (
+            <div key={i} style={{ height: 13, width: `${w}%`, borderRadius: 5, background: 'var(--color-border)', marginBottom: 10, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          ))}
+        </div>
+      </div>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} } @media(max-width:768px){[style*="grid-template-columns: 300px 1fr"]{grid-template-columns:1fr!important;}}`}</style>
+    </div>
+  );
 
   const current = messages.find(m => m.id === selected);
   const unread = messages.filter(m => !m.read).length;

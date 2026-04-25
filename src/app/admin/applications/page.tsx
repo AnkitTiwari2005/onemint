@@ -59,7 +59,31 @@ export default function AdminApplicationsPage() {
     rejected: apps.filter(a => a.status === 'rejected').length,
   };
 
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14, gap: 10 }}><Loader2 size={18} className="animate-spin" /> Loading applications…</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+        <div style={{ height: 28, width: 200, borderRadius: 8, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ height: 22, width: 80, borderRadius: 10, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        {[80, 100, 100, 90].map((w, i) => (
+          <div key={i} style={{ height: 32, width: w, borderRadius: 20, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        ))}
+      </div>
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ height: 16, width: '40%', borderRadius: 6, background: 'var(--color-border)', marginBottom: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <div style={{ height: 12, width: '60%', borderRadius: 6, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            </div>
+            <div style={{ height: 22, width: 70, borderRadius: 10, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          </div>
+        </div>
+      ))}
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+    </div>
+  );
 
   return (
     <div style={{ padding: '32px 24px', maxWidth: 900, margin: '0 auto' }}>
