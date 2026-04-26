@@ -21,7 +21,7 @@ export interface AnalyticsStats {
 async function plausibleFetch(path: string) {
   if (!ENV.PLAUSIBLE_API_KEY || !ENV.PLAUSIBLE_DOMAIN) return null;
   try {
-    const res = await fetch(`https://plausible.io/api/v2${path}`, {
+    const res = await fetch(`https://plausible.io/api/v1${path}`, {
       headers: { Authorization: `Bearer ${ENV.PLAUSIBLE_API_KEY}` },
       signal: AbortSignal.timeout(8000),
       next: { revalidate: 900 }, // 15-min cache
