@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { typesenseSearchClient } from '@/lib/typesense';
+import { typesenseSearch } from '@/lib/typesense';
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') || '';
@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   if (!q.trim()) return NextResponse.json({ results: [], found: 0 });
 
   try {
-    const result = await typesenseSearchClient
+    const result = await typesenseSearch
       .collections('articles')
       .documents()
       .search({
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: hits, found: result.found });
   } catch (err) {
     console.error('Typesense search error:', err);
-    // Return empty — never crash the UI, Fuse.js fallback handles it
+    // Return empty — Fuse.js fallback handles it client-side
     return NextResponse.json({ results: [], found: 0 });
   }
 }

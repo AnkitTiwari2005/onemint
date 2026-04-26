@@ -12,15 +12,15 @@ interface MarketItem {
   unit?: string;
 }
 
-// Static market data — always reliable, matches /api/market-data
-const MARKET_DATA: MarketItem[] = [
-  { symbol: 'NIFTY 50', name: 'Nifty 50', value: 22847.65, change: 0.84 },
-  { symbol: 'SENSEX', name: 'BSE Sensex', value: 75310.42, change: 0.79 },
-  { symbol: 'GOLD', name: 'Gold', value: 91450, change: 0.32, unit: '₹/10g' },
-  { symbol: 'USD/INR', name: 'USD/INR', value: 83.42, change: -0.11 },
-  { symbol: 'BTC', name: 'Bitcoin', value: 6824302, change: 2.45, unit: '₹' },
-  { symbol: 'NIFTY BANK', name: 'Bank Nifty', value: 49182.30, change: 1.12 },
-  { symbol: 'SILVER', name: 'Silver', value: 1048, change: 0.58, unit: '₹/g' },
+// Static fallback — shown instantly while live data loads
+const FALLBACK: MarketItem[] = [
+  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: 22847.65, change: 0.84 },
+  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: 75310.42, change: 0.79 },
+  { symbol: 'GOLD',       name: 'Gold',        value: 91450,    change: 0.32, unit: '₹/10g' },
+  { symbol: 'USD/INR',    name: 'USD/INR',     value: 83.42,    change: -0.11 },
+  { symbol: 'BTC',        name: 'Bitcoin',     value: 6824302,  change: 2.45, unit: '₹' },
+  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: 49182.30, change: 1.12 },
+  { symbol: 'SILVER',     name: 'Silver',      value: 1048,     change: 0.58, unit: '₹/g' },
 ];
 
 function formatValue(value: number, unit?: string): string {
@@ -64,11 +64,21 @@ function TickerItem({ item }: { item: MarketItem }) {
 
 export function MarketTicker() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [data, setData] = useState<MarketItem[]>(FALLBACK);
+
+  useEffect(() => {
+    setMounted(true);
+    // Fetch live data — refreshes USD/INR with Alpha Vantage; 15 min cache on server
+    fetch('/api/market-data')
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d) && d.length > 0) setData(d); })
+      .catch(() => {}); // Silently fall back to static data
+  }, []);
+
   if (!mounted) return null;
 
   // Duplicate for seamless loop
-  const items = [...MARKET_DATA, ...MARKET_DATA];
+  const items = [...data, ...data];
 
   return (
     <div

@@ -13,10 +13,9 @@ const R2 = new S3Client({
 
 export async function POST(req: NextRequest) {
   try {
-    // Check credentials exist
     if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
       return NextResponse.json(
-        { error: 'R2 credentials not configured — add R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY to environment variables' },
+        { error: 'R2 credentials not configured — add R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY to Vercel environment variables' },
         { status: 503 }
       );
     }
@@ -33,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File must be under 10MB' }, { status: 400 });
+      return NextResponse.json({ error: 'File must be under 10 MB' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -44,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     await R2.send(
       new PutObjectCommand({
-        Bucket: ENV.R2_BUCKET_NAME,
+        Bucket: ENV.R2_BUCKET,
         Key: filename,
         Body: buffer,
         ContentType: file.type,

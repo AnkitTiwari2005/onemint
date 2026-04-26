@@ -3,25 +3,24 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import * as RadixTooltip from '@radix-ui/react-tooltip';
-import { motion, AnimatePresence } from 'framer-motion';
+import { glossaryTerms } from '@/data/glossary';
 
-interface GlossaryTerm {
-  term: string;
-  definition: string;
-  slug: string;
+// Build a lookup map from all glossary terms (by id and normalized term name)
+const glossaryMap: Record<string, { term: string; shortDefinition: string; id: string }> = {};
+for (const t of glossaryTerms) {
+  glossaryMap[t.id.toLowerCase()] = { term: t.term, shortDefinition: t.shortDefinition, id: t.id };
+  glossaryMap[t.term.toLowerCase()] = { term: t.term, shortDefinition: t.shortDefinition, id: t.id };
+  // Also add abbreviated forms (e.g. "sip" from "SIP (Systematic...)")
+  const abbr = t.term.match(/^([A-Z]+)\s*\(/);
+  if (abbr) {
+    glossaryMap[abbr[1].toLowerCase()] = { term: t.term, shortDefinition: t.shortDefinition, id: t.id };
+  }
 }
 
-const mockGlossary: Record<string, GlossaryTerm> = {
-  'sip': { term: 'SIP', definition: 'Systematic Investment Plan. A method of investing a fixed sum regularly in a mutual fund scheme.', slug: 'sip' },
-  'cagr': { term: 'CAGR', definition: 'Compound Annual Growth Rate. The mean annual growth rate of an investment over a specified period of time.', slug: 'cagr' },
-  'inflation': { term: 'Inflation', definition: 'The rate at which the general level of prices for goods and services is rising, and subsequently, purchasing power is falling.', slug: 'inflation' },
-  'nifty': { term: 'Nifty 50', definition: 'A benchmark Indian stock market index that represents the weighted average of 50 of the largest Indian companies.', slug: 'nifty-50' },
-};
-
 export function GlossaryTooltip({ term, children }: { term: string; children: ReactNode }) {
-  const glossaryData = mockGlossary[term.toLowerCase()];
+  const data = glossaryMap[term.toLowerCase()];
 
-  if (!glossaryData) return <>{children}</>;
+  if (!data) return <>{children}</>;
 
   return (
     <RadixTooltip.Provider delayDuration={300} skipDelayDuration={100}>
@@ -38,13 +37,13 @@ export function GlossaryTooltip({ term, children }: { term: string; children: Re
           >
             <div className="flex flex-col gap-2">
               <h4 className="font-[family-name:var(--font-heading)] font-semibold text-[var(--color-ink)] text-base">
-                {glossaryData.term}
+                {data.term}
               </h4>
               <p className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-body)] leading-relaxed">
-                {glossaryData.definition}
+                {data.shortDefinition}
               </p>
-              <Link 
-                href={`/glossary/${glossaryData.slug}`}
+              <Link
+                href={`/glossary/${data.id}`}
                 className="text-xs font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-warm)] transition-colors mt-1"
               >
                 See full definition →

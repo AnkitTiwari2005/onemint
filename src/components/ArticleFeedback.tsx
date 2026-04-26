@@ -3,12 +3,27 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export function ArticleFeedback() {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+  const pathname = usePathname();
 
-  const handleFeedback = (type: 'up' | 'down') => {
-    setFeedback(prev => (prev === type ? null : type));
+  const handleFeedback = async (type: 'up' | 'down') => {
+    if (feedback !== null) return; // prevent double submit
+    setFeedback(type);
+
+    if (supabase) {
+      try {
+        await supabase.from('article_feedback').insert([{
+          article_slug: pathname,
+          vote: type,
+        }]);
+      } catch {
+        // Non-critical — feedback is a nice-to-have
+      }
+    }
   };
 
   return (
@@ -21,7 +36,8 @@ export function ArticleFeedback() {
           whileTap={{ scale: 1.3 }}
           transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => handleFeedback('up')}
-          className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
+          disabled={feedback !== null}
+          className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-200 disabled:cursor-not-allowed ${
             feedback === 'up'
               ? 'border-green-500 bg-green-50 text-green-600'
               : 'border-[var(--color-border)] text-[var(--color-ink-tertiary)] hover:border-green-400 hover:text-green-500'
@@ -34,7 +50,8 @@ export function ArticleFeedback() {
           whileTap={{ scale: 1.3 }}
           transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => handleFeedback('down')}
-          className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
+          disabled={feedback !== null}
+          className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-200 disabled:cursor-not-allowed ${
             feedback === 'down'
               ? 'border-red-500 bg-red-50 text-red-600'
               : 'border-[var(--color-border)] text-[var(--color-ink-tertiary)] hover:border-red-400 hover:text-red-500'

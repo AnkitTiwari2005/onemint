@@ -3,39 +3,44 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { articles } from '@/data/articles';
-import { FileText, Eye, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, BarChart3 } from 'lucide-react';
+import { FileText, Eye, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, BarChart3, Loader2 } from 'lucide-react';
 import { formatIndianNumber } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { rupeesTickFormatter } from '@/lib/chartUtils';
-
-const MOCK_SUGGESTIONS = [
-  { title: 'How to file ITR online in 2026', category: 'Finance', votes: 312, status: 'pending' },
-  { title: 'Best index funds for beginners in India', category: 'Finance', votes: 287, status: 'pending' },
-  { title: 'Freelancing tax guide for India', category: 'Finance', votes: 198, status: 'in-progress' },
-  { title: 'ChatGPT vs Gemini for work', category: 'Technology', votes: 145, status: 'pending' },
-  { title: 'Pregnancy nutrition complete guide', category: 'Health', votes: 134, status: 'in-progress' },
-];
-
-const MOCK_MESSAGES = [
-  { from: 'Priya Sharma', subject: 'Partnership inquiry', date: '19 Apr 2026' },
-  { from: 'Rohan Mehra', subject: 'Correction in SIP article', date: '18 Apr 2026' },
-  { from: 'Aditi Gupta', subject: 'Guest post proposal', date: '17 Apr 2026' },
-];
 
 const ANALYTICS_DATA = [
   { day: 'Mon', views: 3200 }, { day: 'Tue', views: 4100 }, { day: 'Wed', views: 3800 },
   { day: 'Thu', views: 5200 }, { day: 'Fri', views: 4700 }, { day: 'Sat', views: 3100 }, { day: 'Sun', views: 2600 },
 ];
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string; icon: React.ElementType; color: string }) {
+interface Stats {
+  totalArticles: number;
+  activeSubscribers: number;
+  totalSuggestions: number;
+  unreadMessages: number;
+  pendingApplications: number;
+}
+
+interface Suggestion {
+  id: string;
+  title: string;
+  category: string;
+  votes: number;
+  status: string;
+}
+
+function StatCard({ label, value, icon: Icon, color, loading }: { label: string; value: string; icon: React.ElementType; color: string; loading?: boolean }) {
   return (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
       <div style={{ width: 44, height: 44, borderRadius: 10, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Icon size={20} color={color} />
       </div>
-      <div>
-        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 26, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 2px', fontVariantNumeric: 'tabular-nums' }}>{value}</p>
-        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>{label}</p>
+      <div style={{ minWidth: 0 }}>
+        {loading ? (
+          <div style={{ height: 26, width: 80, borderRadius: 6, background: 'var(--color-border)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        ) : (
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 26, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 2px', fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</p>
+        )}
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0, whiteSpace: 'nowrap' }}>{label}</p>
       </div>
     </div>
   );
@@ -46,7 +51,26 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
-  const totalViews = 2847500; // mock total — connect real analytics API for production
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/admin/stats')
+      .then(r => r.json())
+      .then(d => { if (!d.error) setStats(d); })
+      .catch(() => {})
+      .finally(() => setStatsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/admin/suggestions')
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setSuggestions(d.slice(0, 5)); })
+      .catch(() => {})
+      .finally(() => setSuggestionsLoading(false));
+  }, []);
 
   return (
     <div>
@@ -57,10 +81,34 @@ export default function AdminDashboard() {
 
       {/* Stats */}
       <div className="admin-stat-grid" style={{ display: 'grid', gap: 16, marginBottom: 32 }}>
-        <StatCard label="Total Articles" value={String(articles.length)} icon={FileText} color="#16A34A" />
-        <StatCard label="Total Views" value={formatIndianNumber(totalViews)} icon={Eye} color="#2563EB" />
-        <StatCard label="Newsletter Subscribers" value="5,00,000" icon={Users} color="#7C3AED" />
-        <StatCard label="Topic Suggestions" value={String(MOCK_SUGGESTIONS.length)} icon={Lightbulb} color="#D97706" />
+        <StatCard
+          label="Total Articles"
+          value={stats ? String(stats.totalArticles || articles.length) : String(articles.length)}
+          icon={FileText}
+          color="#16A34A"
+          loading={statsLoading}
+        />
+        <StatCard
+          label="Newsletter Subscribers"
+          value={stats ? formatIndianNumber(stats.activeSubscribers) : '—'}
+          icon={Users}
+          color="#7C3AED"
+          loading={statsLoading}
+        />
+        <StatCard
+          label="Topic Suggestions"
+          value={stats ? String(stats.totalSuggestions) : '—'}
+          icon={Lightbulb}
+          color="#D97706"
+          loading={statsLoading}
+        />
+        <StatCard
+          label="Unread Messages"
+          value={stats ? String(stats.unreadMessages) : '—'}
+          icon={MessageSquare}
+          color="#2563EB"
+          loading={statsLoading}
+        />
       </div>
 
       {/* Quick Actions */}
@@ -111,25 +159,34 @@ export default function AdminDashboard() {
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Top Suggestions</h2>
             <Link href="/admin/suggestions" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-accent)', textDecoration: 'none' }}>View all →</Link>
           </div>
-          <div>
-            {MOCK_SUGGESTIONS.map((s, i) => (
-              <div key={i} style={{ padding: '12px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 2px', lineHeight: 1.3 }}>{s.title.slice(0, 45)}{s.title.length > 45 ? '…' : ''}</p>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>👍 {s.votes} votes · {s.category}</p>
+          {suggestionsLoading ? (
+            <div style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
+              <Loader2 size={14} className="animate-spin" /> Loading…
+            </div>
+          ) : suggestions.length === 0 ? (
+            <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>No suggestions yet</div>
+          ) : (
+            <div>
+              {suggestions.map((s, i) => (
+                <div key={s.id || i} style={{ padding: '12px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 2px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title.slice(0, 45)}{s.title.length > 45 ? '…' : ''}</p>
+                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>👍 {s.votes} votes · {s.category}</p>
+                  </div>
+                  <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: `${STATUS_COLORS[s.status] || '#6B7280'}18`, color: STATUS_COLORS[s.status] || '#6B7280', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    {s.status === 'in-progress' ? 'In Progress' : s.status === 'published' ? 'Published' : 'Pending'}
+                  </span>
                 </div>
-                <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: `${STATUS_COLORS[s.status]}18`, color: STATUS_COLORS[s.status], fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {s.status === 'in-progress' ? 'In Progress' : 'Pending'}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Analytics Chart */}
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 24 }}>
-        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Page Views — Last 7 Days</h2>
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 4 }}>Page Views — Last 7 Days</h2>
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', marginBottom: 20 }}>Connect Plausible Analytics for live data</p>
         <div style={{ height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={ANALYTICS_DATA}>
