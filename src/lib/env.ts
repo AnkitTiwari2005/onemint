@@ -9,32 +9,41 @@ export const ENV = {
 
   // Brevo (Sendinblue)
   BREVO_API_KEY: process.env.BREVO_API_KEY || '',
-  BREVO_LIST_ID: Number(process.env.BREVO_LIST_ID || '3'),
+  // Null when env var not set — avoids silent wrong-list subscriptions
+  BREVO_LIST_ID: process.env.BREVO_LIST_ID ? Number(process.env.BREVO_LIST_ID) : null,
 
   // Typesense
-  TYPESENSE_HOST: process.env.NEXT_PUBLIC_TYPESENSE_HOST || '98kbgw5yxntaru3lp-1.a1.typesense.net',
+  TYPESENSE_HOST: process.env.NEXT_PUBLIC_TYPESENSE_HOST || '',
   TYPESENSE_PORT: 443,
   TYPESENSE_PROTOCOL: 'https' as const,
   TYPESENSE_ADMIN_KEY: process.env.TYPESENSE_ADMIN_API_KEY || '',
   TYPESENSE_SEARCH_KEY: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY || '',
 
-  // Cloudflare R2
-  R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID || '4e02237717dbdfb6e895b8ff981b6f7d',
-  R2_BUCKET: process.env.R2_BUCKET_NAME || 'onemint',
-  R2_PUBLIC_URL: process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://pub-e21b226d715d4080bba539114e3bff9b.r2.dev',
-  R2_ENDPOINT: process.env.R2_ENDPOINT || 'https://4e02237717dbdfb6e895b8ff981b6f7d.r2.cloudflarestorage.com',
+  // Cloudflare R2 — all from env, no hardcoded fallbacks
+  R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID || '',
+  R2_BUCKET: process.env.R2_BUCKET_NAME || '',
+  R2_PUBLIC_URL: process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '',
+  R2_ENDPOINT: process.env.R2_ENDPOINT || '',
+  R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID || '',
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY || '',
 
-  // Alpha Vantage (market data)
-  ALPHAVANTAGE_KEY: process.env.ALPHAVANTAGE_KEY || '9LZ7AKNHKOTRKQ35',
+  // Alpha Vantage (market data) — no hardcoded API key
+  ALPHAVANTAGE_KEY: process.env.ALPHAVANTAGE_KEY || '',
 
-  // Giscus
-  GISCUS_REPO: 'AnkitTiwari2005/onemint',
-  GISCUS_REPO_ID: 'R_kgDOSGou_g',
-  GISCUS_CATEGORY: 'General',
-  GISCUS_CATEGORY_ID: 'DIC_kwDOSGou_s4C7WAm',
+  // Admin auth (bcrypt hash of the admin password)
+  ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH || '',
+  // Admin session cookie name
+  ADMIN_SESSION_COOKIE: 'onemint_admin_session',
 
   // Plausible
-  PLAUSIBLE_DOMAIN: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || 'onemint-alpha.vercel.app',
+  PLAUSIBLE_DOMAIN: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || '',
+  PLAUSIBLE_API_KEY: process.env.PLAUSIBLE_API_KEY || '',
+
+  // Giscus — from env vars, not hardcoded
+  GISCUS_REPO: process.env.NEXT_PUBLIC_GISCUS_REPO || 'AnkitTiwari2005/onemint',
+  GISCUS_REPO_ID: process.env.NEXT_PUBLIC_GISCUS_REPO_ID || 'R_kgDOSGou_g',
+  GISCUS_CATEGORY: process.env.NEXT_PUBLIC_GISCUS_CATEGORY || 'General',
+  GISCUS_CATEGORY_ID: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOSGou_s4C7WAm',
 
   // Site
   SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://onemint-alpha.vercel.app',

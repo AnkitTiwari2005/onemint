@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Save, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, CheckCircle2, Loader2 } from 'lucide-react';
 
 type SettingsState = {
   siteName: string;
@@ -12,8 +12,6 @@ type SettingsState = {
   gaTrackingId: string;
   adsensePublisherId: string;
   newsletterProvider: string;
-  newsletterApiKey: string;
-  newsletterListId: string;
   contactFormEmail: string;
   footerCopyright: string;
   defaultCategory: string;
@@ -22,9 +20,6 @@ type SettingsState = {
   commentsEnabled: boolean;
   newsletterEnabled: boolean;
   darkModeDefault: boolean;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
 };
 
 const DEFAULTS: SettingsState = {
@@ -33,11 +28,9 @@ const DEFAULTS: SettingsState = {
   adminEmail: 'admin@onemint.com',
   siteUrl: 'https://onemint.vercel.app',
   twitterHandle: '@OneMint',
-  gaTrackingId: 'G-XXXXXXXXXX',
-  adsensePublisherId: 'ca-pub-XXXXXXXXXXXXXXXX',
-  newsletterProvider: 'ConvertKit',
-  newsletterApiKey: '',
-  newsletterListId: '',
+  gaTrackingId: '',
+  adsensePublisherId: '',
+  newsletterProvider: 'Brevo',
   contactFormEmail: 'contact@onemint.com',
   footerCopyright: '© 2026 OneMint. All rights reserved.',
   defaultCategory: 'finance',
@@ -46,9 +39,6 @@ const DEFAULTS: SettingsState = {
   commentsEnabled: true,
   newsletterEnabled: true,
   darkModeDefault: false,
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: '',
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -77,36 +67,42 @@ function Field({ label, help, children }: { label: string; help?: string; childr
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULTS);
   const [saved, setSaved] = useState(false);
-  const [pwError, setPwError] = useState('');
-  const [pwSuccess, setPwSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const DEFAULT_ADMIN_PW = 'onemint2025';
+  const set = (key: keyof SettingsState, value: string | boolean | number) =>
+    setSettings((prev) => ({ ...prev, [key]: value }));
 
-  const set = (key: keyof SettingsState, value: string | boolean | number) => setSettings((prev) => ({ ...prev, [key]: value }));
+  // Load persisted settings from Supabase on mount
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+          setSettings(prev => ({ ...prev, ...data }));
+        }
+      })
+      .catch(() => { /* use defaults */ });
+  }, []);
 
   const inputStyle = { width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' as const };
 
-  const saveAll = () => {
-    // Handle password change if fields are filled
-    if (settings.currentPassword || settings.newPassword || settings.confirmPassword) {
-      const storedPw = localStorage.getItem('admin_password') || DEFAULT_ADMIN_PW;
-      if (settings.currentPassword !== storedPw) {
-        setPwError('Incorrect current password.'); return;
-      }
-      if (!settings.newPassword || settings.newPassword.length < 6) {
-        setPwError('New password must be at least 6 characters.'); return;
-      }
-      if (settings.newPassword !== settings.confirmPassword) {
-        setPwError('Passwords do not match.'); return;
-      }
-      localStorage.setItem('admin_password', settings.newPassword);
-      setPwSuccess(true);
-      setTimeout(() => setPwSuccess(false), 3000);
-      setSettings(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
+  const saveAll = async () => {
+    setSaving(true);
+    try {
+      // Persist to Supabase (excluding password fields — those are env vars)
+      const { ...toSave } = settings;
+      await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSave),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      // Non-fatal
+    } finally {
+      setSaving(false);
     }
-    setPwError('');
-    localStorage.setItem('onemint_admin_settings', JSON.stringify(settings));
-    setSaved(true); setTimeout(() => setSaved(false), 2500);
   };
 
   return (
@@ -114,10 +110,10 @@ export default function AdminSettingsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 4px' }}>Site Settings</h1>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>All settings are saved to localStorage in this demo</p>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>Saved to Supabase — persists across deploys</p>
         </div>
-        <button onClick={saveAll} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--color-accent)', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          <Save size={14} /> {saved ? '✓ Saved' : 'Save Changes'}
+        <button onClick={saveAll} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--color-accent)', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} {saved ? '✓ Saved' : 'Save Changes'}
         </button>
       </div>
 
@@ -186,28 +182,24 @@ export default function AdminSettingsPage() {
         </Field>
       </Section>
 
-      <Section title="Change Admin Password">
-        <div style={{ padding: '12px 0', borderBottom: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[
-            { label: 'Current Password', key: 'currentPassword' },
-            { label: 'New Password', key: 'newPassword' },
-            { label: 'Confirm New Password', key: 'confirmPassword' },
-          ].map(({ label, key }) => (
-            <div key={key}>
-              <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>{label}</label>
-              <input type="password" value={String(settings[key as keyof SettingsState])} onChange={(e) => set(key as keyof SettingsState, e.target.value)} style={{ ...inputStyle, maxWidth: 360 }} />
+      <Section title="Admin Password">
+        <div style={{ padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 10 }}>
+            <CheckCircle2 size={18} style={{ color: '#16A34A', flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: '0 0 4px' }}>Secure bcrypt authentication active</p>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.6 }}>
+                Password is stored as a bcrypt hash in <code style={{ fontFamily: 'var(--font-mono)', background: 'var(--color-border)', padding: '1px 5px', borderRadius: 4 }}>ADMIN_PASSWORD_HASH</code> environment variable.
+                To change your password, generate a new hash with:
+              </p>
+              <code style={{ display: 'block', marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 11, background: '#0F1117', color: '#A3E635', padding: '8px 12px', borderRadius: 6 }}>
+                node -e &quot;const b=require(&apos;bcryptjs&apos;); console.log(b.hashSync(&apos;newpassword&apos;,12));&quot;
+              </code>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: '8px 0 0' }}>
+                Then update <strong>ADMIN_PASSWORD_HASH</strong> in your Vercel environment variables and redeploy.
+              </p>
             </div>
-          ))}
-          {pwError && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#DC2626', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
-              <AlertTriangle size={14} /> {pwError}
-            </div>
-          )}
-          {pwSuccess && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#16A34A', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
-              <CheckCircle2 size={14} /> Password changed successfully.
-            </div>
-          )}
+          </div>
         </div>
       </Section>
 

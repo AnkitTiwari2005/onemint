@@ -15,6 +15,7 @@ import { AnimatedSection, StaggerContainer } from '@/components/AnimatedSection'
 import { formatDate } from '@/lib/utils';
 import { cardVariants, heroVariants, easeOut } from '@/lib/motion';
 import { cn } from '@/lib/cn';
+import { trackEvent } from '@/lib/analytics';
 
 type NewsletterState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -34,9 +35,20 @@ export default function HomePage() {
     e.preventDefault();
     if (!nlEmail.trim()) return;
     setNlState('loading');
-    await new Promise(r => setTimeout(r, 1400));
-    setNlState('success');
-    setTimeout(() => { setNlState('idle'); setNlEmail(''); }, 6000);
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: nlEmail }),
+      });
+      if (!res.ok) throw new Error('Subscription failed');
+      setNlState('success');
+      trackEvent('Newsletter Subscribe', { location: 'homepage' });
+      setTimeout(() => { setNlState('idle'); setNlEmail(''); }, 6000);
+    } catch {
+      setNlState('error');
+      setTimeout(() => setNlState('idle'), 4000);
+    }
   };
 
   return (

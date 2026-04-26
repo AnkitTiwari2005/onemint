@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, FileText, Tag, Users, BookOpen, Lightbulb,
   MessageSquare, Calculator, BookMarked, Mail, BarChart3,
-  Settings, LogOut, ChevronRight, Menu, X, Cog,
+  Settings, LogOut, Menu, Cog,
 } from 'lucide-react';
 
 const NAV = [
@@ -54,25 +54,17 @@ const NAV = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [authenticated, setAuthenticated] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    const auth = localStorage.getItem('admin_authenticated');
-    if (!auth && pathname !== '/admin/login') {
-      router.replace('/admin/login');
-    } else {
-      setAuthenticated(true);
-    }
-  }, [pathname, router]);
-
-  const logout = () => {
-    localStorage.removeItem('admin_authenticated');
-    router.push('/admin/login');
-  };
-
-  if (!authenticated && pathname !== '/admin/login') return null;
+  // Middleware handles server-side auth protection.
+  // Login page renders without sidebar.
   if (pathname === '/admin/login') return <>{children}</>;
+
+  const logout = async () => {
+    await fetch('/api/admin/auth/logout', { method: 'POST' });
+    router.push('/admin/login');
+    router.refresh();
+  };
 
   const Sidebar = () => (
     <div style={{ width: 240, background: '#0F1117', color: 'white', height: '100vh', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, overflowY: 'auto' }}>

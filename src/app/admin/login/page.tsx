@@ -3,28 +3,45 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff } from 'lucide-react';
-import Image from 'next/image';
-
-
+import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [shaking, setShaking] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const storedPassword = localStorage.getItem('admin_password') || 'onemint2025';
-    if (password === storedPassword) {
-      localStorage.setItem('admin_authenticated', 'true');
-      router.push('/admin');
-    } else {
-      setError('Incorrect password. Please try again.');
+    if (!password.trim()) return;
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+
+      if (res.ok) {
+        router.push('/admin');
+        router.refresh(); // ensure middleware re-evaluates cookie
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Incorrect password. Please try again.');
+        setShaking(true);
+        setTimeout(() => setShaking(false), 500);
+        setPassword('');
+      }
+    } catch {
+      setError('Network error — please try again.');
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,6 +95,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => { setPassword(e.target.value); setError(''); }}
                 placeholder="Enter admin password"
                 autoComplete="current-password"
+                autoFocus
                 style={{
                   width: '100%', padding: '11px 44px 11px 14px',
                   borderRadius: 8, border: `1px solid ${error ? '#DC2626' : 'var(--color-border)'}`,
@@ -99,24 +117,22 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
+            disabled={loading || !password.trim()}
             style={{
               width: '100%', padding: '12px',
               borderRadius: 8, border: 'none',
               background: 'var(--color-accent)', color: 'white',
               fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600,
-              cursor: 'pointer', transition: 'opacity 0.15s ease',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading || !password.trim() ? 0.7 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'opacity 0.15s ease',
             }}
           >
-            Sign In
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
-
-        {/* Demo hint */}
-        <div style={{ marginTop: 24, padding: '12px 16px', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8 }}>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0, textAlign: 'center' }}>
-            🔑 Demo credentials: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-ink)' }}>onemint2025</strong>
-          </p>
-        </div>
       </motion.div>
     </div>
   );

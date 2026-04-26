@@ -4,12 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Pencil, Trash2, Save, X, ExternalLink } from 'lucide-react';
 
-const DEFAULT_AUTHORS = [
-  { id: 'ananya-krishna', name: 'Ananya Krishna', slug: 'ananya-krishna', role: 'Senior Finance Writer', avatar: '/avatars/ananya-krishna.jpg', bio: 'CFP with 10+ years in personal finance.', email: 'ananya@onemint.com', status: 'active', joinedDate: '2018-03-01', articleCount: 86 },
-  { id: 'rahul-nair', name: 'Rahul Nair', slug: 'rahul-nair', role: 'Technology Correspondent', avatar: '/avatars/rahul-nair.jpg', bio: 'Tech journalist covering AI and fintech.', email: 'rahul@onemint.com', status: 'active', joinedDate: '2020-07-15', articleCount: 63 },
-  { id: 'priya-sharma', name: 'Priya Sharma', slug: 'priya-sharma', role: 'Health & Wellness Editor', avatar: '/avatars/priya-sharma.jpg', bio: 'Public health researcher and nutritionist.', email: 'priya@onemint.com', status: 'active', joinedDate: '2021-01-10', articleCount: 41 },
-  { id: 'vikram-rao', name: 'Vikram Rao', slug: 'vikram-rao', role: 'Markets Analyst', avatar: '/avatars/vikram-rao.jpg', bio: 'SEBI-registered investment advisor with MBA.', email: 'vikram@onemint.com', status: 'inactive', joinedDate: '2019-09-20', articleCount: 28 },
-];
+import { authors as staticAuthors } from '@/data/authors';
 
 interface Author {
   id: string;
@@ -32,13 +27,14 @@ export default function AdminAuthorsPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin_authors');
-    setAuthors(stored ? JSON.parse(stored) : DEFAULT_AUTHORS);
+    fetch('/api/admin/authors')
+      .then(r => r.json())
+      .then(data => setAuthors(Array.isArray(data) && data.length > 0 ? data : (staticAuthors as unknown as Author[])))
+      .catch(() => setAuthors(staticAuthors as unknown as Author[]));
   }, []);
 
   const persist = (list: Author[]) => {
     setAuthors(list);
-    localStorage.setItem('admin_authors', JSON.stringify(list));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

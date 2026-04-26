@@ -4,16 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Tag } from 'lucide-react';
 
-const DEFAULT_CATEGORIES = [
-  { id: 'finance', name: 'Personal Finance', slug: 'personal-finance', accentColor: '#1B6B3A', description: 'Budgeting, saving, investing basics', articleCount: 120 },
-  { id: 'tax', name: 'Tax', slug: 'tax', accentColor: '#0F4C81', description: 'Income tax, GST, filing guides', articleCount: 85 },
-  { id: 'investing', name: 'Investing', slug: 'investing', accentColor: '#7C3AED', description: 'Stocks, mutual funds, bonds', articleCount: 98 },
-  { id: 'insurance', name: 'Insurance', slug: 'insurance', accentColor: '#B45309', description: 'Life, health, general insurance', articleCount: 64 },
-  { id: 'career', name: 'Career & Growth', slug: 'career', accentColor: '#0891B2', description: 'Jobs, salary, freelancing', articleCount: 52 },
-  { id: 'health', name: 'Health & Wellness', slug: 'health', accentColor: '#16A34A', description: 'Fitness, nutrition, mental health', articleCount: 73 },
-  { id: 'technology', name: 'Technology', slug: 'technology', accentColor: '#1D4ED8', description: 'AI, gadgets, digital life', articleCount: 61 },
-  { id: 'realestate', name: 'Real Estate', slug: 'real-estate', accentColor: '#9D174D', description: 'Home buying, rental, REITs', articleCount: 47 },
-];
+import { categories as staticCategories } from '@/data/categories';
 
 interface Category {
   id: string;
@@ -21,7 +12,7 @@ interface Category {
   slug: string;
   accentColor: string;
   description: string;
-  articleCount: number;
+  articleCount?: number;
 }
 
 export default function AdminCategoriesPage() {
@@ -31,16 +22,19 @@ export default function AdminCategoriesPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin_categories');
-    setCategories(stored ? JSON.parse(stored) : DEFAULT_CATEGORIES);
+    // Load from Supabase API; fall back to static data
+    fetch('/api/admin/categories')
+      .then(r => r.json())
+      .then(data => setCategories(Array.isArray(data) && data.length > 0 ? data : (staticCategories as Category[])))
+      .catch(() => setCategories(staticCategories as Category[]));
   }, []);
 
   const persist = (cats: Category[]) => {
     setCategories(cats);
-    localStorage.setItem('admin_categories', JSON.stringify(cats));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
 
   const startNew = () => {
     setEditing({ id: '', name: '', slug: '', accentColor: '#1B6B3A', description: '', articleCount: 0 });

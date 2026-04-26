@@ -3,26 +3,24 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { trackEvent } from '@/lib/analytics';
 
-export function ArticleFeedback() {
+export function ArticleFeedback({ slug }: { slug?: string }) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
-  const pathname = usePathname();
 
   const handleFeedback = async (type: 'up' | 'down') => {
-    if (feedback !== null) return; // prevent double submit
+    if (feedback !== null) return;
     setFeedback(type);
 
-    if (supabase) {
-      try {
-        await supabase.from('article_feedback').insert([{
-          article_slug: pathname,
-          vote: type,
-        }]);
-      } catch {
-        // Non-critical — feedback is a nice-to-have
-      }
+    trackEvent('Article Feedback', { slug: slug || 'unknown', vote: type });
+
+    if (supabase && slug) {
+      void Promise.resolve(
+        supabase.from('article_feedback').insert([{ article_slug: slug, vote: type }])
+      ).then(({ error }) => {
+        if (error) console.error('[ArticleFeedback]', error.message);
+      }).catch((err: unknown) => console.error('[ArticleFeedback]', err));
     }
   };
 

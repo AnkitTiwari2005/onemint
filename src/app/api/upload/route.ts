@@ -2,22 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ENV } from '@/lib/env';
 
-const R2 = new S3Client({
-  region: 'auto',
-  endpoint: ENV.R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-  },
-});
+// R2 client — uses ENV wrapper (consistent with all other routes)
+function makeR2Client() {
+  if (!ENV.R2_ACCESS_KEY_ID || !ENV.R2_SECRET_ACCESS_KEY || !ENV.R2_ENDPOINT) {
+    return null;
+  }
+  return new S3Client({
+    region: 'auto',
+    endpoint: ENV.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: ENV.R2_ACCESS_KEY_ID,
+      secretAccessKey: ENV.R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+    const R2 = makeR2Client();
+    if (!R2) {
       return NextResponse.json(
-        { error: 'R2 credentials not configured — add R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY to Vercel environment variables' },
+        { error: 'R2 not configured — add R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY and R2_ENDPOINT to env vars' },
         { status: 503 }
       );
+    }
+
+    if (!ENV.R2_BUCKET) {
+      return NextResponse.json({ error: 'R2_BUCKET_NAME not configured' }, { status: 503 });
     }
 
     const formData = await req.formData();
@@ -38,7 +49,7 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const ext = file.name.split('.').pop() || 'jpg';
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const filename = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     await R2.send(
@@ -54,7 +65,7 @@ export async function POST(req: NextRequest) {
     const url = `${ENV.R2_PUBLIC_URL}/${filename}`;
     return NextResponse.json({ url });
   } catch (err) {
-    console.error('R2 upload error:', err);
+    console.error('[R2 upload]', err);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

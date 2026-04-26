@@ -2,9 +2,10 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { categories } from '@/data/categories';
 import { authors } from '@/data/authors';
-import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, X, Loader2 } from 'lucide-react';
 
 function calcReadTime(text: string) {
   const words = text.trim().split(/\s+/).length;
@@ -24,6 +25,7 @@ function mdToHtml(md: string) {
 }
 
 export default function NewArticlePage() {
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [deck, setDeck] = useState('');
   const [body, setBody] = useState('');
@@ -37,7 +39,8 @@ export default function NewArticlePage() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDesc, setMetaDesc] = useState('');
   const [seoOpen, setSeoOpen] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const wrapSelection = (before: string, after = before) => {
@@ -81,12 +84,39 @@ export default function NewArticlePage() {
     }
   };
 
-  const saveArticle = (publish = false) => {
-    const article = { title, deck, body, status: publish ? 'published' : status, category, author, tags, featuredImage, metaTitle, metaDesc, createdAt: new Date().toISOString() };
-    const existing = JSON.parse(localStorage.getItem('admin_articles') || '[]');
-    localStorage.setItem('admin_articles', JSON.stringify([...existing, { id: Date.now().toString(), ...article }]));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const saveArticle = async (publish = false) => {
+    if (!title.trim()) { setSaveError('Title is required'); return; }
+    setSaving(true);
+    setSaveError('');
+    try {
+      const slug = title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const finalStatus = publish ? 'published' : status;
+      const res = await fetch('/api/admin/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          slug,
+          excerpt: deck.trim(),
+          content: body,
+          cover_image: featuredImage,
+          category_id: category || null,
+          author_id: author || null,
+          tags,
+          read_time_minutes: calcReadTime(body),
+          status: finalStatus,
+          meta_title: metaTitle,
+          meta_description: metaDesc,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Save failed');
+      router.push('/admin/articles');
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed — try again');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -94,7 +124,7 @@ export default function NewArticlePage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <Link href="/admin/articles" style={{ color: 'var(--color-ink-tertiary)', display: 'flex', textDecoration: 'none' }}><ArrowLeft size={18} /></Link>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>New Article</h1>
-        {saved && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#16A34A', background: '#D1FAE5', padding: '3px 10px', borderRadius: 10 }}>✓ Saved</span>}
+        {saveError && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '3px 10px', borderRadius: 10 }}>⚠ {saveError}</span>}
       </div>
 
       <div className="article-editor-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
@@ -214,13 +244,13 @@ export default function NewArticlePage() {
 
       {/* Sticky action bar */}
       <div className="article-action-bar" style={{ position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px', display: 'flex', gap: 12, zIndex: 50, alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => saveArticle(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-          <Save size={14} /> Save Draft
+        <button onClick={() => saveArticle(false)} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save Draft
         </button>
-        <button onClick={() => saveArticle(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-          <Globe size={14} /> Publish
+        <button onClick={() => saveArticle(true)} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />} Publish
         </button>
-        <button onClick={() => window.open(`/articles/preview`, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
+        <button onClick={() => title && window.open(`/articles/${title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
           <Eye size={14} /> Preview
         </button>
       </div>
