@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
       const { error: dbError } = await supabaseAdmin
         .from('newsletter_subscribers')
         .upsert(
-          [{ email: normalizedEmail, name: displayName, status: 'active', subscribed_at: new Date().toISOString() }],
+          [{ email: normalizedEmail, name: displayName, status: 'active' }],
           { onConflict: 'email' }
         );
 
