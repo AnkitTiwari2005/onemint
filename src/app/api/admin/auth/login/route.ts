@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { randomBytes, createHmac } from 'crypto';
 import { ENV } from '@/lib/env';
+
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/**
+ * Generate a signed session token using HMAC-SHA256.
+ * Token = `nonce.expiry_ms.sig`  — verifiable by middleware without a DB round-trip.
+ */
+function generateToken(secret: string): string {
+  const nonce = randomBytes(32).toString('hex');
+  const expiry = (Date.now() + SESSION_TTL_MS).toString();
+  const payload = `${nonce}:${expiry}`;
+  const sig = createHmac('sha256', secret).update(payload).digest('hex');
+  return `${nonce}.${expiry}.${sig}`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,25 +27,26 @@ export async function POST(req: NextRequest) {
 
     const hash = ENV.ADMIN_PASSWORD_HASH;
     if (!hash) {
-      // Fallback for initial setup — only works if no hash is configured
-      console.warn('[AdminAuth] ADMIN_PASSWORD_HASH not set — auth disabled');
+      console.warn('[AdminAuth] ADMIN_PASSWORD_HASH not set');
       return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
     }
 
     const valid = await bcrypt.compare(password, hash);
     if (!valid) {
-      // Small delay to slow brute-force without being obvious
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 300)); // slow brute-force
       return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
     }
 
-    // Set an HTTP-only session cookie (30 days)
+    // Use hash as signing secret (available in both Node.js and Edge)
+    const secret = hash || ENV.SUPABASE_SERVICE_ROLE_KEY;
+    const token = generateToken(secret);
+
     const response = NextResponse.json({ success: true });
-    response.cookies.set(ENV.ADMIN_SESSION_COOKIE, 'authenticated', {
+    response.cookies.set(ENV.ADMIN_SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: SESSION_TTL_MS / 1000,
       path: '/',
     });
     return response;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, XCircle, Clock, Mail, ExternalLink, Loader2 } from 'lucide-react';
-import { supabaseAdmin } from '@/lib/supabase';
+
 
 interface Application {
   id: string;
@@ -31,20 +31,21 @@ export default function AdminApplicationsPage() {
   const [saved, setSaved] = useState('');
 
   useEffect(() => {
-    if (!supabaseAdmin) { setLoading(false); return; }
-    supabaseAdmin
-      .from('author_applications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setApps(data as Application[]);
+    fetch('/api/admin/applications')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setApps(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
-    if (!supabaseAdmin) return;
-    await supabaseAdmin.from('author_applications').update({ status }).eq('id', id);
+    await fetch('/api/admin/applications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    });
     setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     setSaved(id);
     setTimeout(() => setSaved(''), 2000);

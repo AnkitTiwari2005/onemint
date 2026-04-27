@@ -1,34 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
 
 export function ArticleFeedback({ slug }: { slug?: string }) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
+  // Load like status from server on mount
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/likes?slug=${encodeURIComponent(slug)}`)
+      .then(r => r.json())
+      .then(d => { setLiked(!!d.liked); setLikeCount(d.count ?? 0); })
+      .catch(() => {});
+  }, [slug]);
 
   const handleFeedback = async (type: 'up' | 'down') => {
     if (feedback !== null) return;
     setFeedback(type);
-
     trackEvent('Article Feedback', { slug: slug || 'unknown', vote: type });
 
-    if (supabase && slug) {
-      void Promise.resolve(
-        supabase.from('article_feedback').insert([{ article_slug: slug, vote: type }])
-      ).then(({ error }) => {
-        if (error) console.error('[ArticleFeedback]', error.message);
-      }).catch((err: unknown) => console.error('[ArticleFeedback]', err));
+    if (type === 'up' && slug) {
+      try {
+        const res = await fetch('/api/likes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug }),
+        });
+        const data = await res.json();
+        if (data.success) { setLiked(data.liked); setLikeCount(data.count); }
+      } catch { /* silent */ }
     }
   };
 
   return (
     <div className="bg-[var(--color-surface-alt)] rounded-xl p-6 text-center">
-      <p className="text-sm font-semibold text-[var(--color-ink)] mb-3 font-[family-name:var(--font-ui)]">
+      <p className="text-sm font-semibold text-[var(--color-ink)] mb-1 font-[family-name:var(--font-ui)]">
         Was this article helpful?
       </p>
+      {likeCount > 0 && (
+        <p className="text-xs text-[var(--color-ink-tertiary)] mb-3 font-[family-name:var(--font-ui)]">
+          {likeCount} {likeCount === 1 ? 'person found' : 'people found'} this helpful
+        </p>
+      )}
       <div className="flex items-center justify-center gap-3">
         <motion.button
           whileTap={{ scale: 1.3 }}
@@ -67,7 +85,7 @@ export function ArticleFeedback({ slug }: { slug?: string }) {
             exit={{ opacity: 0, y: -8 }}
             className="text-xs text-[var(--color-ink-tertiary)] mt-3 font-[family-name:var(--font-ui)]"
           >
-            {feedback === 'up' ? 'Thanks for the feedback!' : 'Thanks — we\'ll work on improving this.'}
+            {feedback === 'up' ? 'Thanks for the feedback!' : "Thanks — we'll work on improving this."}
           </motion.p>
         )}
       </AnimatePresence>

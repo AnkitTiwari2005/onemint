@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Mail, Circle, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
-import { supabaseAdmin } from '@/lib/supabase';
+
 
 interface Message {
   id: string;
@@ -21,26 +21,30 @@ export default function AdminMessagesPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!supabaseAdmin) { setLoading(false); return; }
-    supabaseAdmin
-      .from('contact_messages')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) { setMessages(data as Message[]); setSelected(data[0]?.id ?? null); }
+    fetch('/api/admin/messages')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) { setMessages(data); setSelected(data[0]?.id ?? null); }
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const markRead = async (id: string) => {
-    if (!supabaseAdmin) return;
-    await supabaseAdmin.from('contact_messages').update({ read: true }).eq('id', id);
+    await fetch('/api/admin/messages', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, read: true }),
+    });
     setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
   };
 
   const deleteMsg = async (id: string) => {
-    if (!supabaseAdmin) return;
-    await supabaseAdmin.from('contact_messages').delete().eq('id', id);
+    await fetch('/api/admin/messages', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
     const remaining = messages.filter(m => m.id !== id);
     setMessages(remaining);
     setSelected(remaining[0]?.id ?? null);

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bookmark, Trash2, BookOpen } from 'lucide-react';
-import { articles, Article } from '@/data/articles';
+import { articles as staticArticles, Article } from '@/data/articles';
 import { ArticleCard } from '@/components/ArticleCard';
 
 const PREFS_KEY = 'onemint-prefs';
@@ -46,16 +46,22 @@ function clearBookmarks() {
 
 export default function SavedPage() {
   const [slugs, setSlugs] = useState<string[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>(staticArticles);
   const [confirmClear, setConfirmClear] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setSlugs(getBookmarked());
     setMounted(true);
+    // Fetch live articles from DB; fall back to static if unavailable
+    fetch('/api/articles/public')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data) && data.length) setAllArticles(data); })
+      .catch(() => { /* keep static fallback */ });
   }, []);
 
   const savedArticles: Article[] = slugs
-    .map((slug) => articles.find((a) => a.slug === slug))
+    .map((slug) => allArticles.find((a) => a.slug === slug))
     .filter(Boolean) as Article[];
 
   const handleRemove = (slug: string) => {

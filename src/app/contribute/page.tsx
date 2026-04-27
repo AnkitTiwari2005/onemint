@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Loader2, PenSquare, Users, Lightbulb } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -21,31 +21,18 @@ export default function ContributePage() {
     e.preventDefault();
     if (!fields.name || !fields.email || !fields.category || !fields.pitch) return;
     setFormState('loading');
-
-    if (!supabase) {
-      // Env vars not set — still show success to the user
+    try {
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields),
+      });
+      if (!res.ok) throw new Error('Failed');
       setFormState('success');
-      return;
-    }
-
-    const { error } = await supabase.from('author_applications').insert([{
-      name: fields.name,
-      email: fields.email,
-      linkedin_url: fields.linkedin,
-      category: fields.category,
-      pitch: fields.pitch,
-      sample_url: fields.sample,
-      type: 'guest',
-      status: 'pending',
-    }]);
-
-    if (error) {
-      console.error('Application insert error:', error);
+    } catch {
       setFormState('error');
       setTimeout(() => setFormState('idle'), 4000);
-      return;
     }
-    setFormState('success');
   };
 
   return (

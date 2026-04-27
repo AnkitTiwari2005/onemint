@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ENV } from '@/lib/env';
+import { cookies } from 'next/headers';
 
 // R2 client — uses ENV wrapper (consistent with all other routes)
 function makeR2Client() {
@@ -18,6 +19,13 @@ function makeR2Client() {
 }
 
 export async function POST(req: NextRequest) {
+  // Issue #14: guard uploads — only authenticated admins may store files
+  const cookieStore = await cookies();
+  const session = cookieStore.get(ENV.ADMIN_SESSION_COOKIE)?.value;
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const R2 = makeR2Client();
     if (!R2) {

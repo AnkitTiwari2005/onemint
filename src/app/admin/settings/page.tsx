@@ -12,6 +12,8 @@ type SettingsState = {
   gaTrackingId: string;
   adsensePublisherId: string;
   newsletterProvider: string;
+  newsletterApiKey: string;
+  newsletterListId: string;
   contactFormEmail: string;
   footerCopyright: string;
   defaultCategory: string;
@@ -31,6 +33,8 @@ const DEFAULTS: SettingsState = {
   gaTrackingId: '',
   adsensePublisherId: '',
   newsletterProvider: 'Brevo',
+  newsletterApiKey: '',
+  newsletterListId: '',
   contactFormEmail: 'contact@onemint.com',
   footerCopyright: '© 2026 OneMint. All rights reserved.',
   defaultCategory: 'finance',
@@ -89,17 +93,20 @@ export default function AdminSettingsPage() {
   const saveAll = async () => {
     setSaving(true);
     try {
-      // Persist to Supabase (excluding password fields — those are env vars)
-      const { ...toSave } = settings;
-      await fetch('/api/admin/settings', {
+      const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(toSave),
+        body: JSON.stringify(settings),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(`Save failed: ${err.error || 'Unknown error'}`);
+        return;
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      // Non-fatal
+      alert('Failed to save settings. Check your connection.');
     } finally {
       setSaving(false);
     }
