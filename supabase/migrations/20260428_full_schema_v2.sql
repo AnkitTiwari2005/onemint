@@ -197,7 +197,36 @@ create policy "admin_only_subscribers"
   on public.newsletter_subscribers for all using (false);
 
 -- ─────────────────────────────────────────────
--- 11. topic_suggestions
+-- 11. articles
+-- ─────────────────────────────────────────────
+create table if not exists public.articles (
+  id                uuid primary key default gen_random_uuid(),
+  title             text not null,
+  slug              text not null unique,
+  excerpt           text not null default '',
+  content           text not null default '',
+  cover_image       text not null default '',
+  category_id       uuid references public.categories(id) on delete set null,
+  author_id         uuid references public.authors(id) on delete set null,
+  tags              text[] not null default '{}',
+  read_time_minutes integer not null default 5,
+  status            text not null default 'draft' check (status in ('draft','published','archived')),
+  meta_title        text not null default '',
+  meta_description  text not null default '',
+  published_at      timestamptz,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+alter table public.articles enable row level security;
+drop policy if exists "public_read_articles" on public.articles;
+drop policy if exists "admin_write_articles" on public.articles;
+create policy "public_read_articles"
+  on public.articles for select using (status = 'published');
+create policy "admin_write_articles"
+  on public.articles for all using (false);
+
+-- ─────────────────────────────────────────────
+-- 12. topic_suggestions
 -- ─────────────────────────────────────────────
 create table if not exists public.topic_suggestions (
   id         uuid primary key default gen_random_uuid(),
