@@ -1,5 +1,5 @@
 -- ============================================================
--- OneMint — Full Schema Migration v2
+-- OneMint — Full Schema Migration v2  (idempotent, safe to re-run)
 -- Run in Supabase SQL Editor (Dashboard → SQL Editor → New query)
 -- ============================================================
 
@@ -19,8 +19,8 @@ create table if not exists public.contact_messages (
   created_at  timestamptz not null default now()
 );
 alter table public.contact_messages enable row level security;
--- Only service-role (supabaseAdmin) can read/write — anon gets nothing
-create policy if not exists "admin_only_contact_messages"
+drop policy if exists "admin_only_contact_messages" on public.contact_messages;
+create policy "admin_only_contact_messages"
   on public.contact_messages for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -41,7 +41,8 @@ create table if not exists public.author_applications (
   updated_at   timestamptz not null default now()
 );
 alter table public.author_applications enable row level security;
-create policy if not exists "admin_only_author_applications"
+drop policy if exists "admin_only_author_applications" on public.author_applications;
+create policy "admin_only_author_applications"
   on public.author_applications for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -55,8 +56,8 @@ create table if not exists public.article_likes (
   unique (article_slug, user_fingerprint)
 );
 alter table public.article_likes enable row level security;
--- Public users cannot directly read/write — all access goes through /api/likes (service role)
-create policy if not exists "admin_only_article_likes"
+drop policy if exists "admin_only_article_likes" on public.article_likes;
+create policy "admin_only_article_likes"
   on public.article_likes for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -69,7 +70,8 @@ create table if not exists public.article_feedback (
   created_at   timestamptz not null default now()
 );
 alter table public.article_feedback enable row level security;
-create policy if not exists "admin_only_article_feedback"
+drop policy if exists "admin_only_article_feedback" on public.article_feedback;
+create policy "admin_only_article_feedback"
   on public.article_feedback for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -88,10 +90,11 @@ create table if not exists public.glossary_terms (
   updated_at       timestamptz not null default now()
 );
 alter table public.glossary_terms enable row level security;
--- Public can read; only service-role can write
-create policy if not exists "public_read_glossary"
+drop policy if exists "public_read_glossary"  on public.glossary_terms;
+drop policy if exists "admin_write_glossary"  on public.glossary_terms;
+create policy "public_read_glossary"
   on public.glossary_terms for select using (true);
-create policy if not exists "admin_write_glossary"
+create policy "admin_write_glossary"
   on public.glossary_terms for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -114,9 +117,11 @@ create table if not exists public.authors (
   updated_at  timestamptz not null default now()
 );
 alter table public.authors enable row level security;
-create policy if not exists "public_read_authors"
+drop policy if exists "public_read_authors" on public.authors;
+drop policy if exists "admin_write_authors" on public.authors;
+create policy "public_read_authors"
   on public.authors for select using (true);
-create policy if not exists "admin_write_authors"
+create policy "admin_write_authors"
   on public.authors for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -132,9 +137,11 @@ create table if not exists public.categories (
   updated_at   timestamptz not null default now()
 );
 alter table public.categories enable row level security;
-create policy if not exists "public_read_categories"
+drop policy if exists "public_read_categories" on public.categories;
+drop policy if exists "admin_write_categories" on public.categories;
+create policy "public_read_categories"
   on public.categories for select using (true);
-create policy if not exists "admin_write_categories"
+create policy "admin_write_categories"
   on public.categories for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -154,9 +161,11 @@ create table if not exists public.series (
   updated_at      timestamptz not null default now()
 );
 alter table public.series enable row level security;
-create policy if not exists "public_read_series"
+drop policy if exists "public_read_series" on public.series;
+drop policy if exists "admin_write_series"  on public.series;
+create policy "public_read_series"
   on public.series for select using (true);
-create policy if not exists "admin_write_series"
+create policy "admin_write_series"
   on public.series for all using (false);
 
 -- ─────────────────────────────────────────────
@@ -168,11 +177,12 @@ create table if not exists public.site_settings (
   updated_at timestamptz not null default now()
 );
 alter table public.site_settings enable row level security;
-create policy if not exists "admin_only_settings"
+drop policy if exists "admin_only_settings" on public.site_settings;
+create policy "admin_only_settings"
   on public.site_settings for all using (false);
 
 -- ─────────────────────────────────────────────
--- 10. newsletter_subscribers (ensure exists)
+-- 10. newsletter_subscribers
 -- ─────────────────────────────────────────────
 create table if not exists public.newsletter_subscribers (
   id         uuid primary key default gen_random_uuid(),
@@ -182,7 +192,8 @@ create table if not exists public.newsletter_subscribers (
   created_at timestamptz not null default now()
 );
 alter table public.newsletter_subscribers enable row level security;
-create policy if not exists "admin_only_subscribers"
+drop policy if exists "admin_only_subscribers" on public.newsletter_subscribers;
+create policy "admin_only_subscribers"
   on public.newsletter_subscribers for all using (false);
 
 -- ─────────────────────────────────────────────
