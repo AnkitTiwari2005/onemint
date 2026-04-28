@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { categories } from '@/data/categories';
-import { authors } from '@/data/authors';
 import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, X, Loader2 } from 'lucide-react';
+
+interface DbAuthor { id: string; name: string; }
+interface DbCategory { id: string; name: string; }
 
 function calcReadTime(text: string) {
   const words = text.trim().split(/\s+/).length;
@@ -42,6 +43,20 @@ export default function NewArticlePage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
+  const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/authors')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDbAuthors(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    fetch('/api/admin/categories')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDbCategories(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   const wrapSelection = (before: string, after = before) => {
     const ta = textareaRef.current;
@@ -188,7 +203,7 @@ export default function NewArticlePage() {
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
               <option value="">Select category…</option>
-              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {dbCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 
@@ -197,7 +212,7 @@ export default function NewArticlePage() {
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Author</label>
             <select value={author} onChange={(e) => setAuthor(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
               <option value="">Select author…</option>
-              {authors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              {dbAuthors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </div>
 

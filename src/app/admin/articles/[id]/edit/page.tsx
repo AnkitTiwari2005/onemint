@@ -2,11 +2,11 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { categories } from '@/data/categories';
-import { authors } from '@/data/authors';
 import Link from 'next/link';
 import { ArrowLeft, Save, Eye, X, Loader2 } from 'lucide-react';
 
+interface DbAuthor { id: string; name: string; }
+interface DbCategory { id: string; name: string; }
 interface Props { params: Promise<{ id: string }> }
 
 export default function EditArticlePage({ params }: Props) {
@@ -26,8 +26,10 @@ export default function EditArticlePage({ params }: Props) {
   const [author, setAuthor] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
+  const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
 
-  // Load from Supabase via API
+  // Load article + authors + categories from API
   useEffect(() => {
     fetch(`/api/admin/articles/${id}`)
       .then(r => {
@@ -46,6 +48,15 @@ export default function EditArticlePage({ params }: Props) {
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
+
+    fetch('/api/admin/authors')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDbAuthors(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    fetch('/api/admin/categories')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDbCategories(Array.isArray(data) ? data : []))
+      .catch(() => {});
   }, [id]);
 
   const addTag = (e: React.KeyboardEvent) => {
@@ -112,8 +123,8 @@ export default function EditArticlePage({ params }: Props) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 24 }}>
           {[
             { label: 'Status', content: <select value={status} onChange={e => setStatus(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="published">Published</option><option value="draft">Draft</option><option value="archived">Archived</option></select> },
-            { label: 'Category', content: <select value={category} onChange={e => setCategory(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="">No category</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select> },
-            { label: 'Author', content: <select value={author} onChange={e => setAuthor(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="">No author</option>{authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select> },
+            { label: 'Category', content: <select value={category} onChange={e => setCategory(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="">No category</option>{dbCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select> },
+            { label: 'Author', content: <select value={author} onChange={e => setAuthor(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="">No author</option>{dbAuthors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select> },
           ].map(({ label, content }) => (
             <div key={label} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 16 }}>
               <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</label>
