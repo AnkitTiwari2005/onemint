@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     // Insert vote — UNIQUE(suggestion_id, user_fingerprint) prevents double voting
     const { error: insertError } = await supabaseAdmin
-      .from('topic_votes')
+      .from('suggestion_votes')
       .insert({ suggestion_id: suggestionId, user_fingerprint: fingerprint });
 
     if (insertError) {

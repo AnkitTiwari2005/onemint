@@ -111,23 +111,25 @@ export default function SuggestPage() {
     if (!newTopic.trim() || !newCategory) return;
     setFormState('loading');
 
-    if (!supabase) {
-      // No DB connection — add locally
+    try {
+      const res = await fetch('/api/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTopic.trim(), category: newCategory }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit suggestion');
+      }
+      
+      setSuggestions(prev => [data as Suggestion, ...prev]);
+    } catch (err) {
+      console.error(err);
+      // Fallback to local state if offline or error
       const newSugg: Suggestion = { id: Date.now().toString(), title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' };
       setSuggestions(prev => [newSugg, ...prev]);
-    } else {
-      const { data, error } = await supabase
-        .from('topic_suggestions')
-        .insert([{ title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' }])
-        .select()
-        .single();
-
-      if (error) {
-        const newSugg: Suggestion = { id: Date.now().toString(), title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' };
-        setSuggestions(prev => [newSugg, ...prev]);
-      } else if (data) {
-        setSuggestions(prev => [data as Suggestion, ...prev]);
-      }
     }
 
     setNewTopic('');

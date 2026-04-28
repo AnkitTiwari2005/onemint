@@ -197,6 +197,39 @@ create policy "admin_only_subscribers"
   on public.newsletter_subscribers for all using (false);
 
 -- ─────────────────────────────────────────────
+-- 11. topic_suggestions
+-- ─────────────────────────────────────────────
+create table if not exists public.topic_suggestions (
+  id         uuid primary key default gen_random_uuid(),
+  title      text not null,
+  category   text not null,
+  votes      integer not null default 0,
+  status     text not null default 'requested' check (status in ('requested','planned','under-review','written')),
+  created_at timestamptz not null default now()
+);
+alter table public.topic_suggestions enable row level security;
+drop policy if exists "public_read_suggestions" on public.topic_suggestions;
+drop policy if exists "admin_write_suggestions" on public.topic_suggestions;
+create policy "public_read_suggestions"
+  on public.topic_suggestions for select using (true);
+create policy "admin_write_suggestions"
+  on public.topic_suggestions for all using (false);
+
+-- ─────────────────────────────────────────────
+-- 12. suggestion_votes
+-- ─────────────────────────────────────────────
+create table if not exists public.suggestion_votes (
+  suggestion_id    uuid not null references public.topic_suggestions(id) on delete cascade,
+  user_fingerprint text not null,
+  created_at       timestamptz not null default now(),
+  primary key (suggestion_id, user_fingerprint)
+);
+alter table public.suggestion_votes enable row level security;
+drop policy if exists "admin_only_suggestion_votes" on public.suggestion_votes;
+create policy "admin_only_suggestion_votes"
+  on public.suggestion_votes for all using (false);
+
+-- ─────────────────────────────────────────────
 -- Force PostgREST to reload schema cache
 -- ─────────────────────────────────────────────
 notify pgrst, 'reload schema';
