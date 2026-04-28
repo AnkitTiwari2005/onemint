@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X, ExternalLink } from 'lucide-react';
-
-import { authors as staticAuthors } from '@/data/authors';
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, ExternalLink, Loader2 } from 'lucide-react';
 
 interface Author {
   id: string;
@@ -24,14 +22,18 @@ export default function AdminAuthorsPage() {
   const [editing, setEditing] = useState<Author | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
-  useEffect(() => {
+  const loadAuthors = () => {
     fetch('/api/admin/authors')
       .then(r => r.json())
-      .then(data => setAuthors(Array.isArray(data) && data.length > 0 ? data : (staticAuthors as unknown as Author[])))
-      .catch(() => setAuthors(staticAuthors as unknown as Author[]));
-  }, []);
+      .then(data => setAuthors(Array.isArray(data) ? data : []))
+      .catch(() => setAuthors([]));
+  };
+
+  useEffect(() => { loadAuthors(); }, []);
 
   const persist = (list: Author[]) => {
     setAuthors(list);
@@ -44,21 +46,67 @@ export default function AdminAuthorsPage() {
     setIsNew(true);
   };
 
-  const handleSave = () => {
-    if (!editing) return;
-    if (isNew) {
-      const newAuthor = { ...editing, id: editing.name.toLowerCase().replace(/\s+/g, '-') };
-      persist([...authors, newAuthor]);
-    } else {
-      persist(authors.map(a => a.id === editing.id ? editing : a));
+  const handleSave = async () => {
+    if (!editing || !editing.name.trim()) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const method = isNew ? 'POST' : 'PUT';
+      const payload = isNew
+        ? {
+            name: editing.name,
+            slug: editing.slug || editing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            role: editing.role,
+            email: editing.email,
+            bio: editing.bio,
+            avatar: editing.avatar,
+            status: editing.status,
+            joined_date: editing.joinedDate || null,
+          }
+        : {
+            id: editing.id,
+            name: editing.name,
+            slug: editing.slug,
+            role: editing.role,
+            email: editing.email,
+            bio: editing.bio,
+            avatar: editing.avatar,
+            status: editing.status,
+            joined_date: editing.joinedDate || null,
+          };
+
+      const res = await fetch('/api/admin/authors', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Save failed');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      setEditing(null);
+      setIsNew(false);
+      loadAuthors(); // Refresh from DB
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed');
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
-    setIsNew(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Delete this author? Their articles will be unaffected.')) return;
-    persist(authors.filter(a => a.id !== id));
+    try {
+      const res = await fetch('/api/admin/authors', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) { const d = await res.json(); alert(d.error || 'Delete failed'); return; }
+      loadAuthors(); // Refresh from DB
+    } catch {
+      alert('Delete failed — please try again');
+    }
   };
 
   const filtered = filter === 'all' ? authors : authors.filter(a => a.status === filter);
@@ -126,13 +174,14 @@ export default function AdminAuthorsPage() {
               />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 20px', borderRadius: 8, background: 'var(--color-accent)', color: 'white', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600 }}>
-              <Save size={14} /> Save
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button onClick={handleSave} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 20px', borderRadius: 8, background: 'var(--color-accent)', color: 'white', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600 }}>
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
             </button>
-            <button onClick={() => { setEditing(null); setIsNew(false); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', border: '1px solid var(--color-border)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
+            <button onClick={() => { setEditing(null); setIsNew(false); setSaveError(''); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', border: '1px solid var(--color-border)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
               <X size={14} /> Cancel
             </button>
+            {saveError && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '4px 10px', borderRadius: 8 }}>⚠ {saveError}</span>}
           </div>
         </div>
       )}

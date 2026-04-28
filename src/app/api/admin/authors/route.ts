@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { authors as staticAuthors } from '@/data/authors';
 
 export async function GET() {
   try {
-    if (!supabaseAdmin) return NextResponse.json(staticAuthors);
+    if (!supabaseAdmin) return NextResponse.json([], { status: 503 });
     const { data, error } = await supabaseAdmin
       .from('authors').select('*').order('name', { ascending: true });
-    if (error || !data?.length) return NextResponse.json(staticAuthors);
-    return NextResponse.json(data);
-  } catch { return NextResponse.json(staticAuthors); }
+    if (error) {
+      console.error('[Admin authors GET]', error.message);
+      return NextResponse.json([], { status: 500 });
+    }
+    return NextResponse.json(data ?? []);
+  } catch (err) {
+    console.error('[Admin authors GET] Unexpected:', err);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(req: NextRequest) {
