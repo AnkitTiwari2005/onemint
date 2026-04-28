@@ -25,7 +25,6 @@ export async function POST(req: NextRequest) {
       category,
       pitch: pitch.trim(),
       sample_url: sample || '',
-      type: 'guest',
       status: 'pending',
     }]);
 
