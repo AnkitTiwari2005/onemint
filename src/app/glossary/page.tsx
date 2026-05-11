@@ -60,7 +60,7 @@ export default function GlossaryPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {filteredTerms.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-[var(--color-ink-secondary)] text-lg">No terms found matching "{query}"</p>
+            <p className="text-[var(--color-ink-secondary)] text-lg">No terms found matching &ldquo;{query}&rdquo;</p>
             <button 
               onClick={() => setQuery('')}
               className="mt-4 text-[var(--color-accent)] font-semibold hover:underline"

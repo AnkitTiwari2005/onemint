@@ -57,7 +57,7 @@ export default function ContributePage() {
 
       {/* What we're looking for */}
       <div style={{ marginBottom: 48 }}>
-        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Who we're looking for</h2>
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Who we&apos;re looking for</h2>
         <div className="contrib-who-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {[
             { icon: Lightbulb, color: '#D97706', title: 'Finance Experts', desc: 'Certified Financial Planners (CFPs), Chartered Accountants, SEBI-registered advisors, experienced investors.' },

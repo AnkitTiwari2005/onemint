@@ -8,7 +8,12 @@ const SESSION_COOKIE = 'onemint_admin_session';
  */
 async function verifyToken(token: string): Promise<boolean> {
   try {
-    const secret = process.env.ADMIN_PASSWORD_HASH || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    // Prefer a dedicated signing secret — avoids coupling auth tokens to the
+    // password hash or service-role key. Set ADMIN_SESSION_SECRET in Vercel.
+    const secret =
+      process.env.ADMIN_SESSION_SECRET ||
+      process.env.ADMIN_PASSWORD_HASH ||
+      '';
     if (!secret) return false;
 
     const parts = token.split('.');

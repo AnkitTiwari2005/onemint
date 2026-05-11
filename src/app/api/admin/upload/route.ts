@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { ENV } from '@/lib/env';
+
+// R2 client
+function makeR2Client() {
+  if (!ENV.R2_ACCESS_KEY_ID || !ENV.R2_SECRET_ACCESS_KEY || !ENV.R2_ENDPOINT) return null;
+  return new S3Client({
+    region: 'auto',
+    endpoint: ENV.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: ENV.R2_ACCESS_KEY_ID,
+      secretAccessKey: ENV.R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
+
+// This route is protected by middleware (matcher: /api/admin/:path*)
+// No extra auth check needed — the middleware validates the HMAC session token.
+export async function POST(req: NextRequest) {
+  try {
+    const R2 = makeR2Client();
+    if (!R2) {
+      return NextResponse.json(
+        { error: 'R2 not configured — add R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY and R2_ENDPOINT to env vars' },
+        { status: 503 }
+      );
+    }
+
+    if (!ENV.R2_BUCKET) {
+      return NextResponse.json({ error: 'R2_BUCKET_NAME not configured' }, { status: 503 });
+    }
+
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (!file.type.startsWith('image/')) return NextResponse.json({ error: 'Only image files are accepted' }, { status: 400 });
+    if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: 'File must be under 10 MB' }, { status: 400 });
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filename = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    await R2.send(
+      new PutObjectCommand({
+        Bucket: ENV.R2_BUCKET,
+        Key: filename,
+        Body: buffer,
+        ContentType: file.type,
+        CacheControl: 'public, max-age=31536000',
+      })
+    );
+
+    const url = `${ENV.R2_PUBLIC_URL}/${filename}`;
+    return NextResponse.json({ url });
+  } catch (err) {
+    console.error('[R2 upload]', err);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+  }
+}

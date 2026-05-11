@@ -26,7 +26,7 @@ export function ImageUpload({ value, onChange, label = 'Featured Image' }: Image
     fd.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (data.url) {
         onChange(data.url);
