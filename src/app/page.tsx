@@ -1,32 +1,90 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Flame, TrendingUp, Star, CheckCircle2, Loader2, ArrowRight, Clock, BookOpen } from 'lucide-react';
-import { categories } from '@/data/categories';
-import { articles, getFeaturedArticle, getArticlesByCategory, getMostReadArticles } from '@/data/articles';
+import { categories as staticCategories } from '@/data/categories';
+import { articles as staticArticles } from '@/data/articles';
 import { getCategoryById } from '@/data/categories';
 import { getAuthorById } from '@/data/authors';
 import { ArticleCard } from '@/components/ArticleCard';
 import { MarketTicker } from '@/components/MarketTicker';
 import { AnimatedSection, StaggerContainer } from '@/components/AnimatedSection';
 import { formatDate } from '@/lib/utils';
-import { cardVariants, heroVariants, easeOut } from '@/lib/motion';
+import { cardVariants, heroVariants } from '@/lib/motion';
 import { cn } from '@/lib/cn';
 import { trackEvent } from '@/lib/analytics';
+import type { Article } from '@/data/articles';
 
 type NewsletterState = 'idle' | 'loading' | 'success' | 'error';
 
+// Shape returned by /api/articles/public
+interface ApiArticle {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  cover_image: string | null;
+  category_id: string | null;
+  tags: string[] | null;
+  read_time_minutes: number | null;
+  published_at: string | null;
+  categories: { id: string; name: string; slug: string; accent_color?: string; light_color?: string } | null;
+  authors: { id: string; name: string; slug: string } | null;
+}
+
+/** Normalise a DB article to match the static Article interface so all helpers work */
+function normaliseApiArticle(a: ApiArticle, index: number): Article {
+  return {
+    id: a.id,
+    title: a.title,
+    slug: a.slug,
+    deck: a.excerpt ?? '',
+    excerpt: a.excerpt ?? '',
+    categoryId: a.categories?.id ?? a.category_id ?? '',
+    authorId: a.authors?.id ?? '',
+    tags: a.tags ?? [],
+    featuredImage: a.cover_image ?? 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=450&fit=crop',
+    publishedAt: a.published_at ?? '',
+    updatedAt: a.published_at ?? '',
+    readTimeMinutes: a.read_time_minutes ?? 5,
+    contentLevel: 'beginner',
+    featured: index === 0, // treat first DB article as featured
+  };
+}
+
 export default function HomePage() {
   const prefersReduced = useReducedMotion();
-  const featured = getFeaturedArticle();
-  const featuredCategory = getCategoryById(featured.categoryId);
-  const featuredAuthor = getAuthorById(featured.authorId);
-  const secondary = articles.filter(a => !a.featured && a.id !== featured.id).slice(0, 3);
-  const trending = articles.slice(0, 8);
-  const mostRead = getMostReadArticles(5);
+
+  // ── Article data: start with static seed, replace with DB on mount ─────
+  const [liveArticles, setLiveArticles] = useState<Article[]>(staticArticles);
+  const [articlesLoaded, setArticlesLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/articles/public')
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        if (!json) return;
+        // API now returns { articles, source, degraded }
+        const raw: ApiArticle[] = Array.isArray(json) ? json : (json.articles ?? []);
+        if (raw.length > 0) {
+          setLiveArticles(raw.map(normaliseApiArticle));
+        }
+      })
+      .catch(() => { /* keep static fallback */ })
+      .finally(() => setArticlesLoaded(true));
+  }, []);
+
+  // ── Derived lists ──────────────────────────────────────────────────────
+  const featured = liveArticles.find((a) => a.featured) ?? liveArticles[0];
+  const featuredCategory = getCategoryById(featured?.categoryId ?? '') ??
+    (featured ? { id: featured.categoryId, name: '', slug: '', accentColor: 'var(--color-accent)', lightColor: 'var(--color-surface-alt)', description: '', icon: '', articleCount: 0 } : null);
+  const featuredAuthor = getAuthorById(featured?.authorId ?? '');
+  const secondary = liveArticles.filter((a) => !a.featured && a.id !== featured?.id).slice(0, 3);
+  const trending = liveArticles.slice(0, 8);
+  const mostRead = liveArticles.slice(0, 5);
 
   const [nlEmail, setNlEmail] = useState('');
   const [nlState, setNlState] = useState<NewsletterState>('idle');
@@ -51,23 +109,22 @@ export default function HomePage() {
     }
   };
 
+  if (!featured) return null;
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">
 
-      {/* ── Market Ticker ──────────────────────────────────── */}
+      {/* ── Market Ticker ──────────────────────────────────────────────── */}
       <MarketTicker />
 
-      {/* ── Hero Section ───────────────────────────────────── */}
+      {/* ── Hero Section ───────────────────────────────────────────────── */}
       <section className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
           {/* Main featured article */}
           <motion.div
             className="lg:col-span-7"
-            variants={prefersReduced ? undefined : {
-              initial: heroVariants.image.initial,
-              animate: heroVariants.image.animate,
-            }}
+            variants={prefersReduced ? undefined : { initial: heroVariants.image.initial, animate: heroVariants.image.animate }}
             initial="initial"
             animate="animate"
             data-motion="true"
@@ -85,7 +142,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
 
               <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-10">
-                {featuredCategory && (
+                {featuredCategory?.name && (
                   <motion.span
                     variants={prefersReduced ? undefined : heroVariants.pill}
                     initial="initial"
@@ -120,13 +177,12 @@ export default function HomePage() {
                       <span>·</span>
                     </>
                   )}
-                  <span>{formatDate(featured.publishedAt)}</span>
+                  {featured.publishedAt && <span>{formatDate(featured.publishedAt)}</span>}
                   <span>·</span>
                   <span>{featured.readTimeMinutes} min read</span>
                 </motion.div>
               </div>
 
-              {/* Featured badge */}
               <div className="absolute top-4 left-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--color-accent-gold)] text-white text-[10px] font-bold uppercase tracking-wider">
                   <Star size={10} fill="white" />
@@ -136,7 +192,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          {/* Secondary stack — vertical on desktop, horizontal scroll on mobile */}
+          {/* Secondary stack */}
           <motion.div
             className="lg:col-span-5"
             variants={prefersReduced ? undefined : heroVariants.secondary}
@@ -144,31 +200,17 @@ export default function HomePage() {
             animate="animate"
             data-motion="true"
           >
-            {/* Mobile: horizontal scroll cards */}
+            {/* Mobile: horizontal scroll */}
             <div className="flex lg:hidden gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
-              {secondary.map(article => {
+              {secondary.map((article) => {
                 const cat = getCategoryById(article.categoryId);
                 return (
-                  <Link
-                    key={article.id}
-                    href={`/articles/${article.slug}`}
-                    className="group shrink-0 w-[200px] bg-[var(--color-surface)] rounded-xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-all shadow-[var(--shadow-card)]"
-                  >
+                  <Link key={article.id} href={`/articles/${article.slug}`} className="group shrink-0 w-[200px] bg-[var(--color-surface)] rounded-xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-all shadow-[var(--shadow-card)]">
                     <div className="relative h-28 w-full overflow-hidden">
-                      <Image
-                        src={article.featuredImage}
-                        alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-[1.05] transition-transform duration-500"
-                        sizes="200px"
-                      />
+                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-[1.05] transition-transform duration-500" sizes="200px" />
                     </div>
                     <div className="p-3">
-                      {cat && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>
-                          {cat.name}
-                        </span>
-                      )}
+                      {cat && <span className="text-[9px] font-bold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
                       <p className="font-[family-name:var(--font-heading)] text-sm font-semibold text-[var(--color-ink)] line-clamp-2 leading-snug mt-0.5 group-hover:text-[var(--color-accent)] transition-colors">
                         {article.title}
                       </p>
@@ -179,11 +221,7 @@ export default function HomePage() {
                   </Link>
                 );
               })}
-              {/* View all card */}
-              <Link
-                href="/articles"
-                className="shrink-0 w-[140px] flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)] p-4 text-center"
-              >
+              <Link href="/articles" className="shrink-0 w-[140px] flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)] p-4 text-center">
                 <ArrowRight size={18} />
                 <span className="text-xs">View all</span>
               </Link>
@@ -191,35 +229,21 @@ export default function HomePage() {
 
             {/* Desktop: vertical stack */}
             <div className="hidden lg:flex flex-col gap-5">
-              {secondary.map(article => {
+              {secondary.map((article) => {
                 const cat = getCategoryById(article.categoryId);
-                const author = getAuthorById(article.authorId);
+                const auth = getAuthorById(article.authorId);
                 return (
-                  <Link
-                    key={article.id}
-                    href={`/articles/${article.slug}`}
-                    className="group flex gap-4 p-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors"
-                  >
+                  <Link key={article.id} href={`/articles/${article.slug}`} className="group flex gap-4 p-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors">
                     <div className="relative w-24 h-20 shrink-0 rounded-lg overflow-hidden bg-[var(--color-surface-alt)]">
-                      <Image
-                        src={article.featuredImage}
-                        alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-[1.05] transition-transform duration-500"
-                        sizes="96px"
-                      />
+                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-[1.05] transition-transform duration-500" sizes="96px" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      {cat && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>
-                          {cat.name}
-                        </span>
-                      )}
+                      {cat && <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
                       <h2 className="font-[family-name:var(--font-heading)] text-sm font-semibold text-[var(--color-ink)] line-clamp-2 leading-snug mt-0.5 mb-1 group-hover:text-[var(--color-accent)] transition-colors">
                         {article.title}
                       </h2>
                       <div className="flex items-center gap-2 text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-                        {author && <span>{author.name}</span>}
+                        {auth && <span>{auth.name}</span>}
                         <span>·</span>
                         <Clock size={10} />
                         <span>{article.readTimeMinutes} min</span>
@@ -228,11 +252,7 @@ export default function HomePage() {
                   </Link>
                 );
               })}
-              {/* All articles CTA */}
-              <Link
-                href="/articles"
-                className="mt-auto flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
-              >
+              <Link href="/articles" className="mt-auto flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]">
                 View all articles <ArrowRight size={15} />
               </Link>
             </div>
@@ -240,7 +260,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Trending Bar ───────────────────────────────────── */}
+      {/* ── Trending Bar ───────────────────────────────────────────────── */}
       <AnimatedSection className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
           <div className="flex items-center gap-4 p-4 border-b border-[var(--color-border)]">
@@ -254,11 +274,7 @@ export default function HomePage() {
               {trending.slice(0, 5).map((article, i) => {
                 const cat = getCategoryById(article.categoryId);
                 return (
-                  <Link
-                    key={article.id}
-                    href={`/articles/${article.slug}`}
-                    className="group flex-1 min-w-[180px] sm:min-w-[220px] p-4 hover:bg-[var(--color-surface-alt)] transition-colors"
-                  >
+                  <Link key={article.id} href={`/articles/${article.slug}`} className="group flex-1 min-w-[180px] sm:min-w-[220px] p-4 hover:bg-[var(--color-surface-alt)] transition-colors">
                     <div className="flex items-start gap-3">
                       <span className="text-2xl font-bold font-[family-name:var(--font-display)] text-[var(--color-border-strong)] shrink-0 leading-none mt-0.5" style={{ fontVariantNumeric: 'tabular-nums' }}>
                         {String(i + 1).padStart(2, '0')}
@@ -278,38 +294,22 @@ export default function HomePage() {
         </div>
       </AnimatedSection>
 
-      {/* ── Category Rows ──────────────────────────────────── */}
-      {categories.slice(0, 6).map((category, catIdx) => {
-        const catArticles = getArticlesByCategory(category.id).slice(0, 4);
+      {/* ── Category Rows ──────────────────────────────────────────────── */}
+      {staticCategories.slice(0, 6).map((category) => {
+        const catArticles = liveArticles.filter((a) => a.categoryId === category.id).slice(0, 4);
         if (catArticles.length === 0) return null;
-
         return (
-          <AnimatedSection
-            key={category.id}
-            delay={0}
-            className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14"
-          >
-            {/* Section Header */}
+          <AnimatedSection key={category.id} delay={0} className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full" style={{ background: category.accentColor }} />
-                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">
-                  {category.name}
-                </h2>
-                <span className="hidden sm:inline text-sm text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-                  {category.description}
-                </span>
+                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">{category.name}</h2>
+                <span className="hidden sm:inline text-sm text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{category.description}</span>
               </div>
-              <Link
-                href={`/topics/${category.slug}`}
-                className="text-sm font-semibold flex items-center gap-1 font-[family-name:var(--font-ui)] hover:gap-2 transition-all"
-                style={{ color: category.accentColor }}
-              >
+              <Link href={`/topics/${category.slug}`} className="text-sm font-semibold flex items-center gap-1 font-[family-name:var(--font-ui)] hover:gap-2 transition-all" style={{ color: category.accentColor }}>
                 View all <ArrowRight size={14} />
               </Link>
             </div>
-
-            {/* Article grid */}
             <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {catArticles.map((article, i) => (
                 <motion.div key={article.id} variants={cardVariants} data-motion="true">
@@ -321,11 +321,11 @@ export default function HomePage() {
         );
       })}
 
-      {/* ── Most Read ──────────────────────────────────────── */}
+      {/* ── Most Read + Newsletter ──────────────────────────────────────── */}
       <AnimatedSection className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
-          {/* Newsletter CTA — appears FIRST on mobile, sidebar on desktop */}
+          {/* Newsletter CTA */}
           <div className="lg:col-span-4 lg:order-last">
             <div className="bg-[var(--color-cat-finance-light)] border border-[var(--color-border)] rounded-2xl p-5 sm:p-6 lg:sticky lg:top-24">
               <div className="flex items-center gap-2 mb-3">
@@ -335,18 +335,16 @@ export default function HomePage() {
               <p className="text-sm text-[var(--color-ink-secondary)] mb-5 font-[family-name:var(--font-ui)] leading-relaxed">
                 Join 500,000+ readers. Get our best articles delivered to your inbox — weekly, curated, zero spam.
               </p>
-
               {nlState === 'success' ? (
                 <div className="flex items-center gap-2 py-4 text-[var(--color-cat-finance)] font-semibold font-[family-name:var(--font-ui)]">
-                  <CheckCircle2 size={18} />
-                  You&apos;re subscribed!
+                  <CheckCircle2 size={18} /> You&apos;re subscribed!
                 </div>
               ) : (
                 <form onSubmit={handleNewsletterSubmit} className="space-y-3">
                   <input
                     type="email"
                     value={nlEmail}
-                    onChange={e => setNlEmail(e.target.value)}
+                    onChange={(e) => setNlEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
                     className="w-full px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] outline-none focus:border-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
@@ -356,20 +354,12 @@ export default function HomePage() {
                     disabled={nlState === 'loading'}
                     className={cn(
                       'w-full py-3 rounded-xl text-sm font-semibold text-white font-[family-name:var(--font-ui)] transition-all',
-                      nlState === 'loading'
-                        ? 'bg-[var(--color-ink-tertiary)] cursor-not-allowed'
-                        : 'bg-[var(--color-accent)] hover:opacity-90 active:scale-[0.98]'
+                      nlState === 'loading' ? 'bg-[var(--color-ink-tertiary)] cursor-not-allowed' : 'bg-[var(--color-accent)] hover:opacity-90 active:scale-[0.98]'
                     )}
                   >
-                    {nlState === 'loading' ? (
-                      <span className="flex items-center justify-center gap-2"><Loader2 size={15} className="animate-spin" /> Subscribing...</span>
-                    ) : (
-                      'Subscribe Free'
-                    )}
+                    {nlState === 'loading' ? <span className="flex items-center justify-center gap-2"><Loader2 size={15} className="animate-spin" /> Subscribing...</span> : 'Subscribe Free'}
                   </button>
-                  <p className="text-[10px] text-[var(--color-ink-tertiary)] text-center font-[family-name:var(--font-ui)]">
-                    Zero spam · Unsubscribe anytime
-                  </p>
+                  <p className="text-[10px] text-[var(--color-ink-tertiary)] text-center font-[family-name:var(--font-ui)]">Zero spam · Unsubscribe anytime</p>
                 </form>
               )}
             </div>
@@ -385,11 +375,8 @@ export default function HomePage() {
               {mostRead.map((article, i) => {
                 const cat = getCategoryById(article.categoryId);
                 return (
-                  <Link key={article.id} href={`/articles/${article.slug}`}
-                    className="group flex items-center gap-3 sm:gap-4 px-4 py-4 sm:p-5 hover:bg-[var(--color-surface-alt)] transition-colors first:rounded-t-2xl last:rounded-b-2xl">
-                    <span className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-display)] text-[var(--color-border-strong)] w-7 sm:w-8 shrink-0 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                      {i + 1}
-                    </span>
+                  <Link key={article.id} href={`/articles/${article.slug}`} className="group flex items-center gap-3 sm:gap-4 px-4 py-4 sm:p-5 hover:bg-[var(--color-surface-alt)] transition-colors first:rounded-t-2xl last:rounded-b-2xl">
+                    <span className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-display)] text-[var(--color-border-strong)] w-7 sm:w-8 shrink-0 text-right" style={{ fontVariantNumeric: 'tabular-nums' }}>{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       {cat && <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
                       <h3 className="font-[family-name:var(--font-heading)] text-sm sm:text-base font-semibold text-[var(--color-ink)] line-clamp-2 sm:line-clamp-1 mt-0.5 group-hover:text-[var(--color-accent)] transition-colors">
@@ -406,26 +393,18 @@ export default function HomePage() {
         </div>
       </AnimatedSection>
 
-      {/* ── Remaining category rows ────────────────────────── */}
-      {categories.slice(6).map((category) => {
-        const catArticles = getArticlesByCategory(category.id).slice(0, 3);
+      {/* ── Remaining category rows ─────────────────────────────────────── */}
+      {staticCategories.slice(6).map((category) => {
+        const catArticles = liveArticles.filter((a) => a.categoryId === category.id).slice(0, 3);
         if (catArticles.length === 0) return null;
-
         return (
-          <AnimatedSection
-            key={category.id}
-            className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14"
-          >
+          <AnimatedSection key={category.id} className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full" style={{ background: category.accentColor }} />
-                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">
-                  {category.name}
-                </h2>
+                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">{category.name}</h2>
               </div>
-              <Link href={`/topics/${category.slug}`}
-                className="text-sm font-semibold flex items-center gap-1 font-[family-name:var(--font-ui)] hover:gap-2 transition-all"
-                style={{ color: category.accentColor }}>
+              <Link href={`/topics/${category.slug}`} className="text-sm font-semibold flex items-center gap-1 font-[family-name:var(--font-ui)] hover:gap-2 transition-all" style={{ color: category.accentColor }}>
                 View all <ArrowRight size={14} />
               </Link>
             </div>
@@ -439,6 +418,13 @@ export default function HomePage() {
           </AnimatedSection>
         );
       })}
+
+      {/* Loading indicator while fetching DB articles */}
+      {!articlesLoaded && (
+        <div className="fixed bottom-6 right-6 flex items-center gap-2 bg-[var(--color-surface)] border border-[var(--color-border)] px-4 py-2 rounded-full shadow-lg text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
+          <Loader2 size={12} className="animate-spin" /> Loading latest articles…
+        </div>
+      )}
 
     </div>
   );
