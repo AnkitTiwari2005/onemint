@@ -1,6 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { typesenseAdmin } from '@/lib/typesense';
 import { supabaseAdmin } from '@/lib/supabase';
+
+// Only callable with the correct service secret
+function authorizeServiceCall(req: NextRequest): boolean {
+  const syncSecret = process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '';
+  if (!syncSecret) return false;
+  return req.headers.get('x-sync-secret') === syncSecret;
+}
 
 // Collection schema — defined once, reused for create + index
 const SCHEMA = {
@@ -19,7 +26,10 @@ const SCHEMA = {
   ],
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!authorizeServiceCall(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Supabase admin not configured' }, { status: 503 });

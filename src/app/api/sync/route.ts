@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { typesenseAdmin } from '@/lib/typesense';
 
+/** Validate that callers provide the correct internal service secret */
+function authorizeServiceCall(req: NextRequest): boolean {
+  const syncSecret = process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '';
+  if (!syncSecret) return false; // fail closed if not configured
+  return req.headers.get('x-sync-secret') === syncSecret;
+}
+
 // Sync a single article document into Typesense
 export async function POST(req: NextRequest) {
+  if (!authorizeServiceCall(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const { articleId } = body;
@@ -26,7 +36,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error?.message || 'Article not found' }, { status: 404 });
     }
 
-    // Shape for Typesense
     const doc = {
       id: String(data.id),
       title: data.title || '',
@@ -41,7 +50,6 @@ export async function POST(req: NextRequest) {
     };
 
     await typesenseAdmin.collections('articles').documents().upsert(doc);
-
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Typesense sync error:', err);
@@ -50,7 +58,10 @@ export async function POST(req: NextRequest) {
 }
 
 // Bulk-sync all published articles into Typesense
-export async function PUT() {
+export async function PUT(req: NextRequest) {
+  if (!authorizeServiceCall(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Supabase admin not configured' }, { status: 503 });

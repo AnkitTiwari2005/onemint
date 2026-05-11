@@ -127,9 +127,10 @@ export default function SuggestPage() {
       setSuggestions(prev => [data as Suggestion, ...prev]);
     } catch (err) {
       console.error(err);
-      // Fallback to local state if offline or error
-      const newSugg: Suggestion = { id: Date.now().toString(), title: newTopic.trim(), category: newCategory, votes: 0, status: 'requested' };
-      setSuggestions(prev => [newSugg, ...prev]);
+      // Show error — don't fake success when API fails
+      setFormState('error');
+      setTimeout(() => setFormState('idle'), 4000);
+      return;
     }
 
     setNewTopic('');

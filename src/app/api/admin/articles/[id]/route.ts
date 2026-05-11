@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { typesenseAdmin } from '@/lib/typesense';
 import { ENV } from '@/lib/env';
 
 // GET /api/admin/articles/[id] — load article for edit page
@@ -66,7 +67,10 @@ export async function PATCH(
     if (data?.status === 'published' && ENV.SITE_URL) {
       fetch(`${ENV.SITE_URL}/api/sync`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sync-secret': process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '',
+        },
         body: JSON.stringify({ articleId: id }),
       }).catch((err) => console.error('[Sync trigger PATCH]', err));
     }
@@ -97,6 +101,13 @@ export async function DELETE(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // De-index from Typesense so deleted content stops appearing in search
+    try {
+      await typesenseAdmin.collections('articles').documents(id).delete();
+    } catch {
+      // Doc may not be indexed — not a failure condition
     }
 
     return NextResponse.json({ success: true });

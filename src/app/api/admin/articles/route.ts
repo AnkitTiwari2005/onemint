@@ -70,7 +70,10 @@ export async function POST(req: NextRequest) {
     if (isPublished && data?.id && ENV.SITE_URL) {
       fetch(`${ENV.SITE_URL}/api/sync`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sync-secret': process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '',
+        },
         body: JSON.stringify({ articleId: data.id }),
       }).catch((err) => console.error('[Sync trigger POST]', err));
     }
