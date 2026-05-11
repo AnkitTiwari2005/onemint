@@ -15,7 +15,12 @@ function getBookmarked(): string[] {
     const raw = localStorage.getItem(PREFS_KEY);
     if (!raw) return [];
     const prefs = JSON.parse(raw);
-    return Array.isArray(prefs.bookmarks) ? prefs.bookmarks : [];
+    // BookmarkButton saves to 'bookmarkedArticles'; support legacy 'bookmarks' key too
+    return Array.isArray(prefs.bookmarkedArticles)
+      ? prefs.bookmarkedArticles
+      : Array.isArray(prefs.bookmarks)
+      ? prefs.bookmarks
+      : [];
   } catch {
     return [];
   }
@@ -25,8 +30,8 @@ function removeBookmark(slug: string) {
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     const prefs = raw ? JSON.parse(raw) : {};
-    const bookmarks: string[] = Array.isArray(prefs.bookmarks) ? prefs.bookmarks : [];
-    prefs.bookmarks = bookmarks.filter((s) => s !== slug);
+    const bookmarks: string[] = Array.isArray(prefs.bookmarkedArticles) ? prefs.bookmarkedArticles : [];
+    prefs.bookmarkedArticles = bookmarks.filter((s) => s !== slug);
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
     // ignore
@@ -37,7 +42,7 @@ function clearBookmarks() {
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     const prefs = raw ? JSON.parse(raw) : {};
-    prefs.bookmarks = [];
+    prefs.bookmarkedArticles = [];
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
     // ignore

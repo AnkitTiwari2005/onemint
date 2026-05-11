@@ -1,14 +1,57 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { authors } from '@/data/authors';
+import { authors as staticAuthors } from '@/data/authors';
+import { supabaseAdmin } from '@/lib/supabase';
 import { Target, Handshake, Brain } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'About OneMint',
-  description: 'OneMint is India\'s most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters.',
+  description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters.",
 };
 
-export default function AboutPage() {
+interface DbAuthor {
+  id: string;
+  name: string;
+  slug: string;
+  role?: string;
+  bio?: string;
+  avatar?: string;
+  article_count?: number;
+  status?: string;
+}
+
+async function getAuthors(): Promise<DbAuthor[]> {
+  // Try DB first
+  if (supabaseAdmin) {
+    const { data, error } = await supabaseAdmin
+      .from('authors')
+      .select('id, name, slug, role, bio, avatar, status')
+      .eq('status', 'active')
+      .order('name', { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return data;
+    }
+  }
+
+  // Static fallback
+  return staticAuthors.map((a) => ({
+    id: a.id,
+    name: a.name,
+    slug: a.slug,
+    role: a.role,
+    bio: a.bio,
+    avatar: a.avatar,
+    article_count: a.articleCount,
+    status: 'active',
+  }));
+}
+
+export default async function AboutPage() {
+  const teamAuthors = await getAuthors();
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
       {/* Hero */}
@@ -75,38 +118,46 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team */}
+      {/* Team — DB-backed */}
       <section className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-4 text-center">Our Editorial Team</h2>
         <p className="text-[var(--color-ink-secondary)] text-center mb-12 max-w-xl mx-auto font-[family-name:var(--font-body)]">
           Domain experts and storytellers who turn complex topics into clear, actionable knowledge.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {authors.map((author) => (
+          {teamAuthors.map((author) => (
             <Link
               key={author.id}
               href={`/author/${author.slug}`}
               className="group bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 text-center hover:border-[var(--color-accent)] transition-all shadow-sm hover:shadow-[var(--shadow-card-hover)]"
             >
-              <Image
-                src={author.avatar}
-                alt={author.name}
-                width={80}
-                height={80}
-                className="rounded-full mx-auto mb-4 border-4 border-[var(--color-surface-alt)] group-hover:border-[var(--color-accent-light)] transition-colors"
-              />
+              {author.avatar ? (
+                <Image
+                  src={author.avatar}
+                  alt={author.name}
+                  width={80}
+                  height={80}
+                  className="rounded-full mx-auto mb-4 border-4 border-[var(--color-surface-alt)] group-hover:border-[var(--color-accent-light)] transition-colors object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-[var(--color-surface-alt)] bg-[var(--color-accent-light)] flex items-center justify-center text-2xl font-bold text-[var(--color-accent)] font-[family-name:var(--font-display)]">
+                  {author.name.charAt(0)}
+                </div>
+              )}
               <h3 className="font-[family-name:var(--font-heading)] font-bold text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors">
                 {author.name}
               </h3>
-              <p className="text-xs text-[var(--color-accent)] font-semibold uppercase tracking-wider mt-1 font-[family-name:var(--font-ui)]">
-                {author.role}
-              </p>
-              <p className="text-xs text-[var(--color-ink-tertiary)] mt-2 line-clamp-2 font-[family-name:var(--font-body)]">
-                {author.bio}
-              </p>
-              <span className="text-[10px] font-[family-name:var(--font-mono)] text-[var(--color-ink-tertiary)] mt-3 block">
-                {author.articleCount} articles
-              </span>
+              {author.role && (
+                <p className="text-xs text-[var(--color-accent)] font-semibold uppercase tracking-wider mt-1 font-[family-name:var(--font-ui)]">
+                  {author.role}
+                </p>
+              )}
+              {author.bio && (
+                <p className="text-xs text-[var(--color-ink-tertiary)] mt-2 line-clamp-2 font-[family-name:var(--font-body)]">
+                  {author.bio}
+                </p>
+              )}
             </Link>
           ))}
         </div>

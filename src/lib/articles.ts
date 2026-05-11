@@ -79,7 +79,7 @@ export async function fetchPublishedArticles(): Promise<{
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
           'categories(id, name, slug), ' +
-          'authors(id, name, slug)'
+          'authors(id, name, slug, avatar, role, bio, twitter, linkedin)'
         )
         .eq('status', 'published')
         .order('published_at', { ascending: false });
@@ -120,8 +120,8 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
         .select(
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
-          'categories(id, name, slug), ' +
-          'authors(id, name, slug)'
+          'categories(id, name, slug, accent_color, light_color), ' +
+          'authors(id, name, slug, avatar, role, bio, twitter, linkedin)'
         )
         .eq('slug', slug)
         .eq('status', 'published')
