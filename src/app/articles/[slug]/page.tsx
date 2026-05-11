@@ -4,7 +4,6 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { articles as staticArticles } from '@/data/articles';
-import { getCategoryById } from '@/data/categories';
 import { getAuthorById } from '@/data/authors';
 import { fetchPublishedArticleBySlug } from '@/lib/articles';
 import { formatDate } from '@/lib/utils';
@@ -19,36 +18,66 @@ import { Clock, BookOpen } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+/** Slugify a heading text into an HTML-safe id */
+function headingId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
+/** Extract TOC items from markdown by parsing ## / ### headings */
+function extractToc(markdown: string) {
+  const items: { id: string; text: string; level: number }[] = [];
+  const re = /^(#{2,3})\s+(.+)$/gm;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(markdown)) !== null) {
+    const text = m[2].trim();
+    items.push({ id: headingId(text), text, level: m[1].length });
+  }
+  return items;
+}
+
+/** Custom ReactMarkdown heading renderers that inject matching `id` attributes */
+const mdComponents = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  h2: ({ children, ...props }: any) => {
+    const id = headingId(String(children ?? ''));
+    return <h2 id={id} {...props}>{children}</h2>;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  h3: ({ children, ...props }: any) => {
+    const id = headingId(String(children ?? ''));
+    return <h3 id={id} {...props}>{children}</h3>;
+  },
+};
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const { article } = await fetchPublishedArticleBySlug(slug);
   if (!article) return {};
   return {
-    title: article.meta_title || article.title,
-    description: article.meta_description || article.excerpt,
+    title: article.title,
+    description: article.excerpt,
     openGraph: {
-      title: article.meta_title || article.title,
-      description: article.meta_description || article.excerpt || '',
+      title: article.title,
+      description: article.excerpt || '',
       images: article.cover_image ? [{ url: article.cover_image, width: 800, height: 450 }] : [],
     },
   };
 }
 
-const DEFAULT_TOC = [
-  { id: 'section-1', text: 'Introduction', level: 2 },
-  { id: 'section-2', text: 'Key Points', level: 2 },
-  { id: 'section-3', text: 'Conclusion', level: 2 },
-];
-
 function StaticFallbackBody() {
   return (
     <div className="article-body flex-1 min-w-0">
       <p>Your 30s are arguably the most important decade for your financial life. You&apos;re likely earning more than you did in your 20s, but you also have more responsibilities. How you manage your money now will determine your lifestyle in your 50s and beyond.</p>
-      <h2 id="section-1">Why Your 30s Matter</h2>
+      <h2 id="why-your-30s-matter">Why Your 30s Matter</h2>
       <p>The power of <GlossaryTooltip term="CAGR">compounding</GlossaryTooltip> is strongest when given time.</p>
-      <h2 id="section-2">Emergency Fund First</h2>
+      <h2 id="emergency-fund-first">Emergency Fund First</h2>
       <p>Before any equity investment, ensure you have an emergency fund covering 6–9 months of expenses.</p>
-      <h2 id="section-3">Understanding SIP Investing</h2>
+      <h2 id="understanding-sip-investing">Understanding SIP Investing</h2>
       <p><GlossaryTooltip term="SIP">Systematic Investment Plans</GlossaryTooltip> in mutual funds remain the most efficient wealth creation tool for salaried professionals.</p>
     </div>
   );
@@ -63,7 +92,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const category = article!.categories;
   const author = article!.authors;
 
-  // Related articles from same category
+  // Related articles from same category (static)
   const staticMatch = staticArticles.find((a) => a.slug === slug);
   const staticCatId = staticMatch?.categoryId ?? article!.category_id;
   const related = staticArticles
@@ -71,7 +100,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     .slice(0, 3);
 
   const hasDbContent = source === 'db' && !!(article!.content?.trim());
-  const tocItems = DEFAULT_TOC;
+
+  // Parse TOC from actual markdown content (DB) or use static fallback headings
+  const tocItems = hasDbContent
+    ? extractToc(article!.content!)
+    : [
+        { id: 'why-your-30s-matter', text: 'Why Your 30s Matter', level: 2 },
+        { id: 'emergency-fund-first', text: 'Emergency Fund First', level: 2 },
+        { id: 'understanding-sip-investing', text: 'Understanding SIP Investing', level: 2 },
+      ];
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
@@ -115,9 +152,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {/* Author Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5 border-y border-[var(--color-border)]">
             <div className="flex items-center gap-3">
-              {author?.avatar && (
-                <Link href={`/author/${author.slug}`}>
-                  <Image src={author.avatar} alt={author.name} width={48} height={48} className="rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors" />
+              {(author as unknown as Record<string,string>)?.avatar && (
+                <Link href={`/author/${author!.slug}`}>
+                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author!.name} width={48} height={48} className="rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors" />
                 </Link>
               )}
               <div>
@@ -159,17 +196,19 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
         {/* Article Layout */}
         <div className="relative flex flex-col lg:flex-row gap-16">
-          {/* TOC Sidebar */}
-          <aside className="hidden lg:block w-[220px] shrink-0 toc-sidebar">
-            <div className="sticky top-28">
-              <TableOfContents items={tocItems} />
-            </div>
-          </aside>
+          {/* TOC Sidebar — only shown when there are real headings */}
+          {tocItems.length > 0 && (
+            <aside className="hidden lg:block w-[220px] shrink-0 toc-sidebar">
+              <div className="sticky top-28">
+                <TableOfContents items={tocItems} />
+              </div>
+            </aside>
+          )}
 
           {/* Article Body */}
           {hasDbContent ? (
             <div className="article-body flex-1 min-w-0 prose prose-slate max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                 {article!.content!}
               </ReactMarkdown>
             </div>
@@ -195,24 +234,26 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             </div>
           )}
 
-          {/* Feedback */}
+          {/* Feedback — pass slug so likes are article-specific */}
           <div className="max-w-xl mx-auto mb-16">
-            <ArticleFeedback />
+            <ArticleFeedback slug={article!.slug} />
           </div>
 
-          {/* Author Bio */}
-          {author?.bio && (
+          {/* Author Bio — DB author */}
+          {author && (
             <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                {author.avatar && (
-                  <Image src={author.avatar} alt={author.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" />
+                {(author as unknown as Record<string,string>).avatar && (
+                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" />
                 )}
                 <div>
                   <h3 className="font-[family-name:var(--font-heading)] font-bold text-2xl text-[var(--color-ink)] mb-1">{author.name}</h3>
-                  {author.role && (
-                    <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-3 font-[family-name:var(--font-ui)]">{author.role}</p>
+                  {(author as unknown as Record<string,string>).role && (
+                    <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-3 font-[family-name:var(--font-ui)]">{(author as unknown as Record<string,string>).role}</p>
                   )}
-                  <p className="text-[var(--color-ink-secondary)] mb-4 leading-relaxed font-[family-name:var(--font-body)] max-w-2xl">{author.bio}</p>
+                  {(author as unknown as Record<string,string>).bio && (
+                    <p className="text-[var(--color-ink-secondary)] mb-4 leading-relaxed font-[family-name:var(--font-body)] max-w-2xl">{(author as unknown as Record<string,string>).bio}</p>
+                  )}
                   <Link href={`/author/${author.slug}`} className="text-sm font-semibold text-[var(--color-ink)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)] flex items-center gap-1 group">
                     View all articles <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
                   </Link>
@@ -220,6 +261,26 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
           )}
+
+          {/* Static author bio fallback */}
+          {!author && staticMatch && getAuthorById(staticMatch.authorId) && (() => {
+            const a = getAuthorById(staticMatch.authorId)!;
+            return (
+              <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
+                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                  <Image src={a.avatar} alt={a.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" />
+                  <div>
+                    <h3 className="font-[family-name:var(--font-heading)] font-bold text-2xl text-[var(--color-ink)] mb-1">{a.name}</h3>
+                    <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-3 font-[family-name:var(--font-ui)]">{a.role}</p>
+                    <p className="text-[var(--color-ink-secondary)] mb-4 leading-relaxed font-[family-name:var(--font-body)] max-w-2xl">{a.bio}</p>
+                    <Link href={`/author/${a.slug}`} className="text-sm font-semibold text-[var(--color-ink)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)] flex items-center gap-1 group">
+                      View all articles <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Comments */}
           <div className="comments-section mt-12 mb-16 border border-[var(--color-border)] rounded-3xl overflow-hidden">

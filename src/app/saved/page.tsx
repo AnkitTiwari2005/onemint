@@ -53,10 +53,40 @@ export default function SavedPage() {
   useEffect(() => {
     setSlugs(getBookmarked());
     setMounted(true);
-    // Fetch live articles from DB; fall back to static if unavailable
+    // Fetch live articles from DB — response is { articles: [...], source, degraded }
     fetch('/api/articles/public')
       .then(r => r.json())
-      .then(data => { if (Array.isArray(data) && data.length) setAllArticles(data); })
+      .then(data => {
+        // API returns an object with an articles array, not a raw array
+        const list: Record<string, unknown>[] = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.articles) ? data.articles : [];
+        if (list.length === 0) return;
+        // Map PublicArticle shape -> Article shape for ArticleCard compatibility
+        const mapped: Article[] = list.map((a) => ({
+          id: String(a.id ?? ''),
+          title: String(a.title ?? ''),
+          slug: String(a.slug ?? ''),
+          deck: String(a.excerpt ?? ''),
+          excerpt: String(a.excerpt ?? ''),
+          categoryId: (a.categories as Record<string, string>)?.slug ?? String(a.category_id ?? ''),
+          authorId: (a.authors as Record<string, string>)?.slug ?? '',
+          tags: Array.isArray(a.tags) ? a.tags as string[] : [],
+          featuredImage: String(
+            a.cover_image ??
+            'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=450&fit=crop'
+          ),
+          publishedAt: String(a.published_at ?? new Date().toISOString()),
+          updatedAt: String(a.published_at ?? new Date().toISOString()),
+          readTimeMinutes: Number(a.read_time_minutes ?? 5),
+          contentLevel: 'beginner' as const,
+          featured: false,
+        }));
+        // Merge: DB articles first, then static articles not already in DB
+        const dbSlugs = new Set(mapped.map(a => a.slug));
+        const combined = [...mapped, ...staticArticles.filter(a => !dbSlugs.has(a.slug))];
+        setAllArticles(combined);
+      })
       .catch(() => { /* keep static fallback */ });
   }, []);
 

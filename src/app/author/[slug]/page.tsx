@@ -4,10 +4,26 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { authors, getAuthorBySlug } from '@/data/authors';
 import { ArticleCard } from '@/components/ArticleCard';
-import { ExternalLink, Globe } from 'lucide-react';
+import { ExternalLink, Globe, Phone } from 'lucide-react';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
+
+interface DbAuthor {
+  id: string;
+  name: string;
+  slug: string;
+  role?: string;
+  bio?: string;
+  avatar?: string;
+  email?: string;
+  twitter?: string;
+  linkedin?: string;
+  whatsapp?: string;
+  phone?: string;
+  joined_date?: string;
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -19,28 +35,66 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const author = getAuthorBySlug(slug);
-  if (!author) return { title: 'Author Not Found' };
+  // Try DB first, then static
+  let name = '', bio = '';
+  if (supabaseAdmin) {
+    const { data } = await supabaseAdmin
+      .from('authors').select('name, bio').eq('slug', slug).maybeSingle();
+    if (data) { name = data.name; bio = data.bio ?? ''; }
+  }
+  if (!name) {
+    const staticAuthor = getAuthorBySlug(slug);
+    if (staticAuthor) { name = staticAuthor.name; bio = staticAuthor.bio; }
+  }
+  if (!name) return { title: 'Author Not Found' };
   return {
-    title: `${author.name} — OneMint`,
-    description: author.bio.slice(0, 155),
+    title: `${name} — OneMint`,
+    description: bio.slice(0, 155),
   };
 }
 
 export default async function AuthorPage({ params }: Props) {
   const { slug } = await params;
-  const author = getAuthorBySlug(slug);
-  if (!author) notFound();
 
-  // Fetch live articles from DB, fallback to static if DB is down
+  // 1. Look up author in DB first
+  let dbAuthor: DbAuthor | null = null;
+  if (supabaseAdmin) {
+    const { data } = await supabaseAdmin
+      .from('authors')
+      .select('id, name, slug, role, bio, avatar, email, twitter, linkedin, whatsapp, phone, joined_date')
+      .eq('slug', slug)
+      .maybeSingle();
+    dbAuthor = data ?? null;
+  }
+
+  // 2. Fallback to static author
+  const staticAuthor = getAuthorBySlug(slug);
+
+  // 3. Neither found → 404
+  if (!dbAuthor && !staticAuthor) notFound();
+
+  // Unified author view
+  const authorName = dbAuthor?.name ?? staticAuthor!.name;
+  const authorRole = dbAuthor?.role ?? staticAuthor?.role ?? '';
+  const authorBio = dbAuthor?.bio ?? staticAuthor?.bio ?? '';
+  const authorAvatar = dbAuthor?.avatar ?? staticAuthor?.avatar ?? '';
+  const authorTwitter = dbAuthor?.twitter ?? staticAuthor?.socialLinks?.twitter ?? '';
+  const authorLinkedin = dbAuthor?.linkedin ?? staticAuthor?.socialLinks?.linkedin ?? '';
+  const authorWhatsapp = dbAuthor?.whatsapp ?? '';
+  const authorPhone = dbAuthor?.phone ?? '';
+  const authorWebsite = staticAuthor?.socialLinks?.website ?? '';
+  const joinedYear = dbAuthor?.joined_date
+    ? new Date(dbAuthor.joined_date).getFullYear()
+    : staticAuthor?.joinedDate
+    ? new Date(staticAuthor.joinedDate).getFullYear()
+    : null;
+
+  // 4. Fetch articles (DB-backed)
   const { articles: allArticles } = await fetchPublishedArticles();
-
   const authorArticles = allArticles
-    .filter((a) => a.authors?.slug === author.slug || a.authors?.id === author.id)
+    .filter((a) => a.authors?.slug === slug || a.authors?.id === (dbAuthor?.id ?? staticAuthor?.id))
     .sort((a, b) => (b.published_at ?? '').localeCompare(a.published_at ?? ''))
     .map((a, i) => toArticle(a, i));
-
-  const joinedYear = new Date(author.joinedDate).getFullYear();
 
   return (
     <div className="pt-16 lg:pt-[72px]">
@@ -51,43 +105,68 @@ export default async function AuthorPage({ params }: Props) {
         <span>›</span>
         <Link href="/about" style={{ color: 'inherit', textDecoration: 'none' }}>Authors</Link>
         <span>›</span>
-        <span style={{ color: 'var(--color-ink)' }}>{author.name}</span>
+        <span style={{ color: 'var(--color-ink)' }}>{authorName}</span>
       </nav>
 
       {/* Hero */}
       <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', marginBottom: 48, flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '3px solid var(--color-accent)', boxShadow: '0 0 0 4px var(--color-surface)' }}>
-          <Image src={author.avatar} alt={author.name} fill className="object-cover" />
-        </div>
+        {authorAvatar && (
+          <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '3px solid var(--color-accent)', boxShadow: '0 0 0 4px var(--color-surface)' }}>
+            <Image src={authorAvatar} alt={authorName} fill className="object-cover" />
+          </div>
+        )}
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 6 }}>{author.name}</h1>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 15, color: 'var(--color-accent)', fontWeight: 600, marginBottom: 12 }}>{author.role}</p>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.7, marginBottom: 16, maxWidth: 640 }}>{author.bio}</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 6 }}>{authorName}</h1>
+          {authorRole && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 15, color: 'var(--color-accent)', fontWeight: 600, marginBottom: 12 }}>{authorRole}</p>}
+          {authorBio && <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.7, marginBottom: 16, maxWidth: 640 }}>{authorBio}</p>}
 
           {/* Stats */}
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>
             <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
               <strong style={{ color: 'var(--color-ink)' }}>{authorArticles.length}</strong> articles published
             </span>
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
-              Member since <strong style={{ color: 'var(--color-ink)' }}>{joinedYear}</strong>
-            </span>
+            {joinedYear && (
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
+                Member since <strong style={{ color: 'var(--color-ink)' }}>{joinedYear}</strong>
+              </span>
+            )}
           </div>
 
           {/* Social links */}
-          <div style={{ display: 'flex', gap: 10 }}>
-            {author.socialLinks.twitter && (
-              <a href={author.socialLinks.twitter} target="_blank" rel="noopener noreferrer" title="Twitter/X" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="Twitter">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {authorTwitter && (
+              <a href={authorTwitter.startsWith('http') ? authorTwitter : `https://twitter.com/${authorTwitter}`} target="_blank" rel="noopener noreferrer" title="Twitter/X"
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }}
+                className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="Twitter">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </a>
             )}
-            {author.socialLinks.linkedin && (
-              <a href={author.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="LinkedIn">
+            {authorLinkedin && (
+              <a href={authorLinkedin.startsWith('http') ? authorLinkedin : `https://linkedin.com/in/${authorLinkedin}`} target="_blank" rel="noopener noreferrer" title="LinkedIn"
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }}
+                className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="LinkedIn">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               </a>
             )}
-            {author.socialLinks.website && (
-              <a href={author.socialLinks.website} target="_blank" rel="noopener noreferrer" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="Website">
+            {authorWhatsapp && (
+              <a href={`https://wa.me/${authorWhatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" title="WhatsApp"
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }}
+                className="hover:text-[#25D366] hover:border-[#25D366] transition-colors" aria-label="WhatsApp">
+                {/* WhatsApp icon */}
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+              </a>
+            )}
+            {authorPhone && (
+              <a href={`tel:${authorPhone}`} title="Call"
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }}
+                className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="Phone">
+                <Phone size={14} />
+              </a>
+            )}
+            {authorWebsite && (
+              <a href={authorWebsite} target="_blank" rel="noopener noreferrer"
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }}
+                className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="Website">
                 <Globe size={15} />
               </a>
             )}
@@ -99,7 +178,7 @@ export default async function AuthorPage({ params }: Props) {
       {authorArticles.length > 0 ? (
         <>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 24 }}>
-            Articles by {author.name}
+            Articles by {authorName}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
             {authorArticles.map((article) => (

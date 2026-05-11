@@ -12,6 +12,10 @@ interface Author {
   avatar: string;
   bio: string;
   email: string;
+  twitter: string;
+  linkedin: string;
+  whatsapp: string;
+  phone: string;
   status: 'active' | 'inactive';
   joinedDate: string;
   articleCount: number;
@@ -42,7 +46,7 @@ export default function AdminAuthorsPage() {
   };
 
   const startNew = () => {
-    setEditing({ id: '', name: '', slug: '', role: '', avatar: '', bio: '', email: '', status: 'active', joinedDate: new Date().toISOString().split('T')[0], articleCount: 0 });
+    setEditing({ id: '', name: '', slug: '', role: '', avatar: '', bio: '', email: '', twitter: '', linkedin: '', whatsapp: '', phone: '', status: 'active', joinedDate: new Date().toISOString().split('T')[0], articleCount: 0 });
     setIsNew(true);
   };
 
@@ -60,6 +64,10 @@ export default function AdminAuthorsPage() {
             email: editing.email,
             bio: editing.bio,
             avatar: editing.avatar,
+            twitter: editing.twitter,
+            linkedin: editing.linkedin,
+            whatsapp: editing.whatsapp,
+            phone: editing.phone,
             status: editing.status,
             joined_date: editing.joinedDate || null,
           }
@@ -71,6 +79,10 @@ export default function AdminAuthorsPage() {
             email: editing.email,
             bio: editing.bio,
             avatar: editing.avatar,
+            twitter: editing.twitter,
+            linkedin: editing.linkedin,
+            whatsapp: editing.whatsapp,
+            phone: editing.phone,
             status: editing.status,
             joined_date: editing.joinedDate || null,
           };
@@ -131,11 +143,38 @@ export default function AdminAuthorsPage() {
             {isNew ? 'New Author' : `Edit: ${editing.name}`}
           </h2>
           <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-            {([['name', 'Full Name'], ['slug', 'Slug'], ['role', 'Role / Title'], ['email', 'Email']]) .map(([key, label]) => (
+            {([['name', 'Full Name'], ['slug', 'URL Slug'], ['role', 'Role / Title'], ['email', 'Email']]) .map(([key, label]) => (
               <div key={key}>
                 <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>{label}</label>
                 <input
                   type={key === 'email' ? 'email' : 'text'}
+                  value={(editing as unknown as Record<string, string>)[key] || ''}
+                  onChange={e => setEditing(prev => prev ? { ...prev, [key]: e.target.value } : null)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+            ))}
+          </div>
+          {/* Avatar URL */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Avatar Image URL</label>
+            <input
+              type="url"
+              placeholder="https://example.com/photo.jpg"
+              value={editing.avatar}
+              onChange={e => setEditing(prev => prev ? { ...prev, avatar: e.target.value } : null)}
+              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
+            />
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', marginTop: 4 }}>Paste a direct image URL (e.g. from Google Drive, Cloudinary, or Unsplash)</p>
+          </div>
+          {/* Social Links */}
+          <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            {([['twitter', 'Twitter handle or URL'], ['linkedin', 'LinkedIn handle or URL'], ['whatsapp', 'WhatsApp number (with country code)'], ['phone', 'Phone number']]).map(([key, label]) => (
+              <div key={key}>
+                <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>{label}</label>
+                <input
+                  type="text"
+                  placeholder={key === 'whatsapp' || key === 'phone' ? '+91XXXXXXXXXX' : ''}
                   value={(editing as unknown as Record<string, string>)[key] || ''}
                   onChange={e => setEditing(prev => prev ? { ...prev, [key]: e.target.value } : null)}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}

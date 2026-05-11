@@ -32,6 +32,8 @@ export async function POST(req: NextRequest) {
       twitter: body.twitter || '',
       linkedin: body.linkedin || '',
       website: body.website || '',
+      whatsapp: body.whatsapp || '',
+      phone: body.phone || '',
       status: body.status || 'active',
       joined_date: body.joinedDate || body.joined_date || null,
     }]).select().single();
@@ -52,6 +54,8 @@ export async function PUT(req: NextRequest) {
       name: body.name, slug: body.slug, email: body.email,
       role: body.role, bio: body.bio, avatar: body.avatar,
       twitter: body.twitter, linkedin: body.linkedin, website: body.website,
+      whatsapp: body.whatsapp || '',
+      phone: body.phone || '',
       status: body.status,
       joined_date: body.joinedDate || body.joined_date,
       updated_at: new Date().toISOString(),
