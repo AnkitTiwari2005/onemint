@@ -1,26 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// Allowlist of valid setting keys — rejects unknown keys to prevent config poisoning
+const ALLOWED_KEYS = new Set([
+  'site_name',
+  'site_description',
+  'maintenance_mode',
+  'allow_comments',
+  'newsletter_enabled',
+  'contact_email',
+  'articles_per_page',
+  'featured_article_id',
+  'social_twitter',
+  'social_linkedin',
+  'social_instagram',
+  'social_youtube',
+  'footer_tagline',
+  'meta_keywords',
+  'google_analytics_id',
+  'plausible_domain',
+]);
+
 // GET /api/admin/settings — load all settings
 export async function GET() {
   try {
     if (!supabaseAdmin) {
-      return NextResponse.json({}, { status: 200 }); // Return empty — UI uses defaults
+      return NextResponse.json({}, { status: 200 });
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('site_settings')
-      .select('key, value');
+    const { data, error } = await supabaseAdmin.from('site_settings').select('key, value');
 
     if (error) {
       console.error('[Settings GET]', error.message);
       return NextResponse.json({}, { status: 200 });
     }
 
-    // Convert rows [{key, value}] → flat object {key: value}
     const settings: Record<string, unknown> = {};
     for (const row of data || []) {
-      settings[row.key] = row.value;
+      if (ALLOWED_KEYS.has(row.key)) {
+        settings[row.key] = row.value;
+      }
     }
     return NextResponse.json(settings);
   } catch (err) {
@@ -38,7 +57,15 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
 
-    // Convert flat object → [{key, value, updated_at}] rows
+    // Reject unknown keys
+    const unknownKeys = Object.keys(body).filter((k) => !ALLOWED_KEYS.has(k));
+    if (unknownKeys.length > 0) {
+      return NextResponse.json(
+        { error: `Unknown setting key(s): ${unknownKeys.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     const rows = Object.entries(body).map(([key, value]) => ({
       key,
       value,

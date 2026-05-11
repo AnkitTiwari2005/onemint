@@ -84,23 +84,27 @@ export async function fetchPublishedArticles(): Promise<{
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        return {
-          articles: data as unknown as PublicArticle[],
-          source: 'db',
-          degraded: false,
-        };
+      if (!error && data) {
+        if (data.length > 0) {
+          return {
+            articles: data as unknown as PublicArticle[],
+            source: 'db',
+            degraded: false,
+          };
+        }
+        // DB is reachable but has 0 published articles — authoritative empty state
+        console.warn('[fetchPublishedArticles] DB returned 0 published articles — returning empty (not static fallback)');
+        return { articles: [], source: 'db', degraded: false };
       }
       if (error) {
         console.error('[fetchPublishedArticles] DB error:', error.message);
-      } else {
-        console.warn('[fetchPublishedArticles] DB returned 0 published articles');
       }
     } catch (err) {
       console.error('[fetchPublishedArticles] Unexpected:', err);
     }
   }
 
+  // Only reach here if DB is unreachable or threw
   return {
     articles: staticArticles.map(staticToPublic),
     source: 'static',

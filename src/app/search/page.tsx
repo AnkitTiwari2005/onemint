@@ -31,6 +31,7 @@ function SearchPageContent() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchDegraded, setSearchDegraded] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -47,13 +48,20 @@ function SearchPageContent() {
     if (query.length < 2) { setResults([]); setLoading(false); return; }
 
     setLoading(true);
+    setSearchDegraded(false);
     debounceRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        setResults(data.results || []);
+        if (data.degraded) {
+          setSearchDegraded(true);
+          setResults([]);
+        } else {
+          setResults(data.results || []);
+        }
         if (query.trim()) trackEvent('Search Performed', { query: query.trim() });
       } catch {
+        setSearchDegraded(true);
         setResults([]);
       } finally {
         setLoading(false);
@@ -145,6 +153,11 @@ function SearchPageContent() {
               <div className="flex items-center justify-center py-20 gap-3 text-[var(--color-ink-tertiary)]">
                 <Loader2 size={24} className="animate-spin" />
                 <span className="font-[family-name:var(--font-ui)] text-sm">Searching…</span>
+              </div>
+            ) : searchDegraded ? (
+              <div className="text-center py-20">
+                <h2 className="text-xl font-bold text-[var(--color-ink)] mb-2">Search temporarily unavailable</h2>
+                <p className="text-[var(--color-ink-secondary)]">Our search service is experiencing issues. Please try again in a moment.</p>
               </div>
             ) : filtered.length > 0 ? (
               <div>

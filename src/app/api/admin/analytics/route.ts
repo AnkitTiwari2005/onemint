@@ -123,29 +123,21 @@ export async function GET() {
     const fromPlausible = !!aggregate;
 
     if (!fromPlausible) {
-      // Return static mock data with real Supabase counts
+      // Return zeros + unavailable flag — never show fabricated numbers in production
       return NextResponse.json({
-        pageViews: 27700,
-        uniqueVisitors: 16600,
-        avgSessionSec: 204,
-        bounceRate: 52,
-        topArticles: [
-          { title: 'SIP vs Lumpsum: Which is better?', views: 28400, trend: 'up' },
-          { title: 'How to File ITR Online in 2025', views: 22100, trend: 'up' },
-          { title: 'Best Term Insurance Plans India', views: 18300, trend: 'down' },
-          { title: 'PPF Calculator: 15 Year Returns', views: 15700, trend: 'up' },
-          { title: 'Old vs New Tax Regime 2025-26', views: 14200, trend: 'up' },
-        ],
-        trafficSources: [
-          { source: 'Organic Search', pct: 54 }, { source: 'Direct', pct: 18 },
-          { source: 'Social Media', pct: 14 }, { source: 'Referral', pct: 10 }, { source: 'Email', pct: 4 },
-        ],
-        weeklyChart: STATIC_WEEKLY,
-        monthlyChart: STATIC_MONTHLY,
+        pageViews: 0,
+        uniqueVisitors: 0,
+        avgSessionSec: 0,
+        bounceRate: 0,
+        topArticles: [],
+        trafficSources: [],
+        weeklyChart: [],
+        monthlyChart: [],
         totalSubscribers: subscribers,
         totalArticles: articles,
         fromPlausible: false,
-      } satisfies AnalyticsStats);
+        unavailable: true, // UI should show "Analytics not connected" state
+      } satisfies AnalyticsStats & { unavailable: boolean });
     }
 
     // ── Map Plausible data ───────────────────────────────────────────────────

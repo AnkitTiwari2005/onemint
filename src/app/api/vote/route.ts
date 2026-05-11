@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { suggestionId } = await req.json();
-
     if (!suggestionId) {
       return NextResponse.json({ error: 'suggestionId required' }, { status: 400 });
     }
@@ -35,16 +34,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
-    // Fire-and-forget: increment vote count via RPC
-    const response = NextResponse.json({ success: true });
+    // Await RPC before responding — ensures count is consistent with insert
+    const { error: rpcError } = await supabaseAdmin
+      .rpc('increment_votes', { suggestion_id_param: suggestionId });
 
-    void Promise.resolve(
-      supabaseAdmin.rpc('increment_votes', { suggestion_id_param: suggestionId })
-    ).then(({ error }) => {
-      if (error) console.error('[Vote] RPC increment_votes failed:', error.message);
-    }).catch((err: unknown) => console.error('[Vote] RPC exception:', err));
+    if (rpcError) {
+      // Vote IS recorded; log the count drift for monitoring but still report success
+      console.error('[Vote] RPC increment_votes failed:', rpcError.message);
+    }
 
-    return response;
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[Vote] Unexpected error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

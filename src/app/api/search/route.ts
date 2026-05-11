@@ -3,7 +3,6 @@ import { typesenseSearch } from '@/lib/typesense';
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q') || '';
-
   if (!q.trim()) return NextResponse.json({ results: [], found: 0 });
 
   try {
@@ -18,20 +17,29 @@ export async function GET(req: NextRequest) {
         typo_tokens_threshold: 1,
       });
 
-    const hits = (result.hits ?? []).map((hit) => ({
-      id: (hit.document as Record<string, unknown>).id,
-      title: (hit.document as Record<string, unknown>).title,
-      excerpt: (hit.document as Record<string, unknown>).excerpt,
-      slug: (hit.document as Record<string, unknown>).slug,
-      categoryId: (hit.document as Record<string, unknown>).categoryId,
-      categoryName: (hit.document as Record<string, unknown>).categoryName,
-      readTimeMinutes: (hit.document as Record<string, unknown>).readTimeMinutes,
-    }));
+    const hits = (result.hits ?? []).map((hit) => {
+      const doc = hit.document as Record<string, unknown>;
+      return {
+        id: doc.id,
+        title: doc.title,
+        excerpt: doc.excerpt,
+        slug: doc.slug,
+        categoryId: doc.categoryId,
+        categoryName: doc.categoryName,
+        authorName: doc.authorName,
+        tags: doc.tags ?? [],
+        publishedAt: doc.publishedAt ?? null,
+        readTimeMinutes: doc.readTimeMinutes,
+      };
+    });
 
     return NextResponse.json({ results: hits, found: result.found });
   } catch (err) {
     console.error('Typesense search error:', err);
-    // Return empty — Fuse.js fallback handles it client-side
-    return NextResponse.json({ results: [], found: 0 });
+    // Return degraded flag — client can show "Search temporarily unavailable"
+    return NextResponse.json(
+      { results: [], found: 0, degraded: true },
+      { status: 200 }
+    );
   }
 }

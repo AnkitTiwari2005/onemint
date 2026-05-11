@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
+  // 5 contacts per 10 minutes per IP
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'contact', 5, 10 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { error: `Too many submissions. Try again in ${retryAfterSec}s.` },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const { name, email, subject, message } = body;
@@ -17,7 +27,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (!supabaseAdmin) {
-      console.error('[Contact] supabaseAdmin not configured — rejecting to avoid silent data loss');
       return NextResponse.json(
         { error: 'Service temporarily unavailable. Please try again later.' },
         { status: 503 }

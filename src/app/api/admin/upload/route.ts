@@ -40,6 +40,18 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Magic-byte validation — trust content, not just MIME/extension
+    const isPNG  = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+    const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8;
+    const isWebP = buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+    const isGIF  = buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
+    if (!isPNG && !isJPEG && !isWebP && !isGIF) {
+      return NextResponse.json(
+        { error: 'Invalid image format. Only PNG, JPEG, WebP, and GIF are accepted.' },
+        { status: 400 }
+      );
+    }
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const filename = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 

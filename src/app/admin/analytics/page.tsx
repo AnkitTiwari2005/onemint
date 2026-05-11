@@ -1,15 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart2, Eye, Users, Clock, Globe, ArrowUp, ArrowDown, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { BarChart2, Eye, Users, Clock, Globe, ArrowUp, ArrowDown, Loader2, RefreshCw, AlertTriangle, WifiOff } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import type { AnalyticsStats } from '@/app/api/admin/analytics/route';
-
-const DEVICE_DATA = [
-  { name: 'Mobile',  value: 62, color: 'var(--color-accent)' },
-  { name: 'Desktop', value: 30, color: '#2563EB' },
-  { name: 'Tablet',  value: 8,  color: '#D97706' },
-];
 
 function fmtSec(sec: number) {
   const m = Math.floor(sec / 60);
@@ -39,7 +33,10 @@ export default function AdminAnalyticsPage() {
 
   useEffect(() => { load(); }, []);
 
-  // ── Loading state ────────────────────────────────────────────────────────
+  // ── Analytics unavailable banner ─────────────────────────────────────────
+  const isUnavailable = !data?.fromPlausible;
+
+  // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 80, color: 'var(--color-ink-tertiary)' }}>
       <Loader2 size={22} className="animate-spin" />
@@ -47,7 +44,7 @@ export default function AdminAnalyticsPage() {
     </div>
   );
 
-  // ── Error state ──────────────────────────────────────────────────────────
+  // ── Error state ─────────────────────────────────────────────────────────────
   if (error || !data) return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 32, background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12 }}>
       <AlertTriangle size={20} color="#DC2626" />
@@ -78,7 +75,7 @@ export default function AdminAnalyticsPage() {
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>
             {data.fromPlausible
               ? '✅ Live data from Plausible Analytics'
-              : '⚠️ Demo data — add PLAUSIBLE_API_KEY to .env.local for live metrics'}
+              : '⚠️ Analytics not connected — add PLAUSIBLE_API_KEY + PLAUSIBLE_DOMAIN to env vars'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -93,17 +90,21 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Stats row — 6 cards, 2 from Supabase, 4 from Plausible */}
+      {/* Stats row — always show Supabase-backed cards; grey out Plausible cards when unavailable */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 16, marginBottom: 28 }}>
-        {stats.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '18px 20px' }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <Icon size={17} color={color} />
+        {stats.map(({ label, value, icon: Icon, color }, i) => {
+          const isPlausibleStat = i < 4; // First 4 are from Plausible
+          const dimmed = isPlausibleStat && isUnavailable;
+          return (
+            <div key={label} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '18px 20px', opacity: dimmed ? 0.4 : 1 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                <Icon size={17} color={color} />
+              </div>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 22, fontWeight: 700, color, margin: '0 0 2px', fontVariantNumeric: 'tabular-nums' }}>{dimmed ? '—' : value}</p>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>{label}</p>
             </div>
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 22, fontWeight: 700, color, margin: '0 0 2px', fontVariantNumeric: 'tabular-nums' }}>{value}</p>
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>{label}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Charts grid */}
@@ -134,28 +135,12 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
 
-        {/* Device split — static breakdown (Plausible doesn't expose device in free plan) */}
-        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 20 }}>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 16 }}>Device Split</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <div style={{ width: 140, height: 140 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={DEVICE_DATA} cx="50%" cy="50%" innerRadius={45} outerRadius={65} dataKey="value" strokeWidth={0}>
-                    {DEVICE_DATA.map((d, i) => <Cell key={i} fill={d.color} />)}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {DEVICE_DATA.map(d => (
-                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)' }}>{d.name}</span>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--color-ink)', marginLeft: 'auto' }}>{d.value}%</span>
-                </div>
-              ))}
-            </div>
+        {/* Device split — replaced with unavailable notice (real device data requires paid Plausible) */}
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 180, gap: 12 }}>
+          <WifiOff size={28} color="var(--color-ink-tertiary)" />
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)', margin: '0 0 4px' }}>Device Split</p>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>Requires Plausible Business plan</p>
           </div>
         </div>
       </div>
@@ -186,10 +171,7 @@ export default function AdminAnalyticsPage() {
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Traffic Sources</h2>
           </div>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {(data.trafficSources.length ? data.trafficSources : [
-              { source: 'Organic Search', pct: 54 }, { source: 'Direct', pct: 18 },
-              { source: 'Social Media', pct: 14 }, { source: 'Referral', pct: 10 }, { source: 'Email', pct: 4 },
-            ]).map(s => (
+            {data.trafficSources.length > 0 ? data.trafficSources.map(s => (
               <div key={s.source}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-ui)', fontSize: 13, marginBottom: 6 }}>
                   <span style={{ color: 'var(--color-ink-secondary)' }}>{s.source}</span>
@@ -199,7 +181,9 @@ export default function AdminAnalyticsPage() {
                   <div style={{ height: '100%', width: `${s.pct}%`, background: 'var(--color-accent)', borderRadius: 3, transition: 'width 0.8s ease' }} />
                 </div>
               </div>
-            ))}
+            )) : (
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>No traffic data — connect Plausible Analytics.</p>
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ENV } from '@/lib/env';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 // Optional: set BREVO_WELCOME_TEMPLATE_ID in Vercel to use a custom Brevo template.
 // Leave blank to use the built-in HTML welcome email below.
@@ -84,6 +85,15 @@ async function sendWelcomeEmail(email: string, name: string): Promise<void> {
 }
 
 export async function POST(req: NextRequest) {
+  // 5 subscription attempts per hour per IP
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'subscribe', 5, 60 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { error: `Too many attempts. Try again in ${Math.ceil(retryAfterSec / 60)} minutes.` },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
+
   try {
     const { email, name } = await req.json();
 
@@ -115,6 +125,13 @@ export async function POST(req: NextRequest) {
 
       if (dbError) {
         console.error('[Subscribe] Supabase upsert error:', dbError.message);
+        // If Brevo is also not configured, we can't persist the subscriber anywhere
+        if (!ENV.BREVO_API_KEY) {
+          return NextResponse.json(
+            { error: 'Subscription service temporarily unavailable. Please try again later.' },
+            { status: 503 }
+          );
+        }
       }
     }
 
