@@ -74,15 +74,14 @@ export async function fetchPublishedArticles(): Promise<{
     try {
       const { data, error } = await supabaseAdmin
         .from('articles')
-        .select(`
-          id, title, slug, excerpt, content, cover_image,
-          category_id, tags, read_time_minutes, published_at,
-          meta_title, meta_description,
-          categories(id, name, slug, accent_color, light_color),
-          authors(id, name, slug, bio, avatar, role)
-        `)
+        .select(
+          'id, title, slug, excerpt, content, cover_image, ' +
+          'category_id, tags, read_time_minutes, published_at, ' +
+          'categories(id, name, slug), ' +
+          'authors(id, name, slug)'
+        )
         .eq('status', 'published')
-        .order('published_at', { ascending: false, nullsFirst: false });
+        .order('published_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
         return {
@@ -117,13 +116,12 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
     try {
       const { data, error } = await supabaseAdmin
         .from('articles')
-        .select(`
-          id, title, slug, excerpt, content, cover_image,
-          category_id, tags, read_time_minutes, published_at,
-          meta_title, meta_description,
-          categories(id, name, slug, accent_color, light_color),
-          authors(id, name, slug, bio, avatar, role)
-        `)
+        .select(
+          'id, title, slug, excerpt, content, cover_image, ' +
+          'category_id, tags, read_time_minutes, published_at, ' +
+          'categories(id, name, slug), ' +
+          'authors(id, name, slug)'
+        )
         .eq('slug', slug)
         .eq('status', 'published')
         .maybeSingle();
