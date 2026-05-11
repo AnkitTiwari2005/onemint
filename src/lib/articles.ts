@@ -5,6 +5,7 @@
 
 import { supabaseAdmin } from './supabase';
 import { articles as staticArticles } from '@/data/articles';
+import type { Article } from '@/data/articles';
 import { getCategoryById } from '@/data/categories';
 import { getAuthorById } from '@/data/authors';
 
@@ -144,4 +145,34 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
   }
 
   return { article: null, source: 'static' };
+}
+
+/**
+ * Convert a PublicArticle (DB shape) to the Article shape expected by
+ * ArticleCard and other components that import from @/data/articles.
+ *
+ * Key mapping: categoryId = categories.slug so getCategoryById() finds
+ * the right static category metadata (colours, name, icon).
+ */
+export function toArticle(a: PublicArticle, index = 0): Article {
+  return {
+    id: a.id,
+    title: a.title,
+    slug: a.slug,
+    deck: a.excerpt ?? '',
+    excerpt: a.excerpt ?? '',
+    // Use the category SLUG so getCategoryById() matches static metadata
+    categoryId: a.categories?.slug ?? a.category_id ?? '',
+    // Use the author SLUG so getAuthorById() can match static author profiles
+    authorId: a.authors?.slug ?? '',
+    tags: a.tags ?? [],
+    featuredImage:
+      a.cover_image ??
+      'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=450&fit=crop',
+    publishedAt: a.published_at ?? new Date().toISOString(),
+    updatedAt: a.published_at ?? new Date().toISOString(),
+    readTimeMinutes: a.read_time_minutes ?? 5,
+    contentLevel: 'beginner',
+    featured: index === 0,
+  };
 }

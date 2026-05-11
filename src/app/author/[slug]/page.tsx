@@ -3,9 +3,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { authors, getAuthorBySlug } from '@/data/authors';
-import { articles } from '@/data/articles';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ExternalLink, Globe } from 'lucide-react';
+import { fetchPublishedArticles, toArticle } from '@/lib/articles';
+
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -30,9 +32,13 @@ export default async function AuthorPage({ params }: Props) {
   const author = getAuthorBySlug(slug);
   if (!author) notFound();
 
-  const authorArticles = articles
-    .filter((a) => a.authorId === author.id)
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  // Fetch live articles from DB, fallback to static if DB is down
+  const { articles: allArticles } = await fetchPublishedArticles();
+
+  const authorArticles = allArticles
+    .filter((a) => a.authors?.slug === author.slug || a.authors?.id === author.id)
+    .sort((a, b) => (b.published_at ?? '').localeCompare(a.published_at ?? ''))
+    .map((a, i) => toArticle(a, i));
 
   const joinedYear = new Date(author.joinedDate).getFullYear();
 
