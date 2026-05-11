@@ -14,8 +14,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (!supabaseAdmin) {
-      console.warn('[Apply] supabaseAdmin not configured');
-      return NextResponse.json({ success: true });
+      console.error('[Apply] supabaseAdmin not configured — rejecting to avoid silent data loss');
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      );
     }
 
     const { error } = await supabaseAdmin.from('author_applications').insert([{

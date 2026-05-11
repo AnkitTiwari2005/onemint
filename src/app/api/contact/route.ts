@@ -17,8 +17,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (!supabaseAdmin) {
-      console.warn('[Contact] supabaseAdmin not configured — message not stored');
-      return NextResponse.json({ success: true });
+      console.error('[Contact] supabaseAdmin not configured — rejecting to avoid silent data loss');
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      );
     }
 
     const { error } = await supabaseAdmin.from('contact_messages').insert([{

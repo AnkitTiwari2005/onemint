@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { articles as staticArticles } from '@/data/articles';
+import { getCategoryById } from '@/data/categories';
+import { getAuthorById } from '@/data/authors';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  try {
-    if (!supabaseAdmin) return NextResponse.json(staticArticles);
+  // ── Try Supabase ───────────────────────────────────────────────────────
+  if (supabaseAdmin) {
     const { data, error } = await supabaseAdmin
       .from('articles')
       .select(`
@@ -18,13 +20,37 @@ export async function GET() {
       `)
       .eq('status', 'published')
       .order('published_at', { ascending: false });
-    if (error) {
-      console.error('[Public articles GET]', error.message);
-      return NextResponse.json(staticArticles);
+
+    if (!error && data && data.length > 0) {
+      return NextResponse.json({ articles: data, source: 'db', degraded: false });
     }
-    return NextResponse.json(data?.length ? data : staticArticles);
-  } catch (err) {
-    console.error('[Public articles GET] Unexpected:', err);
-    return NextResponse.json(staticArticles);
+    if (error) {
+      console.error('[Public articles GET] DB error:', error.message);
+    } else {
+      console.warn('[Public articles GET] DB returned 0 published articles — falling back to static');
+    }
   }
+
+  // ── Static fallback ────────────────────────────────────────────────────
+  const fallback = staticArticles.map((a) => {
+    const cat = getCategoryById(a.categoryId);
+    const auth = getAuthorById(a.authorId);
+    return {
+      id: a.id,
+      title: a.title,
+      slug: a.slug,
+      excerpt: a.excerpt,
+      cover_image: a.featuredImage,
+      category_id: a.categoryId,
+      tags: a.tags,
+      read_time_minutes: a.readTimeMinutes,
+      status: 'published',
+      published_at: a.publishedAt,
+      created_at: a.publishedAt,
+      categories: cat ? { id: cat.id, name: cat.name, slug: cat.slug } : null,
+      authors: auth ? { id: auth.id, name: auth.name, slug: auth.slug } : null,
+    };
+  });
+
+  return NextResponse.json({ articles: fallback, source: 'static', degraded: true });
 }

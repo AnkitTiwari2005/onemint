@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { articles } from '@/data/articles';
-import { FileText, Eye, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, BarChart3, Loader2 } from 'lucide-react';
+import { FileText, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, Loader2 } from 'lucide-react';
 import { formatIndianNumber } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -26,6 +25,14 @@ interface Suggestion {
   category: string;
   votes: number;
   status: string;
+}
+
+interface RecentArticle {
+  id: string;
+  title: string;
+  status: string;
+  published_at: string | null;
+  created_at: string;
 }
 
 function StatCard({ label, value, icon: Icon, color, loading }: { label: string; value: string; icon: React.ElementType; color: string; loading?: boolean }) {
@@ -55,6 +62,8 @@ export default function AdminDashboard() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+  const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/admin/stats')
@@ -72,6 +81,14 @@ export default function AdminDashboard() {
       .finally(() => setSuggestionsLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch('/api/admin/articles')
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setRecentArticles(d.slice(0, 5)); })
+      .catch(() => {})
+      .finally(() => setArticlesLoading(false));
+  }, []);
+
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
@@ -83,7 +100,7 @@ export default function AdminDashboard() {
       <div className="admin-stat-grid" style={{ display: 'grid', gap: 16, marginBottom: 32 }}>
         <StatCard
           label="Total Articles"
-          value={stats ? String(stats.totalArticles || articles.length) : String(articles.length)}
+          value={stats ? String(stats.totalArticles) : '—'}
           icon={FileText}
           color="#16A34A"
           loading={statsLoading}
@@ -130,27 +147,40 @@ export default function AdminDashboard() {
       </div>
 
       <div className="admin-2col-grid" style={{ display: 'grid', gap: 24, marginBottom: 24 }}>
-        {/* Recent Articles */}
+        {/* Recent Articles — from DB */}
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Recent Articles</h2>
             <Link href="/admin/articles" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-accent)', textDecoration: 'none' }}>View all →</Link>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <tbody>
-              {articles.slice(0, 5).map((a) => (
-                <tr key={a.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <td style={{ padding: '12px 20px' }}>
-                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 2px', lineHeight: 1.3 }}>{a.title.slice(0, 50)}{a.title.length > 50 ? '…' : ''}</p>
-                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>{a.publishedAt}</p>
-                  </td>
-                  <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: '#D1FAE5', color: '#065F46', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600 }}>Published</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {articlesLoading ? (
+            <div style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
+              <Loader2 size={14} className="animate-spin" /> Loading…
+            </div>
+          ) : recentArticles.length === 0 ? (
+            <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>No articles yet</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                {recentArticles.map((a) => {
+                  const isPublished = a.status === 'published';
+                  const badgeBg = isPublished ? '#D1FAE5' : a.status === 'draft' ? '#F3F4F6' : '#FEF3C7';
+                  const badgeColor = isPublished ? '#065F46' : a.status === 'draft' ? '#6B7280' : '#92400E';
+                  return (
+                    <tr key={a.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <td style={{ padding: '12px 20px' }}>
+                        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 2px', lineHeight: 1.3 }}>{a.title.slice(0, 50)}{a.title.length > 50 ? '…' : ''}</p>
+                        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>{a.published_at ?? a.created_at}</p>
+                      </td>
+                      <td style={{ padding: '12px 20px', textAlign: 'right' }}>
+                        <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: badgeBg, color: badgeColor, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, textTransform: 'capitalize' }}>{a.status}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Top Suggestions */}
