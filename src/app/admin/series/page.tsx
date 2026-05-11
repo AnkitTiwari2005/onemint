@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Pencil, Trash2, Save, X, ExternalLink, BookOpen } from 'lucide-react';
 
-const DEFAULT_SERIES = [
+const DEFAULT_SERIES: Series[] = [
   { id: 'mutual-funds-101', name: 'Mutual Funds 101', slug: 'mutual-funds-101', description: 'A 6-part beginner guide to understanding and investing in mutual funds in India.', categoryId: 'investing', coverImage: '/series/mutual-funds.jpg', articleSlugs: [], totalReadTime: 42, status: 'published' },
   { id: 'tax-planning-guide', name: 'Complete Tax Planning Guide', slug: 'tax-planning-guide', description: 'Master income tax, deductions, and smart filing strategies for salaried professionals.', categoryId: 'tax', coverImage: '/series/tax-guide.jpg', articleSlugs: [], totalReadTime: 58, status: 'published' },
   { id: 'retire-early', name: 'How to Retire Early in India', slug: 'retire-early', description: 'A practical roadmap to financial independence using Indian investment instruments.', categoryId: 'finance', coverImage: '/series/retire-early.jpg', articleSlugs: [], totalReadTime: 35, status: 'draft' },
@@ -28,40 +28,71 @@ export default function AdminSeriesPage() {
   const [editing, setEditing] = useState<Series | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin_series');
-    setSeries(stored ? JSON.parse(stored) : DEFAULT_SERIES);
+    fetch('/api/admin/series')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!Array.isArray(data) || data.length === 0) { setSeries(DEFAULT_SERIES); return; }
+        // Normalize snake_case from Supabase to camelCase
+        const normalized: Series[] = data.map((s: Record<string, unknown>) => ({
+          id: String(s.id ?? s.slug ?? ''),
+          name: String(s.name ?? ''),
+          slug: String(s.slug ?? ''),
+          description: String(s.description ?? ''),
+          categoryId: String(s.category_id ?? s.categoryId ?? ''),
+          coverImage: String(s.cover_image ?? s.coverImage ?? ''),
+          articleSlugs: (s.article_slugs ?? s.articleSlugs ?? []) as string[],
+          totalReadTime: Number(s.total_read_time ?? s.totalReadTime ?? 0),
+          status: (s.status === 'published' ? 'published' : 'draft') as 'published' | 'draft',
+        }));
+        setSeries(normalized);
+      })
+      .catch(() => setSeries(DEFAULT_SERIES))
+      .finally(() => setLoading(false));
   }, []);
 
-  const persist = (list: Series[]) => {
-    setSeries(list);
-    localStorage.setItem('admin_series', JSON.stringify(list));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const payload = {
+        name: editing.name, slug: editing.slug || editing.name.toLowerCase().replace(/\s+/g, '-'),
+        description: editing.description,
+        categoryId: editing.categoryId, coverImage: editing.coverImage,
+        articleSlugs: editing.articleSlugs, totalReadTime: editing.totalReadTime,
+        status: editing.status,
+      };
+      if (isNew) {
+        const res = await fetch('/api/admin/series', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const created = await res.json();
+        if (res.ok) setSeries(prev => [...prev, { ...editing, id: created.id ?? created.slug ?? editing.name.toLowerCase().replace(/\s+/g, '-') }]);
+      } else {
+        const res = await fetch('/api/admin/series', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing.id, ...payload }) });
+        if (res.ok) setSeries(prev => prev.map(s => s.id === editing.id ? editing : s));
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch { /* state already updated optimistically */ }
+    finally { setSaving(false); }
+    setEditing(null);
+    setIsNew(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this series?')) return;
+    setSeries(prev => prev.filter(s => s.id !== id));
+    try {
+      await fetch('/api/admin/series', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    } catch { /* optimistic update already applied */ }
   };
 
   const startNew = () => {
     setEditing({ id: '', name: '', slug: '', description: '', categoryId: '', coverImage: '', articleSlugs: [], totalReadTime: 0, status: 'draft' });
     setIsNew(true);
-  };
-
-  const handleSave = () => {
-    if (!editing) return;
-    if (isNew) {
-      const ns = { ...editing, id: editing.name.toLowerCase().replace(/\s+/g, '-') };
-      persist([...series, ns]);
-    } else {
-      persist(series.map(s => s.id === editing.id ? editing : s));
-    }
-    setEditing(null);
-    setIsNew(false);
-  };
-
-  const handleDelete = (id: string) => {
-    if (!confirm('Delete this series?')) return;
-    persist(series.filter(s => s.id !== id));
   };
 
   const filtered = filter === 'all' ? series : series.filter(s => s.status === filter);

@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
-// Allowlist of valid setting keys — rejects unknown keys to prevent config poisoning
+// Allowlist of valid setting keys — must match the camelCase keys sent by the settings page
 const ALLOWED_KEYS = new Set([
-  'site_name',
-  'site_description',
-  'maintenance_mode',
-  'allow_comments',
-  'newsletter_enabled',
-  'contact_email',
-  'articles_per_page',
-  'featured_article_id',
-  'social_twitter',
-  'social_linkedin',
-  'social_instagram',
-  'social_youtube',
-  'footer_tagline',
-  'meta_keywords',
-  'google_analytics_id',
-  'plausible_domain',
+  'siteName',
+  'tagline',
+  'adminEmail',
+  'siteUrl',
+  'twitterHandle',
+  'gaTrackingId',
+  'adsensePublisherId',
+  'newsletterProvider',
+  'newsletterApiKey',
+  'newsletterListId',
+  'contactFormEmail',
+  'footerCopyright',
+  'defaultCategory',
+  'articlesPerPage',
+  'maintenanceMode',
+  'commentsEnabled',
+  'newsletterEnabled',
+  'darkModeDefault',
 ]);
 
 // GET /api/admin/settings — load all settings

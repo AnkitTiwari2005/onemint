@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Tag } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Tag, Loader2 } from 'lucide-react';
 
 import { categories as staticCategories } from '@/data/categories';
 
@@ -17,16 +17,17 @@ interface Category {
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Category | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    // Load from Supabase API; fall back to static data
     fetch('/api/admin/categories')
       .then(r => r.json())
       .then(data => setCategories(Array.isArray(data) && data.length > 0 ? data : (staticCategories as Category[])))
-      .catch(() => setCategories(staticCategories as Category[]));
+      .catch(() => setCategories(staticCategories as Category[]))
+      .finally(() => setLoading(false));
   }, []);
 
   const persist = (cats: Category[]) => {
@@ -127,6 +128,11 @@ export default function AdminCategoriesPage() {
 
       {/* Table */}
       <div className="admin-table-wrap" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+        {loading ? (
+          <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
+            <Loader2 size={16} className="animate-spin" /> Loading categories…
+          </div>
+        ) : (
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <table style={{ width: '100%', minWidth: 580, borderCollapse: 'collapse' }}>
           <thead>
@@ -157,6 +163,7 @@ export default function AdminCategoriesPage() {
           </tbody>
         </table>
         </div>
+        )}
       </div>
     </div>
   );

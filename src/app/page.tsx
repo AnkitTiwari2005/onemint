@@ -58,22 +58,21 @@ function normaliseApiArticle(a: ApiArticle, index: number): Article {
 export default function HomePage() {
   const prefersReduced = useReducedMotion();
 
-  // ── Article data: start with static seed, replace with DB on mount ─────
-  const [liveArticles, setLiveArticles] = useState<Article[]>(staticArticles);
+  // ── Article data: start empty, replace with DB on mount ────────────────
+  const [liveArticles, setLiveArticles] = useState<Article[]>([]);
   const [articlesLoaded, setArticlesLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/api/articles/public')
       .then((r) => r.ok ? r.json() : null)
       .then((json) => {
-        if (!json) return;
+        if (!json) { setLiveArticles(staticArticles); return; }
         // API now returns { articles, source, degraded }
         const raw: ApiArticle[] = Array.isArray(json) ? json : (json.articles ?? []);
-        if (raw.length > 0) {
-          setLiveArticles(raw.map(normaliseApiArticle));
-        }
+        // Use DB articles if available, otherwise fall back to static
+        setLiveArticles(raw.length > 0 ? raw.map(normaliseApiArticle) : staticArticles);
       })
-      .catch(() => { /* keep static fallback */ })
+      .catch(() => setLiveArticles(staticArticles))
       .finally(() => setArticlesLoaded(true));
   }, []);
 
@@ -109,7 +108,45 @@ export default function HomePage() {
     }
   };
 
-  if (!featured) return null;
+  // While fetching, show a skeleton that matches the hero layout — prevents blank→content flash
+  if (!articlesLoaded || !featured) return (
+    <div className="pt-16 lg:pt-[72px] pb-28">
+      <style>{`@keyframes skeletonPulse{0%,100%{opacity:1}50%{opacity:.45}}`}</style>
+      <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          {/* Hero skeleton */}
+          <div className="lg:col-span-7" style={{ borderRadius: 16, overflow: 'hidden', minHeight: 420, background: 'var(--color-surface-alt)', animation: 'skeletonPulse 1.6s ease-in-out infinite' }} />
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {[1,2,3].map(i => (
+              <div key={i} style={{ display: 'flex', gap: 16, padding: 16, borderRadius: 12, background: 'var(--color-surface)', border: '1px solid var(--color-border)', animation: 'skeletonPulse 1.6s ease-in-out infinite', animationDelay: `${i * 0.1}s` }}>
+                <div style={{ width: 100, height: 72, borderRadius: 8, background: 'var(--color-surface-alt)', flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ height: 14, borderRadius: 4, background: 'var(--color-surface-alt)', width: '80%' }} />
+                  <div style={{ height: 14, borderRadius: 4, background: 'var(--color-surface-alt)', width: '55%' }} />
+                  <div style={{ height: 10, borderRadius: 4, background: 'var(--color-surface-alt)', width: '35%' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Trending row skeleton */}
+        <div style={{ marginTop: 48 }}>
+          <div style={{ height: 16, width: 160, borderRadius: 4, background: 'var(--color-surface-alt)', marginBottom: 24, animation: 'skeletonPulse 1.6s ease-in-out infinite' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ borderRadius: 12, overflow: 'hidden', background: 'var(--color-surface)', border: '1px solid var(--color-border)', animation: 'skeletonPulse 1.6s ease-in-out infinite', animationDelay: `${i * 0.08}s` }}>
+                <div style={{ height: 160, background: 'var(--color-surface-alt)' }} />
+                <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ height: 12, borderRadius: 3, background: 'var(--color-surface-alt)', width: '90%' }} />
+                  <div style={{ height: 12, borderRadius: 3, background: 'var(--color-surface-alt)', width: '65%' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">

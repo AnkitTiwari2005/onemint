@@ -2,14 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FileText, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, Loader2 } from 'lucide-react';
+import { FileText, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, Loader2, BarChart2 } from 'lucide-react';
 import { formatIndianNumber } from '@/lib/utils';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-
-const ANALYTICS_DATA = [
-  { day: 'Mon', views: 3200 }, { day: 'Tue', views: 4100 }, { day: 'Wed', views: 3800 },
-  { day: 'Thu', views: 5200 }, { day: 'Fri', views: 4700 }, { day: 'Sat', views: 3100 }, { day: 'Sun', views: 2600 },
-];
 
 interface Stats {
   totalArticles: number;
@@ -213,19 +207,19 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Analytics Chart */}
+      {/* Analytics placeholder — replaced by real chart in /admin/analytics */}
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 24 }}>
-        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 4 }}>Page Views — Last 7 Days</h2>
-        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', marginBottom: 20 }}>Connect Plausible Analytics for live data</p>
-        <div style={{ height: 200 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={ANALYTICS_DATA}>
-              <XAxis dataKey="day" tick={{ fontSize: 12, fill: 'var(--color-ink-tertiary)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--color-ink-tertiary)' }} width={50} />
-              <Tooltip />
-              <Bar dataKey="views" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', margin: '0 0 4px' }}>Page Views — Last 7 Days</h2>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>Connect Plausible Analytics for live data</p>
+          </div>
+          <Link href="/admin/analytics" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>
+            <BarChart2 size={14} /> Open Analytics
+          </Link>
+        </div>
+        <div style={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-surface-alt)', borderRadius: 8, border: '1px dashed var(--color-border)' }}>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>Add <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, background: 'var(--color-border)', padding: '1px 6px', borderRadius: 4 }}>PLAUSIBLE_API_KEY</code> + <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, background: 'var(--color-border)', padding: '1px 6px', borderRadius: 4 }}>PLAUSIBLE_DOMAIN</code> to see live charts</p>
         </div>
       </div>
 

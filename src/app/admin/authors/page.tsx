@@ -29,12 +29,15 @@ export default function AdminAuthorsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [loading, setLoading] = useState(true);
 
   const loadAuthors = () => {
+    setLoading(true);
     fetch('/api/admin/authors')
       .then(r => r.json())
       .then(data => setAuthors(Array.isArray(data) ? data : []))
-      .catch(() => setAuthors([]));
+      .catch(() => setAuthors([]))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => { loadAuthors(); }, []);
@@ -241,6 +244,12 @@ export default function AdminAuthorsPage() {
 
       {/* Table */}
       <div className="admin-table-wrap" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden' }}>
+        {loading ? (
+          <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
+            <Loader2 size={16} className="animate-spin" /> Loading authors…
+          </div>
+        ) : (
+        <>
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <table style={{ width: '100%', minWidth: 620, borderCollapse: 'collapse' }}>
           <thead>
@@ -281,6 +290,8 @@ export default function AdminAuthorsPage() {
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
             No authors found
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
