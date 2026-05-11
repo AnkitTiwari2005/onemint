@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { categories } from '@/data/categories';
 import { Plus, Search, Pencil, Trash2, ChevronUp, ChevronDown, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
@@ -21,6 +21,12 @@ type SortField = 'title' | 'date' | 'readTime';
 type SortDir = 'asc' | 'desc';
 const PAGE_SIZE = 10;
 
+/** Standalone component — must be outside the page component to avoid re-creation on each render */
+function SortIcon({ field, sortField, sortDir }: { field: SortField; sortField: SortField; sortDir: SortDir }) {
+  if (sortField !== field) return null;
+  return sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
+}
+
 export default function AdminArticlesPage() {
   const [allArticles, setAllArticles] = useState<AdminArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +38,7 @@ export default function AdminArticlesPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/articles');
@@ -43,9 +49,9 @@ export default function AdminArticlesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     let list = [...allArticles];
@@ -80,8 +86,6 @@ export default function AdminArticlesPage() {
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) =>
-    sortField === field ? (sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />) : null;
 
   const statusBadge = (s: string) => {
     if (s === 'published') return { background: '#D1FAE5', color: '#065F46', label: 'Published' };
@@ -131,9 +135,9 @@ export default function AdminArticlesPage() {
             <table style={{ width: '100%', minWidth: 640, borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: 'var(--color-surface-alt)' }}>
-                  <th style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('title')}>Title <SortIcon field="title" /></th>
+                  <th style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('title')}>Title <SortIcon field="title" sortField={sortField} sortDir={sortDir} /></th>
                   <th style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Category</th>
-                  <th style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('date')}>Date <SortIcon field="date" /></th>
+                  <th style={{ padding: '11px 16px', textAlign: 'left', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('date')}>Date <SortIcon field="date" sortField={sortField} sortDir={sortDir} /></th>
                   <th style={{ padding: '11px 16px', textAlign: 'center', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Status</th>
                   <th style={{ padding: '11px 16px', textAlign: 'center', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Actions</th>
                 </tr>

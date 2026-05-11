@@ -4,6 +4,21 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, X, Loader2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+// Static config — no closures, no refs — defined once at module level
+const TOOLBAR_CONFIG: { icon: LucideIcon; title: string; type: 'wrap' | 'line'; token: string; after?: string }[] = [
+  { icon: Bold,         title: 'Bold',          type: 'wrap', token: '**' },
+  { icon: Italic,       title: 'Italic',         type: 'wrap', token: '*' },
+  { icon: Heading2,     title: 'Heading 2',      type: 'line', token: '## ' },
+  { icon: Heading3,     title: 'Heading 3',      type: 'line', token: '### ' },
+  { icon: LinkIcon,     title: 'Link',           type: 'wrap', token: '[', after: '](url)' },
+  { icon: Image,        title: 'Image',          type: 'line', token: '![alt](image-url)\n' },
+  { icon: Quote,        title: 'Blockquote',     type: 'line', token: '> ' },
+  { icon: List,         title: 'Bullet List',    type: 'line', token: '- ' },
+  { icon: ListOrdered,  title: 'Numbered List',  type: 'line', token: '1. ' },
+  { icon: Code,         title: 'Code',           type: 'wrap', token: '`' },
+];
 
 interface DbAuthor { id: string; name: string; }
 interface DbCategory { id: string; name: string; }
@@ -88,18 +103,14 @@ export default function NewArticlePage() {
     setBody(newBody);
   };
 
-  const TOOLBAR = [
-    { icon: Bold, action: () => wrapSelection('**'), title: 'Bold' },
-    { icon: Italic, action: () => wrapSelection('*'), title: 'Italic' },
-    { icon: Heading2, action: () => insertAtLine('## '), title: 'Heading 2' },
-    { icon: Heading3, action: () => insertAtLine('### '), title: 'Heading 3' },
-    { icon: LinkIcon, action: () => wrapSelection('[', '](url)'), title: 'Link' },
-    { icon: Image, action: () => insertAtLine('![alt](image-url)\n'), title: 'Image' },
-    { icon: Quote, action: () => insertAtLine('> '), title: 'Blockquote' },
-    { icon: List, action: () => insertAtLine('- '), title: 'Bullet List' },
-    { icon: ListOrdered, action: () => insertAtLine('1. '), title: 'Numbered List' },
-    { icon: Code, action: () => wrapSelection('`'), title: 'Code' },
-  ];
+  // Build toolbar actions from static config — keeps TOOLBAR_CONFIG ref-free
+  const TOOLBAR = TOOLBAR_CONFIG.map((t) => ({
+    icon: t.icon,
+    title: t.title,
+    action: t.type === 'wrap'
+      ? () => wrapSelection(t.token, t.after ?? t.token)
+      : () => insertAtLine(t.token),
+  }));
 
   const addTag = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && tagInput.trim()) {
