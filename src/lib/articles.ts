@@ -120,7 +120,7 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
         .select(
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
-          'categories(id, name, slug, accent_color, light_color), ' +
+          'categories(id, name, slug), ' +
           'authors(id, name, slug, avatar, role, bio, twitter, linkedin)'
         )
         .eq('slug', slug)
