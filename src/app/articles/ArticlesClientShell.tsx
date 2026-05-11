@@ -7,19 +7,7 @@ import { motion } from 'framer-motion';
 import { Clock, ArrowRight, Search } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
-export interface PublicArticle {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string | null;
-  cover_image: string | null;
-  category_id: string | null;
-  tags: string[] | null;
-  read_time_minutes: number | null;
-  published_at: string | null;
-  categories: { id: string; name: string; slug: string; accent_color?: string; light_color?: string } | null;
-  authors: { id: string; name: string; slug: string } | null;
-}
+import type { PublicArticle } from '@/lib/articles';
 
 interface Props {
   articles: PublicArticle[];
