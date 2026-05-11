@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { categories as staticCategories } from '@/data/categories';
 
 export async function GET() {
   try {
-    if (!supabaseAdmin) return NextResponse.json(staticCategories);
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'DB not configured', categories: [], degraded: true }, { status: 503 });
+    }
     const { data, error } = await supabaseAdmin
       .from('categories').select('*').order('name', { ascending: true });
-    if (error || !data?.length) return NextResponse.json(staticCategories);
-    return NextResponse.json(data);
-  } catch { return NextResponse.json(staticCategories); }
+    if (error) {
+      console.error('[Admin categories GET]', error.message);
+      return NextResponse.json({ error: error.message, categories: [], degraded: true }, { status: 500 });
+    }
+    // Return DB categories (may be empty if not yet seeded — caller should show seed prompt)
+    return NextResponse.json(data ?? []);
+  } catch (err) {
+    console.error('[Admin categories GET] Unexpected:', err);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(req: NextRequest) {

@@ -46,15 +46,25 @@ export default function NewArticlePage() {
 
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
+  const [noCategoriesInDb, setNoCategoriesInDb] = useState(false);
+  const [noAuthorsInDb, setNoAuthorsInDb] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/authors')
       .then(r => r.ok ? r.json() : [])
-      .then(data => setDbAuthors(Array.isArray(data) ? data : []))
+      .then(data => {
+        const arr = Array.isArray(data) ? data : [];
+        setDbAuthors(arr);
+        if (arr.length === 0) setNoAuthorsInDb(true);
+      })
       .catch(() => {});
     fetch('/api/admin/categories')
       .then(r => r.ok ? r.json() : [])
-      .then(data => setDbCategories(Array.isArray(data) ? data : []))
+      .then(data => {
+        const arr = Array.isArray(data) ? data : [];
+        setDbCategories(arr);
+        if (arr.length === 0) setNoCategoriesInDb(true);
+      })
       .catch(() => {});
   }, []);
 
@@ -199,21 +209,35 @@ export default function NewArticlePage() {
           </div>
 
           {/* Category */}
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 18 }}>
+          <div style={{ background: 'var(--color-surface)', border: `1px solid ${noCategoriesInDb ? '#D97706' : 'var(--color-border)'}`, borderRadius: 10, padding: 18 }}>
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
-              <option value="">Select category…</option>
-              {dbCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            {noCategoriesInDb ? (
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#D97706', margin: 0, lineHeight: 1.5 }}>
+                ⚠ No categories in DB yet.<br />
+                <a href="/admin/categories" style={{ color: '#D97706', fontWeight: 600 }}>Add categories first →</a>
+              </p>
+            ) : (
+              <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
+                <option value="">Select category…</option>
+                {dbCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            )}
           </div>
 
           {/* Author */}
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 18 }}>
+          <div style={{ background: 'var(--color-surface)', border: `1px solid ${noAuthorsInDb ? '#D97706' : 'var(--color-border)'}`, borderRadius: 10, padding: 18 }}>
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Author</label>
-            <select value={author} onChange={(e) => setAuthor(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
-              <option value="">Select author…</option>
-              {dbAuthors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
+            {noAuthorsInDb ? (
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#D97706', margin: 0, lineHeight: 1.5 }}>
+                ⚠ No authors in DB yet.<br />
+                <a href="/admin/authors" style={{ color: '#D97706', fontWeight: 600 }}>Add authors first →</a>
+              </p>
+            ) : (
+              <select value={author} onChange={(e) => setAuthor(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
+                <option value="">Select author…</option>
+                {dbAuthors.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            )}
           </div>
 
           {/* Tags */}
