@@ -110,6 +110,21 @@ export default function RootLayout({
           data-domain={ENV.PLAUSIBLE_DOMAIN}
           src="https://plausible.io/js/script.js"
         />
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-64VNWTB5ME"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-64VNWTB5ME');
+            `,
+          }}
+        />
       </head>
       <body className={`${fontVars} min-h-screen flex flex-col`} suppressHydrationWarning>
         <a href="#main-content" className="skip-to-content">
