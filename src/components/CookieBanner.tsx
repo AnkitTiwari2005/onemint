@@ -4,21 +4,52 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
+/** Injects the AdSense script into <head> once. Safe to call multiple times. */
+function loadAdSense(personalized: boolean) {
+  if (document.getElementById('adsense-script')) return; // already loaded
+
+  // Signal to Google whether to serve personalized or non-personalized ads
+  // Non-personalized: contextual ads based on page content — still earns revenue
+  const npaScript = document.createElement('script');
+  npaScript.id = 'adsense-npa-config';
+  npaScript.innerHTML = personalized
+    ? '' // personalized — no restriction needed
+    : `window.googletag = window.googletag || { cmd: [] };
+       window.__adsbygoogle_npa = true;`; // non-personalized mode
+  if (!personalized) document.head.appendChild(npaScript);
+
+  const script = document.createElement('script');
+  script.id = 'adsense-script';
+  script.async = true;
+  script.crossOrigin = 'anonymous';
+  script.src =
+    'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9948709371742259' +
+    (personalized ? '' : '&npa=1'); // npa=1 = non-personalized ads
+  document.head.appendChild(script);
+}
+
 export function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie_consent');
-    if (!consent) setVisible(true);
+    if (!consent) {
+      setVisible(true);
+    } else {
+      // Already decided — load AdSense immediately with correct mode
+      loadAdSense(consent === 'accepted');
+    }
   }, []);
 
   const accept = () => {
     localStorage.setItem('cookie_consent', 'accepted');
+    loadAdSense(true); // personalized ads
     setVisible(false);
   };
 
   const decline = () => {
     localStorage.setItem('cookie_consent', 'declined');
+    loadAdSense(false); // non-personalized ads — still earns revenue
     setVisible(false);
   };
 
