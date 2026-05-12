@@ -92,9 +92,7 @@ export default function RootLayout({
       <head>
         {/* Sync theme init — MUST be before body to prevent FOUC */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link rel="icon" href="/favicon.ico" />
-        {/* SVG favicon for modern browsers */}
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/icon.png" />
         {/* PWA theme colors */}
         <meta name="theme-color" content="#F8F7F4" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
