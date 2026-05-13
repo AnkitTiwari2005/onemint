@@ -110,6 +110,12 @@ export default function RootLayout({
           data-domain={ENV.PLAUSIBLE_DOMAIN}
           src="https://plausible.io/js/script.js"
         />
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9948709371742259"
+          crossOrigin="anonymous"
+        />
         {/* Google Analytics */}
         <script
           async
