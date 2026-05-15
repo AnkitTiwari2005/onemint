@@ -35,9 +35,13 @@ export const ENV = {
   // Admin session cookie name
   ADMIN_SESSION_COOKIE: 'onemint_admin_session',
 
-  // Plausible
-  PLAUSIBLE_DOMAIN: process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || '',
-  PLAUSIBLE_API_KEY: process.env.PLAUSIBLE_API_KEY || '',
+  // Google Analytics 4 (server-side Data API)
+  GA4_PROPERTY_ID: process.env.GA4_PROPERTY_ID || '537336599',
+  GA4_CLIENT_ID: process.env.GA4_CLIENT_ID || '',
+  GA4_CLIENT_SECRET: process.env.GA4_CLIENT_SECRET || '',
+  GA4_REFRESH_TOKEN: process.env.GA4_REFRESH_TOKEN || '',
+  // Public measurement ID for the gtag snippet in layout.tsx
+  GA4_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || 'G-64VNWTB5ME',
 
   // Giscus — from env vars, not hardcoded
   GISCUS_REPO: process.env.NEXT_PUBLIC_GISCUS_REPO || 'AnkitTiwari2005/onemint',

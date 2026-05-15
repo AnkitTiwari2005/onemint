@@ -55,6 +55,8 @@ export async function middleware(req: NextRequest) {
   // Always allow: login page and auth endpoints
   if (pathname === '/admin/login') return NextResponse.next();
   if (pathname.startsWith('/api/admin/auth')) return NextResponse.next();
+  // Allow GA4 OAuth flow — must redirect to Google before a session exists
+  if (pathname.startsWith('/api/admin/analytics/oauth')) return NextResponse.next();
 
   // Protect: /admin/* UI pages AND /api/admin/* API routes
   const isAdminUI  = pathname.startsWith('/admin');
@@ -71,8 +73,7 @@ export async function middleware(req: NextRequest) {
     if (isAdminAPI) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = '/admin/login';
+    const loginUrl = new URL('/admin/login', req.nextUrl.origin);
     return NextResponse.redirect(loginUrl);
   }
 

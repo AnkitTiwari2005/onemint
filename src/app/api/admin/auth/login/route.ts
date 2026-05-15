@@ -56,7 +56,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password required' }, { status: 400 });
     }
 
-    const hash = ENV.ADMIN_PASSWORD_HASH;
+    // Read directly from process.env so the value is always fresh (not cached in the ENV object)
+    const hash = process.env.ADMIN_PASSWORD_HASH || '';
     if (!hash) {
       console.warn('[AdminAuth] ADMIN_PASSWORD_HASH not set');
       return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FileText, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, Loader2, BarChart2 } from 'lucide-react';
 import { formatIndianNumber } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { getCachedAnalytics } from '@/lib/analyticsCache';
 
 interface Stats {
   totalArticles: number;
@@ -58,6 +60,8 @@ export default function AdminDashboard() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
+  const [weeklyChart, setWeeklyChart] = useState<{ day: string; views: number; unique: number }[]>([]);
+  const [chartLoading, setChartLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/admin/stats')
@@ -81,6 +85,22 @@ export default function AdminDashboard() {
       .then((d) => { if (Array.isArray(d)) setRecentArticles(d.slice(0, 5)); })
       .catch(() => {})
       .finally(() => setArticlesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    // Read from shared cache first — avoids a duplicate fetch if analytics page already loaded
+    const cached = getCachedAnalytics();
+    if (cached) {
+      setWeeklyChart(cached.weeklyChart ?? []);
+      setChartLoading(false);
+      return;
+    }
+    // No cache yet — fetch just the weekly slice
+    fetch('/api/admin/analytics')
+      .then(r => r.json())
+      .then(d => { if (d.weeklyChart?.length) setWeeklyChart(d.weeklyChart); })
+      .catch(() => {})
+      .finally(() => setChartLoading(false));
   }, []);
 
   return (
@@ -212,14 +232,32 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink)', margin: '0 0 4px' }}>Page Views — Last 7 Days</h2>
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>Connect Plausible Analytics for live data</p>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>Powered by Google Analytics 4</p>
           </div>
           <Link href="/admin/analytics" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>
             <BarChart2 size={14} /> Open Analytics
           </Link>
         </div>
-        <div style={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-surface-alt)', borderRadius: 8, border: '1px dashed var(--color-border)' }}>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>Add <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, background: 'var(--color-border)', padding: '1px 6px', borderRadius: 4 }}>PLAUSIBLE_API_KEY</code> + <code style={{ fontFamily: 'var(--font-mono)', fontSize: 12, background: 'var(--color-border)', padding: '1px 6px', borderRadius: 4 }}>PLAUSIBLE_DOMAIN</code> to see live charts</p>
+        <div style={{ height: 140 }}>
+          {chartLoading ? (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
+              <Loader2 size={14} className="animate-spin" /> Loading chart…
+            </div>
+          ) : weeklyChart.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={weeklyChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'var(--color-ink-tertiary)' }} />
+                <YAxis tick={{ fontSize: 10, fill: 'var(--color-ink-tertiary)' }} />
+                <Tooltip />
+                <Bar dataKey="views" name="Views" fill="var(--color-accent)" radius={[4,4,0,0]} />
+                <Bar dataKey="unique" name="Unique" fill="#2563EB55" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>GA4 connected — open <strong>Analytics</strong> above to view live charts</p>
+            </div>
+          )}
         </div>
       </div>
 

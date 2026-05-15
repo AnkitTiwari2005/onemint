@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { ENV } from '@/lib/env';
+import {
+  getAggregate7d, getTimeseries7d, getTimeseries6mo,
+  getTopPages, getTrafficSources, getDeviceSplit,
+  isGA4Configured, extractMetric, extractDimension,
+} from '@/lib/ga4';
 
 export interface AnalyticsStats {
   pageViews: number;
@@ -9,203 +13,162 @@ export interface AnalyticsStats {
   bounceRate: number;
   topArticles: { title: string; views: number; trend: 'up' | 'down' }[];
   trafficSources: { source: string; pct: number }[];
+  deviceSplit: { device: string; sessions: number; pct: number }[];
   weeklyChart: { day: string; views: number; unique: number }[];
   monthlyChart: { month: string; views: number }[];
   totalSubscribers: number;
   totalArticles: number;
+  fromGA4: boolean;
   fromPlausible: boolean;
 }
 
-// ── Plausible helpers ────────────────────────────────────────────────────────
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-async function plausibleFetch(path: string) {
-  if (!ENV.PLAUSIBLE_API_KEY || !ENV.PLAUSIBLE_DOMAIN) return null;
-  try {
-    const res = await fetch(`https://plausible.io/api/v1${path}`, {
-      headers: { Authorization: `Bearer ${ENV.PLAUSIBLE_API_KEY}` },
-      signal: AbortSignal.timeout(8000),
-      next: { revalidate: 900 }, // 15-min cache
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-// Plausible v2 aggregate endpoint
-async function getAggregate(period: string) {
-  const params = new URLSearchParams({
-    site_id: ENV.PLAUSIBLE_DOMAIN,
-    period,
-    metrics: 'pageviews,visitors,bounce_rate,visit_duration',
-  });
-  return plausibleFetch(`/stats/aggregate?${params}`);
-}
-
-// Plausible timeseries (weekly or monthly)
-async function getTimeseries(period: string, interval: 'day' | 'month') {
-  const params = new URLSearchParams({
-    site_id: ENV.PLAUSIBLE_DOMAIN,
-    period,
-    interval,
-    metrics: 'pageviews,visitors',
-  });
-  return plausibleFetch(`/stats/timeseries?${params}`);
-}
-
-// Top pages
-async function getTopPages() {
-  const params = new URLSearchParams({
-    site_id: ENV.PLAUSIBLE_DOMAIN,
-    period: '7d',
-    property: 'event:page',
-    metrics: 'pageviews',
-    limit: '5',
-    filters: 'event:page==/articles/**',
-  });
-  return plausibleFetch(`/stats/breakdown?${params}`);
-}
-
-// Traffic sources
-async function getTrafficSources() {
-  const params = new URLSearchParams({
-    site_id: ENV.PLAUSIBLE_DOMAIN,
-    period: '7d',
-    property: 'visit:source',
-    metrics: 'visitors',
-    limit: '5',
-  });
-  return plausibleFetch(`/stats/breakdown?${params}`);
-}
-
-// ── Supabase helpers ─────────────────────────────────────────────────────────
-
+// ── Supabase helpers ──────────────────────────────────────────────────────────
 async function getSupabaseCounts() {
   if (!supabaseAdmin) return { subscribers: 0, articles: 0 };
   const [subResult, artResult] = await Promise.all([
     supabaseAdmin.from('newsletter_subscribers').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     supabaseAdmin.from('articles').select('id', { count: 'exact', head: true }).eq('status', 'published'),
   ]);
-  return {
-    subscribers: subResult.count ?? 0,
-    articles: artResult.count ?? 0,
-  };
+  return { subscribers: subResult.count ?? 0, articles: artResult.count ?? 0 };
 }
 
-// ── Fallback static data (used when Plausible key not set) ───────────────────
+async function getSupabaseTopArticles() {
+  if (!supabaseAdmin) return [];
+  const { data } = await supabaseAdmin
+    .from('articles').select('title, view_count').eq('status', 'published')
+    .order('view_count', { ascending: false, nullsFirst: false }).limit(5);
+  return (data ?? []).map((a, i) => ({
+    title: a.title as string,
+    views: (a.view_count as number) ?? 0,
+    trend: (i % 2 === 0 ? 'up' : 'down') as 'up' | 'down',
+  }));
+}
 
-const STATIC_WEEKLY = [
-  { day: 'Mon', views: 3200, unique: 2100 }, { day: 'Tue', views: 4100, unique: 2800 },
-  { day: 'Wed', views: 3800, unique: 2500 }, { day: 'Thu', views: 5200, unique: 3400 },
-  { day: 'Fri', views: 4700, unique: 3100 }, { day: 'Sat', views: 3100, unique: 2000 },
-  { day: 'Sun', views: 2600, unique: 1700 },
-];
-const STATIC_MONTHLY = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  .map(month => ({ month, views: Math.round(80000 + Math.random() * 40000) }));
-
-// ── Route ────────────────────────────────────────────────────────────────────
-
+// ── Route ─────────────────────────────────────────────────────────────────────
 export async function GET() {
   try {
-    // Always fetch Supabase counts (free, fast)
     const { subscribers, articles } = await getSupabaseCounts();
 
-    // Try Plausible
-    const [aggregate, weekly, monthly, topPages, sources] = await Promise.all([
-      getAggregate('7d'),
-      getTimeseries('7d', 'day'),
-      getTimeseries('6mo', 'month'),
-      getTopPages(),
-      getTrafficSources(),
-    ]);
-
-    const fromPlausible = !!aggregate;
-
-    if (!fromPlausible) {
-      // Pull top articles from Supabase as fallback for "Top Articles" panel
-      const topRows = supabaseAdmin ? (await supabaseAdmin
-        .from('articles')
-        .select('title, view_count')
-        .eq('status', 'published')
-        .order('view_count', { ascending: false, nullsFirst: false })
-        .limit(5)).data : [];
-
-      const topArticles = (topRows ?? []).map((a, i) => ({
-        title: a.title as string,
-        views: (a.view_count as number) ?? 0,
-        trend: (i % 2 === 0 ? 'up' : 'down') as 'up' | 'down',
-      }));
-
+    // GA4 credentials not set — return zeroed stats with Supabase data only
+    if (!isGA4Configured()) {
       return NextResponse.json({
-        pageViews: 0,
-        uniqueVisitors: 0,
-        avgSessionSec: 0,
-        bounceRate: 0,
-        topArticles,
-        trafficSources: [],
-        weeklyChart: [],
-        monthlyChart: [],
-        totalSubscribers: subscribers,
-        totalArticles: articles,
-        fromPlausible: false,
-        unavailable: true,
-      } satisfies AnalyticsStats & { unavailable: boolean });
+        pageViews: 0, uniqueVisitors: 0, avgSessionSec: 0, bounceRate: 0,
+        topArticles: await getSupabaseTopArticles(),
+        trafficSources: [], deviceSplit: [],
+        weeklyChart: [], monthlyChart: [],
+        totalSubscribers: subscribers, totalArticles: articles,
+        fromGA4: false, fromPlausible: false,
+      } satisfies AnalyticsStats);
     }
 
-    // ── Map Plausible data ───────────────────────────────────────────────────
-    const agg = aggregate.results ?? aggregate;
-    const pageViews = agg.pageviews?.value ?? agg.pageviews ?? 0;
-    const uniqueVisitors = agg.visitors?.value ?? agg.visitors ?? 0;
-    const bounceRate = Math.round(agg.bounce_rate?.value ?? agg.bounce_rate ?? 0);
-    const avgSessionSec = Math.round(agg.visit_duration?.value ?? agg.visit_duration ?? 0);
+    // Fetch GA4 reports sequentially — avoids concurrent-request 429 quota
+    const aggregate = await getAggregate7d();
+    const weekly    = await getTimeseries7d();
+    const monthly   = await getTimeseries6mo();
+    const topPages  = await getTopPages();
+    const sources   = await getTrafficSources();
+    const devices   = await getDeviceSplit();
 
-    // Weekly chart — Plausible returns [{date, pageviews, visitors}]
-    const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const weeklyChart = (weekly?.results ?? []).map((d: { date: string; pageviews: number; visitors: number }) => ({
-      day: DAYS[new Date(d.date).getDay()],
-      views: d.pageviews ?? 0,
-      unique: d.visitors ?? 0,
-    }));
+    // If the aggregate (core metrics) failed, GA4 is unreachable
+    if (!aggregate) {
+      return NextResponse.json({
+        pageViews: 0, uniqueVisitors: 0, avgSessionSec: 0, bounceRate: 0,
+        topArticles: await getSupabaseTopArticles(),
+        trafficSources: [], deviceSplit: [],
+        weeklyChart: [], monthlyChart: [],
+        totalSubscribers: subscribers, totalArticles: articles,
+        fromGA4: false, fromPlausible: false,
+      } satisfies AnalyticsStats);
+    }
+
+    // Map aggregate metrics
+    const pageViews      = Math.round(extractMetric(aggregate, 0));
+    const uniqueVisitors = Math.round(extractMetric(aggregate, 1));
+    const bounceRate     = Math.round(extractMetric(aggregate, 2) * 100);
+    const avgSessionSec  = Math.round(extractMetric(aggregate, 3));
+
+    // Weekly chart
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const weeklyChart = (weekly?.rows ?? []).map((row: any) => {
+      const dateStr = extractDimension(row, 0); // YYYYMMDD
+      const d = new Date(`${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`);
+      return {
+        day:    DAYS[d.getDay()],
+        views:  Math.round(parseFloat(row.metricValues?.[0]?.value ?? '0')),
+        unique: Math.round(parseFloat(row.metricValues?.[1]?.value ?? '0')),
+      };
+    });
 
     // Monthly chart
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const monthlyChart = (monthly?.results ?? []).map((d: { date: string; pageviews: number }) => ({
-      month: MONTHS[new Date(d.date).getMonth()],
-      views: d.pageviews ?? 0,
-    }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const monthlyChart = (monthly?.rows ?? []).map((row: any) => {
+      const ym = extractDimension(row, 0); // YYYYMM
+      return {
+        month: MONTHS[parseInt(ym.slice(4, 6), 10) - 1] ?? ym,
+        views: Math.round(parseFloat(row.metricValues?.[0]?.value ?? '0')),
+      };
+    });
 
-    // Top articles — extract slug from path → use as title for now
-    const topResults = (topPages?.results ?? []) as { page: string; pageviews: number }[];
-    const topArticles = topResults.map((r, i) => ({
-      title: r.page.replace('/articles/', '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-      views: r.pageviews ?? 0,
-      trend: (i % 2 === 0 ? 'up' : 'down') as 'up' | 'down',
-    }));
+    // Top articles — prefer GA4, fall back to Supabase view counts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ga4TopArticles = (topPages?.rows ?? []).map((row: any, i: number) => {
+      const path  = extractDimension(row, 0);
+      const title = path.replace('/articles/', '').replace(/-/g, ' ')
+        .replace(/\b\w/g, (c: string) => c.toUpperCase());
+      return {
+        title,
+        views: Math.round(parseFloat(row.metricValues?.[0]?.value ?? '0')),
+        trend: (i % 2 === 0 ? 'up' : 'down') as 'up' | 'down',
+      };
+    });
+    const topArticles = ga4TopArticles.length ? ga4TopArticles : await getSupabaseTopArticles();
 
     // Traffic sources
-    const sourceResults = (sources?.results ?? []) as { source: string; visitors: number }[];
-    const totalSourceVisitors = sourceResults.reduce((s, r) => s + r.visitors, 0) || 1;
-    const trafficSources = sourceResults.map(r => ({
-      source: r.source || 'Direct',
-      pct: Math.round((r.visitors / totalSourceVisitors) * 100),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sourceRows = (sources?.rows ?? []) as any[];
+    const totalSessions = sourceRows.reduce(
+      (s: number, r: { metricValues?: { value?: string }[] }) =>
+        s + parseFloat(r.metricValues?.[0]?.value ?? '0'), 0
+    ) || 1;
+    const trafficSources = sourceRows.map(r => ({
+      source: extractDimension(r, 0) || 'Direct',
+      pct:    Math.round((parseFloat(r.metricValues?.[0]?.value ?? '0') / totalSessions) * 100),
     }));
 
+    // Device split
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const deviceRows = (devices?.rows ?? []) as any[];
+    const totalDeviceSessions = deviceRows.reduce(
+      (s: number, r: { metricValues?: { value?: string }[] }) =>
+        s + parseFloat(r.metricValues?.[0]?.value ?? '0'), 0
+    ) || 1;
+    const deviceSplit = deviceRows.map(r => {
+      const raw      = extractDimension(r, 0) || 'unknown';
+      const sessions = Math.round(parseFloat(r.metricValues?.[0]?.value ?? '0'));
+      return {
+        device:   raw.charAt(0).toUpperCase() + raw.slice(1),
+        sessions,
+        pct: Math.round((sessions / totalDeviceSessions) * 100),
+      };
+    });
+
     return NextResponse.json({
-      pageViews,
-      uniqueVisitors,
-      avgSessionSec,
-      bounceRate,
-      topArticles: topArticles.length ? topArticles : [],
-      trafficSources: trafficSources.length ? trafficSources : [],
-      weeklyChart: weeklyChart.length ? weeklyChart : STATIC_WEEKLY,
-      monthlyChart: monthlyChart.length ? monthlyChart : STATIC_MONTHLY,
+      pageViews, uniqueVisitors, avgSessionSec, bounceRate,
+      topArticles,
+      trafficSources,
+      deviceSplit,
+      weeklyChart,
+      monthlyChart,
       totalSubscribers: subscribers,
       totalArticles: articles,
-      fromPlausible: true,
+      fromGA4: true,
+      fromPlausible: false,
     } satisfies AnalyticsStats);
-  } catch (err) {
-    console.error('[Analytics API] Unexpected error:', err);
+
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
