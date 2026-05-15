@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { articles as staticArticles } from '@/data/articles';
 import { getAuthorById } from '@/data/authors';
-import { fetchPublishedArticleBySlug } from '@/lib/articles';
+import { fetchPublishedArticleBySlug, fetchPublishedArticles } from '@/lib/articles';
 import { formatDate } from '@/lib/utils';
 import { ShareBar } from '@/components/ShareBar';
 import { ArticleFeedback } from '@/components/ArticleFeedback';
@@ -92,12 +92,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const category = article!.categories;
   const author = article!.authors;
 
-  // Related articles from same category (static)
-  const staticMatch = staticArticles.find((a) => a.slug === slug);
-  const staticCatId = staticMatch?.categoryId ?? article!.category_id;
-  const related = staticArticles
-    .filter((a) => a.categoryId === staticCatId && a.slug !== slug)
-    .slice(0, 3);
+  const { articles: allArticles } = await fetchPublishedArticles();
 
   const hasDbContent = source === 'db' && !!(article!.content?.trim());
 
@@ -312,8 +307,13 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="p-4"><GiscusComments /></div>
           </div>
 
-          {/* Related Articles */}
-          {staticMatch && <RelatedArticles currentArticle={staticMatch} />}
+          {/* Related Articles — reads from live Supabase articles */}
+          <RelatedArticles
+            currentSlug={article!.slug}
+            currentCategoryId={article!.categories?.slug ?? article!.category_id}
+            currentTags={article!.tags ?? []}
+            allArticles={allArticles}
+          />
         </footer>
       </article>
     </div>

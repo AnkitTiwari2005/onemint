@@ -1,35 +1,70 @@
-'use client';
-
 import Link from 'next/link';
-import { series } from '@/data/series';
-import { articles } from '@/data/articles';
+import { series as staticSeries } from '@/data/series';
 import { categories } from '@/data/categories';
 import { Clock, BookOpen, ArrowRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { supabaseAdmin } from '@/lib/supabase';
+import SeriesProgressClient from '@/components/SeriesProgressClient';
 
-function getProgress(seriesId: string, articleSlugs: string[]): number {
-  if (typeof window === 'undefined') return 0;
-  try {
-    const key = `series_progress_${seriesId}`;
-    const stored = localStorage.getItem(key);
-    if (!stored) return 0;
-    const completed: string[] = JSON.parse(stored);
-    return completed.filter((s) => articleSlugs.includes(s)).length;
-  } catch {
-    return 0;
-  }
+export const metadata = {
+  title: 'Article Series — OneMint',
+  description: 'Deep-dive multi-part guides on finance, tax, health and career. Read them in order for the full picture.',
+};
+
+export const dynamic = 'force-dynamic';
+
+interface Series {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  categoryId: string;
+  coverImage: string;
+  articleSlugs: string[];
+  totalReadTime: number;
+  status: string;
 }
 
-export default function SeriesHubPage() {
-  const [progress, setProgress] = useState<Record<string, number>>({});
+async function fetchSeries(): Promise<Series[]> {
+  try {
+    if (supabaseAdmin) {
+      const { data } = await supabaseAdmin
+        .from('series')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
 
-  useEffect(() => {
-    const p: Record<string, number> = {};
-    series.forEach((s) => {
-      p[s.id] = getProgress(s.id, s.articleSlugs);
-    });
-    setProgress(p);
-  }, []);
+      if (data && data.length > 0) {
+        return data.map((s: Record<string, unknown>) => ({
+          id: String(s.id ?? s.slug ?? ''),
+          name: String(s.name ?? ''),
+          slug: String(s.slug ?? ''),
+          description: String(s.description ?? ''),
+          categoryId: String(s.category_id ?? s.categoryId ?? ''),
+          coverImage: String(s.cover_image ?? s.coverImage ?? ''),
+          articleSlugs: (s.article_slugs ?? s.articleSlugs ?? []) as string[],
+          totalReadTime: Number(s.total_read_time ?? s.totalReadTime ?? 0),
+          status: String(s.status ?? 'published'),
+        }));
+      }
+    }
+  } catch { /* fallback */ }
+
+  // Fallback to static series
+  return staticSeries.map(s => ({
+    id: s.id,
+    name: s.name,
+    slug: s.slug,
+    description: s.description,
+    categoryId: s.categoryId,
+    coverImage: s.coverImage,
+    articleSlugs: s.articleSlugs,
+    totalReadTime: s.totalReadTime,
+    status: 'published',
+  }));
+}
+
+export default async function SeriesHubPage() {
+  const allSeries = await fetchSeries();
 
   return (
     <div className="pt-16 lg:pt-[72px]">
@@ -37,13 +72,7 @@ export default function SeriesHubPage() {
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div
-            style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: 'var(--color-accent)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <BookOpen size={20} color="white" />
           </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>
@@ -55,100 +84,20 @@ export default function SeriesHubPage() {
         </p>
       </div>
 
-      {/* Series Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 28 }}>
-        {series.map((s) => {
-          const cat = categories.find((c) => c.id === s.categoryId);
-          const done = progress[s.id] || 0;
-          const total = s.articleSlugs.length;
-          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-          const hasStarted = done > 0;
-          const nextSlug = s.articleSlugs[done] ?? s.articleSlugs[0];
-
-          return (
-            <div
-              key={s.id}
-              style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 14,
-                overflow: 'hidden',
-                transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-              }}
-            >
-              {/* Cover Image */}
-              <div style={{ position: 'relative', height: 180, overflow: 'hidden' }}>
-                <img src={s.coverImage} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)' }} />
-                {cat && (
-                  <span
-                    style={{
-                      position: 'absolute', top: 12, left: 12,
-                      background: cat.accentColor, color: 'white',
-                      padding: '3px 10px', borderRadius: 10,
-                      fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600,
-                    }}
-                  >
-                    {cat.name}
-                  </span>
-                )}
-              </div>
-
-              {/* Content */}
-              <div style={{ padding: '20px' }}>
-                <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8, lineHeight: 1.3 }}>
-                  {s.name}
-                </h2>
-                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
-                  {s.description.slice(0, 120)}…
-                </p>
-
-                {/* Stats row */}
-                <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
-                    <BookOpen size={12} /> {total} articles
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
-                    <Clock size={12} /> {s.totalReadTime} min total
-                  </span>
-                </div>
-
-                {/* Progress bar */}
-                {hasStarted && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)' }}>Your progress</span>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--color-accent)' }}>{done}/{total} read</span>
-                    </div>
-                    <div style={{ height: 4, background: 'var(--color-border)', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: 'var(--color-accent)', borderRadius: 2, transition: 'width 0.5s ease' }} />
-                    </div>
-                  </div>
-                )}
-
-                {/* CTA */}
-                <Link
-                  href={`/series/${s.slug}`}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    background: hasStarted ? 'var(--color-accent)' : 'var(--color-surface-alt)',
-                    color: hasStarted ? 'white' : 'var(--color-ink)',
-                    border: `1px solid ${hasStarted ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                    borderRadius: 8,
-                    fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600,
-                    textDecoration: 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {hasStarted ? 'Continue reading' : 'Start reading'}
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {allSeries.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 15 }}>
+          No series published yet. Check back soon!
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 28 }}>
+          {allSeries.map((s) => {
+            const cat = categories.find((c) => c.id === s.categoryId || c.slug === s.categoryId);
+            return (
+              <SeriesProgressClient key={s.id} series={s} cat={cat ?? null} />
+            );
+          })}
+        </div>
+      )}
     </div>
     </div>
   );

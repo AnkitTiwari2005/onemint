@@ -22,7 +22,7 @@ export default function AdminNewsletterPage() {
     fetch('/api/admin/newsletter')
       .then(r => r.json())
       .then(d => { if (Array.isArray(d)) setSubscribers(d); })
-      .catch(console.error)
+      .catch(() => setToastMsg('Failed to load subscribers'))
       .finally(() => setLoading(false));
   }, []);
 

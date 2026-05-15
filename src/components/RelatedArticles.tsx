@@ -2,24 +2,30 @@
 
 import { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { articles, type Article } from '@/data/articles';
+import type { PublicArticle } from '@/lib/articles';
 import { ArticleCard } from '@/components/ArticleCard';
+import { toArticle } from '@/lib/articles';
 import { easeOut } from '@/lib/motion';
 
 interface RelatedArticlesProps {
-  currentArticle: Article;
+  currentSlug: string;
+  currentCategoryId: string | null;
+  currentTags: string[];
+  allArticles: PublicArticle[];
 }
 
-export function RelatedArticles({ currentArticle }: RelatedArticlesProps) {
+export function RelatedArticles({ currentSlug, currentCategoryId, currentTags, allArticles }: RelatedArticlesProps) {
   const prefersReduced = useReducedMotion();
 
   const related = useMemo(() => {
-    const scored = articles
-      .filter(a => a.id !== currentArticle.id)
+    const scored = allArticles
+      .filter(a => a.slug !== currentSlug)
       .map(a => {
         let weight = 0;
-        if (a.categoryId === currentArticle.categoryId) weight += 3;
-        const sharedTags = a.tags.filter(t => currentArticle.tags.includes(t));
+        const aCatId = a.categories?.slug ?? a.category_id;
+        if (aCatId && aCatId === currentCategoryId) weight += 3;
+        const aTags = a.tags ?? [];
+        const sharedTags = aTags.filter(t => currentTags.includes(t));
         if (sharedTags.length >= 2) weight += 2;
         else if (sharedTags.length === 1) weight += 1;
         return { article: a, weight };
@@ -27,11 +33,11 @@ export function RelatedArticles({ currentArticle }: RelatedArticlesProps) {
       .filter(s => s.weight > 0)
       .sort((a, b) => {
         if (b.weight !== a.weight) return b.weight - a.weight;
-        return new Date(b.article.publishedAt).getTime() - new Date(a.article.publishedAt).getTime();
+        return (b.article.published_at ?? '').localeCompare(a.article.published_at ?? '');
       });
 
-    return scored.slice(0, 3).map(s => s.article);
-  }, [currentArticle]);
+    return scored.slice(0, 3).map((s, i) => toArticle(s.article, i));
+  }, [currentSlug, currentCategoryId, currentTags, allArticles]);
 
   if (related.length === 0) return null;
 

@@ -37,6 +37,7 @@ export default function AdminArticlesPage() {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,14 +76,19 @@ export default function AdminArticlesPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    setDeleteError('');
     try {
-      await fetch(`/api/admin/articles/${deleteTarget}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/articles/${deleteTarget}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
       await load();
-    } catch {
-      // show toast in real app
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       setDeleting(false);
-      setDeleteTarget(null);
     }
   };
 
@@ -155,9 +161,15 @@ export default function AdminArticlesPage() {
                         <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', margin: 0, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</p>
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        {(cat || a.categories) && (
-                          <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: cat?.lightColor || '#F3F4F6', color: cat?.accentColor || '#374151', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600 }}>{cat?.name || a.categories?.name}</span>
-                        )}
+                        {(a.categories?.name || a.category_id) && (() => {
+                          const cat = categories.find(c => c.id === a.category_id || c.slug === a.category_id);
+                          const name = a.categories?.name || cat?.name || a.category_id || '';
+                          const bg = cat?.lightColor || '#F3F4F6';
+                          const color = cat?.accentColor || '#374151';
+                          return name ? (
+                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: bg, color, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600 }}>{name}</span>
+                          ) : null;
+                        })()}
                       </td>
                       <td style={{ padding: '12px 16px', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap' }}>{dateStr}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -194,9 +206,12 @@ export default function AdminArticlesPage() {
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 28, maxWidth: 380, width: '90%', textAlign: 'center' }}>
             <Trash2 size={32} color="#DC2626" style={{ marginBottom: 12 }} />
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, color: 'var(--color-ink)', marginBottom: 8 }}>Delete Article?</h3>
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 20 }}>This action cannot be undone. The article will be permanently removed from Supabase.</p>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 12 }}>This action cannot be undone. The article will be permanently removed from Supabase.</p>
+            {deleteError && (
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '8px 12px', borderRadius: 8, marginBottom: 16 }}>⚠ {deleteError}</p>
+            )}
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setDeleteTarget(null); setDeleteError(''); }} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleDelete} disabled={deleting} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {deleting ? <Loader2 size={14} className="animate-spin" /> : null} Delete
               </button>

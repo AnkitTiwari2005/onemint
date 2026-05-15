@@ -4,13 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Pencil, Trash2, Save, X, ExternalLink, BookOpen } from 'lucide-react';
 
-const DEFAULT_SERIES: Series[] = [
-  { id: 'mutual-funds-101', name: 'Mutual Funds 101', slug: 'mutual-funds-101', description: 'A 6-part beginner guide to understanding and investing in mutual funds in India.', categoryId: 'investing', coverImage: '/series/mutual-funds.jpg', articleSlugs: [], totalReadTime: 42, status: 'published' },
-  { id: 'tax-planning-guide', name: 'Complete Tax Planning Guide', slug: 'tax-planning-guide', description: 'Master income tax, deductions, and smart filing strategies for salaried professionals.', categoryId: 'tax', coverImage: '/series/tax-guide.jpg', articleSlugs: [], totalReadTime: 58, status: 'published' },
-  { id: 'retire-early', name: 'How to Retire Early in India', slug: 'retire-early', description: 'A practical roadmap to financial independence using Indian investment instruments.', categoryId: 'finance', coverImage: '/series/retire-early.jpg', articleSlugs: [], totalReadTime: 35, status: 'draft' },
-  { id: 'health-insurance-decoded', name: 'Health Insurance Decoded', slug: 'health-insurance-decoded', description: 'Everything you need to know about buying and claiming health insurance in India.', categoryId: 'insurance', coverImage: '/series/health-insurance.jpg', articleSlugs: [], totalReadTime: 28, status: 'published' },
-];
-
 interface Series {
   id: string;
   name: string;
@@ -34,10 +27,9 @@ export default function AdminSeriesPage() {
 
   useEffect(() => {
     fetch('/api/admin/series')
-      .then(r => r.ok ? r.json() : null)
+      .then(r => r.ok ? r.json() : [])
       .then(data => {
-        if (!Array.isArray(data) || data.length === 0) { setSeries(DEFAULT_SERIES); return; }
-        // Normalize snake_case from Supabase to camelCase
+        if (!Array.isArray(data)) { setSeries([]); return; }
         const normalized: Series[] = data.map((s: Record<string, unknown>) => ({
           id: String(s.id ?? s.slug ?? ''),
           name: String(s.name ?? ''),
@@ -51,7 +43,7 @@ export default function AdminSeriesPage() {
         }));
         setSeries(normalized);
       })
-      .catch(() => setSeries(DEFAULT_SERIES))
+      .catch(() => setSeries([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -84,10 +76,15 @@ export default function AdminSeriesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this series?')) return;
-    setSeries(prev => prev.filter(s => s.id !== id));
+    const prev = series;
+    setSeries(p => p.filter(s => s.id !== id));
     try {
-      await fetch('/api/admin/series', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
-    } catch { /* optimistic update already applied */ }
+      const res = await fetch('/api/admin/series', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      if (!res.ok) throw new Error('Delete failed');
+    } catch {
+      setSeries(prev); // rollback
+      alert('Delete failed — please try again.');
+    }
   };
 
   const startNew = () => {

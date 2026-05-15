@@ -20,44 +20,74 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Category | null>(null);
   const [isNew, setIsNew] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
+  const [toastErr, setToastErr] = useState(false);
 
-  useEffect(() => {
+  const showToast = (msg: string, err = false) => {
+    setToast(msg); setToastErr(err);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const loadCategories = () => {
+    setLoading(true);
     fetch('/api/admin/categories')
       .then(r => r.json())
       .then(data => setCategories(Array.isArray(data) && data.length > 0 ? data : (staticCategories as Category[])))
       .catch(() => setCategories(staticCategories as Category[]))
       .finally(() => setLoading(false));
-  }, []);
-
-  const persist = (cats: Category[]) => {
-    setCategories(cats);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
   };
 
+  useEffect(() => { loadCategories(); }, []);
 
   const startNew = () => {
     setEditing({ id: '', name: '', slug: '', accentColor: '#1B6B3A', description: '', articleCount: 0 });
     setIsNew(true);
   };
 
-  const handleSave = () => {
-    if (!editing) return;
-    if (isNew) {
-      const newCat = { ...editing, id: editing.name.toLowerCase().replace(/\s+/g, '-') };
-      persist([...categories, newCat]);
-    } else {
-      persist(categories.map(c => c.id === editing.id ? editing : c));
+  const handleSave = async () => {
+    if (!editing || !editing.name.trim()) return;
+    setSaving(true);
+    try {
+      const method = isNew ? 'POST' : 'PUT';
+      const payload = isNew
+        ? { name: editing.name, slug: editing.slug || editing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), accentColor: editing.accentColor, description: editing.description }
+        : { id: editing.id, name: editing.name, slug: editing.slug, accentColor: editing.accentColor, description: editing.description };
+      const res = await fetch('/api/admin/categories', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Save failed');
+      showToast(isNew ? '✓ Category created' : '✓ Category updated');
+      setEditing(null);
+      setIsNew(false);
+      loadCategories();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Save failed', true);
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
-    setIsNew(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm('Delete this category?')) return;
-    persist(categories.filter(c => c.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this category? Articles in this category will be unaffected.')) return;
+    try {
+      const res = await fetch('/api/admin/categories', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Delete failed'); }
+      showToast('✓ Category deleted');
+      loadCategories();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Delete failed', true);
+    }
   };
+
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' as const };
 
   return (
     <div>
@@ -69,7 +99,6 @@ export default function AdminCategoriesPage() {
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>
           Manage Categories
         </h1>
-        {saved && <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-cat-finance)', fontFamily: 'var(--font-ui)', fontWeight: 600 }}>✓ Saved</span>}
       </div>
 
       {/* Edit form */}
@@ -79,27 +108,20 @@ export default function AdminCategoriesPage() {
             {isNew ? 'New Category' : `Edit: ${editing.name}`}
           </h2>
           <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-            {[
-              { label: 'Name', key: 'name' },
-              { label: 'Slug', key: 'slug' },
-            ].map(({ label, key }) => (
+            {([['name', 'Name'], ['slug', 'Slug']] as const).map(([key, label]) => (
               <div key={key}>
                 <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>{label}</label>
                 <input
-                  value={(editing as unknown as Record<string, string>)[key]}
+                  value={editing[key] || ''}
                   onChange={e => setEditing(prev => prev ? { ...prev, [key]: e.target.value } : null)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
+                  style={inputStyle}
                 />
               </div>
             ))}
           </div>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Description</label>
-            <input
-              value={editing.description}
-              onChange={e => setEditing(prev => prev ? { ...prev, description: e.target.value } : null)}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
-            />
+            <input value={editing.description} onChange={e => setEditing(prev => prev ? { ...prev, description: e.target.value } : null)} style={inputStyle} />
           </div>
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Accent Color</label>
@@ -108,9 +130,9 @@ export default function AdminCategoriesPage() {
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-ink-secondary)' }}>{editing.accentColor}</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 20px', borderRadius: 8, background: 'var(--color-accent)', color: 'white', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600 }}>
-              <Save size={14} /> Save
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button onClick={handleSave} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 20px', borderRadius: 8, background: 'var(--color-accent)', color: 'white', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600 }}>
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
             </button>
             <button onClick={() => { setEditing(null); setIsNew(false); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', border: '1px solid var(--color-border)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
               <X size={14} /> Cancel
@@ -132,6 +154,10 @@ export default function AdminCategoriesPage() {
           <div style={{ padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
             <Loader2 size={16} className="animate-spin" /> Loading categories…
           </div>
+        ) : categories.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
+            No categories yet. Create your first one!
+          </div>
         ) : (
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
         <table style={{ width: '100%', minWidth: 580, borderCollapse: 'collapse' }}>
@@ -151,7 +177,7 @@ export default function AdminCategoriesPage() {
                 <td style={{ padding: '12px 14px', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{cat.name}</td>
                 <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{cat.slug}</td>
                 <td style={{ padding: '12px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.description}</td>
-                <td style={{ padding: '12px 14px', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-secondary)', textAlign: 'center' }}>{cat.articleCount}</td>
+                <td style={{ padding: '12px 14px', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-secondary)', textAlign: 'center' }}>{cat.articleCount ?? '—'}</td>
                 <td style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => { setEditing(cat); setIsNew(false); }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
@@ -165,6 +191,13 @@ export default function AdminCategoriesPage() {
         </div>
         )}
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: toastErr ? '#DC2626' : '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

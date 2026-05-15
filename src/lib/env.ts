@@ -36,7 +36,8 @@ export const ENV = {
   ADMIN_SESSION_COOKIE: 'onemint_admin_session',
 
   // Google Analytics 4 (server-side Data API)
-  GA4_PROPERTY_ID: process.env.GA4_PROPERTY_ID || '537336599',
+  // GA4_PROPERTY_ID must be set — no hardcoded fallback to prevent silent misconfiguration
+  GA4_PROPERTY_ID: process.env.GA4_PROPERTY_ID || '',
   GA4_CLIENT_ID: process.env.GA4_CLIENT_ID || '',
   GA4_CLIENT_SECRET: process.env.GA4_CLIENT_SECRET || '',
   GA4_REFRESH_TOKEN: process.env.GA4_REFRESH_TOKEN || '',
