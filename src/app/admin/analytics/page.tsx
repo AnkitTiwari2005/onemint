@@ -21,6 +21,13 @@ function fmtSec(sec: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+/** Format elapsed seconds into a human-readable age string */
+function formatAge(sec: number): string {
+  if (sec < 60)  return `${sec}s ago`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  return `${Math.floor(sec / 3600)}h ago`;
+}
+
 const DEVICE_COLORS: Record<string, string> = {
   Mobile:   '#16A34A',
   Desktop:  '#2563EB',
@@ -145,7 +152,6 @@ export default function AdminAnalyticsPage() {
   const load = async (force = false) => {
     if (force) clearAnalyticsCache();
 
-    // Use cache if available (and not a forced refresh)
     const cached = getCachedAnalytics();
     if (cached) {
       setData(cached);
@@ -170,7 +176,17 @@ export default function AdminAnalyticsPage() {
     }
   };
 
+  // Initial load
   useEffect(() => { load(); }, []);
+
+  // Live-tick the cache age every second
+  useEffect(() => {
+    const id = setInterval(() => {
+      const age = getCacheAge();
+      if (age !== null) setCacheAge(age);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
@@ -207,16 +223,48 @@ export default function AdminAnalyticsPage() {
     <div>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>
             Analytics Overview
           </h1>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, margin: 0,
-              color: fromGA4 ? '#16A34A' : 'var(--color-ink-tertiary)' }}>
-            {fromGA4
-              ? `✅ Live data · Google Analytics 4 · Property 537336599${cacheAge ? ` · cached ${cacheAge}s ago` : ''}`
-              : '⚠️ GA4 not connected — add GA4_REFRESH_TOKEN to env vars'}
-          </p>
+          {/* Status indicator pill */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '3px 10px 3px 7px',
+            borderRadius: 999,
+            border: `1px solid ${fromGA4 ? '#16A34A33' : '#D9770633'}`,
+            background: fromGA4 ? '#16A34A0D' : '#D977060D',
+          }}>
+            {/* Pulsing dot */}
+            <span style={{ position: 'relative', width: 7, height: 7, display: 'flex' }}>
+              <span style={{
+                position: 'absolute', inset: 0, borderRadius: '50%',
+                background: fromGA4 ? '#16A34A' : '#D97706',
+                opacity: 0.4,
+                animation: 'ga4-ping 1.8s ease-in-out infinite',
+              }} />
+              <span style={{
+                position: 'relative', width: 7, height: 7, borderRadius: '50%',
+                background: fromGA4 ? '#16A34A' : '#D97706',
+              }} />
+            </span>
+            <span style={{
+              fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 500,
+              color: fromGA4 ? '#16A34A' : '#D97706',
+              letterSpacing: '0.02em',
+            }}>
+              {fromGA4 ? 'Live' : 'Disconnected'}
+            </span>
+            {cacheAge !== null && cacheAge > 0 ? (
+              <>
+                <span style={{ color: 'var(--color-border)', fontSize: 10 }}>·</span>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)' }}>
+                  {formatAge(cacheAge)}
+                </span>
+              </>
+            ) : null}
+          </div>
+
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
@@ -344,6 +392,10 @@ export default function AdminAnalyticsPage() {
       </div>
 
       <style>{`
+        @keyframes ga4-ping {
+          0%, 100% { transform: scale(1); opacity: 0.4; }
+          50% { transform: scale(2.2); opacity: 0; }
+        }
         @media(max-width:768px){
           [style*="repeat(auto-fill, minmax(170px, 1fr))"]{grid-template-columns:1fr 1fr!important;}
           [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important;}
