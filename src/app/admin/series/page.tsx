@@ -61,17 +61,23 @@ export default function AdminSeriesPage() {
       if (isNew) {
         const res = await fetch('/api/admin/series', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         const created = await res.json();
-        if (res.ok) setSeries(prev => [...prev, { ...editing, id: created.id ?? created.slug ?? editing.name.toLowerCase().replace(/\s+/g, '-') }]);
+        if (!res.ok) throw new Error(created.error || `HTTP ${res.status}`);
+        setSeries(prev => [...prev, { ...editing, id: created.id ?? created.slug ?? editing.name.toLowerCase().replace(/\s+/g, '-') }]);
       } else {
         const res = await fetch('/api/admin/series', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing.id, ...payload }) });
-        if (res.ok) setSeries(prev => prev.map(s => s.id === editing.id ? editing : s));
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `HTTP ${res.status}`); }
+        setSeries(prev => prev.map(s => s.id === editing.id ? editing : s));
       }
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch { /* state already updated optimistically */ }
-    finally { setSaving(false); }
-    setEditing(null);
-    setIsNew(false);
+      // Only close form on confirmed success
+      setEditing(null);
+      setIsNew(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Save failed — please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {

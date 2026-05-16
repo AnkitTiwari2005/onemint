@@ -37,7 +37,9 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }>
 };
 
 export default function SuggestPage() {
-  const [suggestions, setSuggestions] = useState<Suggestion[]>(SEED_SUGGESTIONS);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
+  const [usingSeedData, setUsingSeedData] = useState(false);
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [newTopic, setNewTopic] = useState('');
   const [newCategory, setNewCategory] = useState('');
@@ -51,18 +53,36 @@ export default function SuggestPage() {
     } catch { /* ignore */ }
   }, []);
 
-  // Fetch real data from Supabase, merge with seed
+  // Fetch real data from Supabase; use seed suggestions as fallback only when DB is empty
   useEffect(() => {
-    if (!supabase) return;
-    supabase
-      .from('topic_suggestions')
-      .select('*')
-      .order('votes', { ascending: false })
-      .then(({ data }) => {
+    if (!supabase) {
+      // No DB connection — show seed data with a label
+      setSuggestions(SEED_SUGGESTIONS);
+      setUsingSeedData(true);
+      setSuggestionsLoaded(true);
+      return;
+    }
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('topic_suggestions')
+          .select('*')
+          .order('votes', { ascending: false });
         if (data && data.length > 0) {
           setSuggestions(data as Suggestion[]);
+          setUsingSeedData(false);
+        } else {
+          // DB is empty — show seed examples, clearly labeled
+          setSuggestions(SEED_SUGGESTIONS);
+          setUsingSeedData(true);
         }
-      });
+      } catch {
+        setSuggestions(SEED_SUGGESTIONS);
+        setUsingSeedData(true);
+      } finally {
+        setSuggestionsLoaded(true);
+      }
+    })();
   }, []);
 
   const handleVote = useCallback(async (id: string) => {
@@ -167,11 +187,28 @@ export default function SuggestPage() {
               <TrendingUp size={18} className="text-[var(--color-accent)]" />
               Trending Topics
             </h2>
-            <span className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{suggestions.length} suggestions</span>
+            <span className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{suggestionsLoaded ? `${suggestions.length} suggestions` : 'Loading…'}</span>
           </div>
 
+          {/* Loading skeleton */}
+          {!suggestionsLoaded && (
+            <div className="flex flex-col gap-3">
+              {[1,2,3].map(i => (
+                <div key={i} style={{ height: 72, borderRadius: 12, background: 'var(--color-surface-alt)', animation: 'skeletonPulse 1.6s ease-in-out infinite', animationDelay: `${i * 0.1}s` }} />
+              ))}
+            </div>
+          )}
+
+          {/* Seed data notice */}
+          {suggestionsLoaded && usingSeedData && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', marginBottom: 16, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
+              <Lightbulb size={14} />
+              <span>These are <strong>example topics</strong> — be the first to suggest a real one!</span>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3">
-            {suggestions.map((s, i) => {
+            {suggestionsLoaded && suggestions.map((s, i) => {
               const voted = votedIds.has(s.id);
               const statusConfig = STATUS_COLORS[s.status];
               return (

@@ -40,10 +40,15 @@ async function getSupabaseTopArticles() {
   const { data } = await supabaseAdmin
     .from('articles').select('title, view_count').eq('status', 'published')
     .order('view_count', { ascending: false, nullsFirst: false }).limit(5);
-  return (data ?? []).map((a, i) => ({
+  const rows = data ?? [];
+  const median = rows.length > 0
+    ? (rows[Math.floor(rows.length / 2)]?.view_count ?? 0)
+    : 0;
+  return rows.map((a) => ({
     title: a.title as string,
     views: (a.view_count as number) ?? 0,
-    trend: (i % 2 === 0 ? 'up' : 'down') as 'up' | 'down',
+    // 'up' if this article has above-median views; 'down' otherwise
+    trend: ((a.view_count ?? 0) >= median ? 'up' : 'down') as 'up' | 'down',
   }));
 }
 
@@ -64,13 +69,21 @@ export async function GET() {
       } satisfies AnalyticsStats);
     }
 
-    // Fetch GA4 reports sequentially — avoids concurrent-request 429 quota
-    const aggregate = await getAggregate7d();
-    const weekly    = await getTimeseries7d();
-    const monthly   = await getTimeseries6mo();
-    const topPages  = await getTopPages();
-    const sources   = await getTrafficSources();
-    const devices   = await getDeviceSplit();
+    // Fetch GA4 reports in parallel — each call fails independently; reduces latency
+    const [
+      aggregateResult, weeklyResult, monthlyResult,
+      topPagesResult, sourcesResult, devicesResult,
+    ] = await Promise.allSettled([
+      getAggregate7d(), getTimeseries7d(), getTimeseries6mo(),
+      getTopPages(), getTrafficSources(), getDeviceSplit(),
+    ]);
+
+    const aggregate = aggregateResult.status === 'fulfilled' ? aggregateResult.value : null;
+    const weekly    = weeklyResult.status    === 'fulfilled' ? weeklyResult.value    : null;
+    const monthly   = monthlyResult.status   === 'fulfilled' ? monthlyResult.value   : null;
+    const topPages  = topPagesResult.status  === 'fulfilled' ? topPagesResult.value  : null;
+    const sources   = sourcesResult.status   === 'fulfilled' ? sourcesResult.value   : null;
+    const devices   = devicesResult.status   === 'fulfilled' ? devicesResult.value   : null;
 
     // If the aggregate (core metrics) failed, GA4 is unreachable
     if (!aggregate) {
@@ -114,14 +127,19 @@ export async function GET() {
 
     // Top articles — prefer GA4, fall back to Supabase view counts
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ga4TopArticles = (topPages?.rows ?? []).map((row: any, i: number) => {
+    const ga4TopRows = (topPages?.rows ?? []) as any[];
+    const ga4ViewCounts = ga4TopRows.map(r => Math.round(parseFloat(r.metricValues?.[0]?.value ?? '0')));
+    const ga4Median = ga4ViewCounts.length > 0 ? ga4ViewCounts[Math.floor(ga4ViewCounts.length / 2)] : 0;
+    const ga4TopArticles = ga4TopRows.map((row: any, i: number) => {
       const path  = extractDimension(row, 0);
       const title = path.replace('/articles/', '').replace(/-/g, ' ')
         .replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const views = ga4ViewCounts[i];
       return {
         title,
-        views: Math.round(parseFloat(row.metricValues?.[0]?.value ?? '0')),
-        trend: (i % 2 === 0 ? 'up' : 'down') as 'up' | 'down',
+        views,
+        // 'up' if this article has above-median views within the top list
+        trend: (views >= ga4Median ? 'up' : 'down') as 'up' | 'down',
       };
     });
     const topArticles = ga4TopArticles.length ? ga4TopArticles : await getSupabaseTopArticles();

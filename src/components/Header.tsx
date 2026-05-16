@@ -80,7 +80,13 @@ export function Header({ onSearchOpen }: HeaderProps) {
   const toggleDark = () => {
     const next = dark ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
+    // Must match the key that layout.tsx theme init script reads: 'onemint-prefs' -> JSON {theme}
+    try {
+      const existing = JSON.parse(localStorage.getItem('onemint-prefs') || '{}');
+      localStorage.setItem('onemint-prefs', JSON.stringify({ ...existing, theme: next }));
+    } catch {
+      localStorage.setItem('onemint-prefs', JSON.stringify({ theme: next }));
+    }
     setDark(!dark);
   };
 

@@ -43,7 +43,8 @@ function normaliseApiArticle(a: ApiArticle, index: number): Article {
     slug: a.slug,
     deck: a.excerpt ?? '',
     excerpt: a.excerpt ?? '',
-    categoryId: a.categories?.id ?? a.category_id ?? '',
+    // Use category SLUG so getCategoryById() resolves static metadata (colors, name, icon)
+    categoryId: a.categories?.slug ?? a.category_id ?? '',
     authorId: a.authors?.id ?? '',
     tags: a.tags ?? [],
     featuredImage: a.cover_image ?? 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=450&fit=crop',
@@ -333,7 +334,8 @@ export default function HomePage() {
 
       {/* ── Category Rows ──────────────────────────────────────────────── */}
       {staticCategories.slice(0, 6).map((category) => {
-        const catArticles = liveArticles.filter((a) => a.categoryId === category.id).slice(0, 4);
+        // Match by slug (DB articles) or by id (static articles)
+        const catArticles = liveArticles.filter((a) => a.categoryId === category.slug || a.categoryId === category.id).slice(0, 4);
         if (catArticles.length === 0) return null;
         return (
           <AnimatedSection key={category.id} delay={0} className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
@@ -432,7 +434,8 @@ export default function HomePage() {
 
       {/* ── Remaining category rows ─────────────────────────────────────── */}
       {staticCategories.slice(6).map((category) => {
-        const catArticles = liveArticles.filter((a) => a.categoryId === category.id).slice(0, 3);
+        // Match by slug (DB articles) or by id (static articles)
+        const catArticles = liveArticles.filter((a) => a.categoryId === category.slug || a.categoryId === category.id).slice(0, 3);
         if (catArticles.length === 0) return null;
         return (
           <AnimatedSection key={category.id} className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">

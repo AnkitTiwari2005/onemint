@@ -96,6 +96,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   const hasDbContent = source === 'db' && !!(article!.content?.trim());
 
+  // Find matching static article for fallback author bio (used when DB has no author)
+  const staticMatch = staticArticles.find((a) => a.slug === slug);
+
   // Parse TOC from actual markdown content (DB) or use static fallback headings
   const tocItems = hasDbContent
     ? extractToc(article!.content!)
@@ -241,7 +244,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               {(article!.tags ?? []).map((tag) => (
                 <Link
                   key={tag}
-                  href={`/search?q=${encodeURIComponent(tag)}`}
+                  href={`/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`}
                   className="px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-[var(--color-surface-alt)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-accent)] hover:text-white transition-colors font-[family-name:var(--font-ui)]"
                 >
                   #{tag}

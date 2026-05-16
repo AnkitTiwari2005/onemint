@@ -29,9 +29,12 @@ async function fetchTopicData(): Promise<Record<string, TopicData>> {
 
       if (data && data.length > 0) {
         for (const cat of categories) {
-          const catArticles = data.filter((a: { categories?: { slug?: string } | null; category_id?: string | null }) =>
-            (a.categories as { slug?: string } | null)?.slug === cat.slug || a.category_id === cat.id
-          );
+          const catArticles = (data as unknown as Array<{ title: string; slug: string; category_id?: string | null; categories?: Array<{ slug?: string }> | { slug?: string } | null }>).filter((a) => {
+            const catSlug = Array.isArray(a.categories)
+              ? (a.categories[0] as { slug?: string } | undefined)?.slug
+              : (a.categories as { slug?: string } | null)?.slug;
+            return catSlug === cat.slug || a.category_id === cat.id;
+          });
           result[cat.id] = {
             count: catArticles.length,
             topArticles: catArticles.slice(0, 3).map((a: { title: string; slug: string }) => ({ title: a.title, slug: a.slug })),

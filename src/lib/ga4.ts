@@ -5,7 +5,7 @@
  * Docs: https://developers.google.com/analytics/devguides/reporting/data/v1
  */
 
-const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID || '537336599';
+const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID ?? '';
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const GA4_API_BASE = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}`;
 

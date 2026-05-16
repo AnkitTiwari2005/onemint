@@ -133,7 +133,8 @@ export const categories: Category[] = [
 ];
 
 export function getCategoryById(id: string): Category | undefined {
-  return categories.find((c) => c.id === id);
+  // Match by id first; fall back to slug so DB articles (which store slug in categoryId) resolve correctly
+  return categories.find((c) => c.id === id) ?? categories.find((c) => c.slug === id);
 }
 
 export function getCategoryBySlug(slug: string): Category | undefined {
