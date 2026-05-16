@@ -51,22 +51,15 @@ const NAV = [
   },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+// ── Sidebar — defined at module level to avoid "cannot create component during render" ──
+interface SidebarProps {
+  pathname: string;
+  onClose: () => void;
+  onLogout: () => void;
+}
 
-  // Middleware handles server-side auth protection.
-  // Login page renders without sidebar.
-  if (pathname === '/admin/login') return <>{children}</>;
-
-  const logout = async () => {
-    await fetch('/api/admin/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
-    router.refresh();
-  };
-
-  const Sidebar = () => (
+function Sidebar({ pathname, onClose, onLogout }: SidebarProps) {
+  return (
     <div style={{ width: 240, background: '#0F1117', color: 'white', height: '100vh', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, overflowY: 'auto' }}>
       {/* Logo */}
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -94,7 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={onClose}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '9px 20px',
@@ -120,13 +113,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'white' }}>A</div>
             <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Admin</span>
           </div>
-          <button onClick={logout} title="Logout" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', padding: 4, borderRadius: 4, transition: 'color 0.15s ease' }}>
+          <button onClick={onLogout} title="Logout" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', padding: 4, borderRadius: 4, transition: 'color 0.15s ease' }}>
             <LogOut size={16} />
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Middleware handles server-side auth protection.
+  // Login page renders without sidebar.
+  if (pathname === '/admin/login') return <>{children}</>;
+
+  const logout = async () => {
+    await fetch('/api/admin/auth/logout', { method: 'POST' });
+    router.push('/admin/login');
+    router.refresh();
+  };
 
   return (
     <div
@@ -140,7 +149,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     >
       {/* Desktop sidebar */}
       <div className="admin-sidebar-desktop">
-        <Sidebar />
+        <Sidebar pathname={pathname} onClose={() => setSidebarOpen(false)} onLogout={logout} />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -148,7 +157,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex' }}>
           <div onClick={() => setSidebarOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
           <div style={{ position: 'relative', zIndex: 10001 }}>
-            <Sidebar />
+            <Sidebar pathname={pathname} onClose={() => setSidebarOpen(false)} onLogout={logout} />
           </div>
         </div>
       )}

@@ -1,37 +1,67 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Lora, Source_Serif_4, DM_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ClientLayout } from "@/components/ClientLayout";
 
-const playfair = Playfair_Display({
+// ── Self-hosted fonts (downloaded from Google Fonts, same woff2 files) ────────
+// Build-time network-independent — no Google CDN fetch during `next build`.
+const playfair = localFont({
   variable: "--font-playfair",
-  subsets: ["latin"],
   display: "swap",
+  src: [
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-500.woff2", weight: "500", style: "normal" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-600.woff2", weight: "600", style: "normal" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-700.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-italic-400.woff2", weight: "400", style: "italic" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-italic-600.woff2", weight: "600", style: "italic" },
+  ],
 });
 
-const lora = Lora({
+const lora = localFont({
   variable: "--font-lora",
-  subsets: ["latin"],
   display: "swap",
+  src: [
+    { path: "../../public/fonts/lora/lora-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/lora/lora-latin-normal-500.woff2", weight: "500", style: "normal" },
+    { path: "../../public/fonts/lora/lora-latin-normal-600.woff2", weight: "600", style: "normal" },
+    { path: "../../public/fonts/lora/lora-latin-normal-700.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/lora/lora-latin-italic-400.woff2", weight: "400", style: "italic" },
+    { path: "../../public/fonts/lora/lora-latin-italic-600.woff2", weight: "600", style: "italic" },
+  ],
 });
 
-const sourceSerif = Source_Serif_4({
+const sourceSerif = localFont({
   variable: "--font-source-serif",
-  subsets: ["latin"],
   display: "swap",
-  axes: ["opsz"],
+  src: [
+    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-600.woff2", weight: "600", style: "normal" },
+    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-700.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-italic-400.woff2", weight: "400", style: "italic" },
+  ],
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
   variable: "--font-dm-sans",
-  subsets: ["latin"],
   display: "swap",
+  src: [
+    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-500.woff2", weight: "500", style: "normal" },
+    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-600.woff2", weight: "600", style: "normal" },
+    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-700.woff2", weight: "700", style: "normal" },
+  ],
 });
 
-const jetbrains = JetBrains_Mono({
+const jetbrains = localFont({
   variable: "--font-jetbrains",
-  subsets: ["latin"],
   display: "swap",
+  src: [
+    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-400.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-500.woff2", weight: "500", style: "normal" },
+    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-700.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-italic-400.woff2", weight: "400", style: "italic" },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -113,9 +143,10 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="OneMint" />
         {/* Google Analytics 4 — page-view tracking */}
+        {/* ID driven by NEXT_PUBLIC_GA4_MEASUREMENT_ID env var */}
         <script
           async
-          src="https://www.googletagmanager.com/gtag/js?id=G-64VNWTB5ME"
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? 'G-64VNWTB5ME'}`}
         />
         <script
           dangerouslySetInnerHTML={{
@@ -123,7 +154,7 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-64VNWTB5ME', { send_page_view: true });
+              gtag('config', '${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? 'G-64VNWTB5ME'}', { send_page_view: true });
             `,
           }}
         />

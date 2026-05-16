@@ -54,10 +54,11 @@ export async function GET(req: NextRequest) {
       const json = await tokenRes.json();
 
       if (json.refresh_token) {
-        // Redirect to setup page with token as query param (one-time display)
-        const setupUrl = new URL('/admin/analytics/setup', req.url);
-        setupUrl.searchParams.set('refresh_token', json.refresh_token);
-        return NextResponse.redirect(setupUrl.toString());
+        // Redirect to analytics page with token as query param (one-time display)
+        // The analytics page reads this param and shows a copyable setup banner.
+        const analyticsUrl = new URL('/admin/analytics', req.url);
+        analyticsUrl.searchParams.set('refresh_token', json.refresh_token);
+        return NextResponse.redirect(analyticsUrl.toString());
       }
 
       return NextResponse.json(
