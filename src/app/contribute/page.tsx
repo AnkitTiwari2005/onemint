@@ -51,7 +51,7 @@ export default function ContributePage() {
           Write for OneMint
         </h1>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 18, color: 'var(--color-ink-secondary)', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
-          Share your expertise with 5,00,000+ Indian readers who trust OneMint for unbiased, actionable guidance.
+          Share your expertise with Indian readers who trust OneMint for unbiased, actionable guidance.
         </p>
       </div>
 
@@ -81,8 +81,8 @@ export default function ContributePage() {
         <ul style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', lineHeight: 2, paddingLeft: 20, margin: 0 }}>
           <li>Dedicated author profile page on OneMint with photo and bio</li>
           <li>Byline on every article you write, with link to your website or LinkedIn</li>
-          <li>Distribution to 5,00,000+ monthly readers and newsletter subscribers</li>
-          <li>Social media promotion across our Twitter, LinkedIn, and Instagram channels</li>
+          <li>Distribution to OneMint&apos;s growing audience across web and newsletter</li>
+          <li>Social media promotion of your articles across our active channels</li>
           <li>Permanent archive link — your work remains indexed and searchable forever</li>
         </ul>
       </div>

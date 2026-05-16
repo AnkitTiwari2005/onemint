@@ -26,8 +26,8 @@ export default function AdvertisePage() {
         {/* Stats — 3 col desktop, 1 col mobile */}
         <div className="adv-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 48 }}>
           {[
-            { value: '5,00,000+', label: 'Monthly Readers', sub: 'Across web and newsletter' },
-            { value: '12', label: 'Content Categories', sub: 'Finance to health to tech' },
+            { value: '12+', label: 'Content Categories', sub: 'Finance to health to tech' },
+            { value: '25+', label: 'Financial Tools', sub: 'Free calculators for every need' },
             { value: '4.2 min', label: 'Avg Session', sub: 'High-intent, engaged audience' },
           ].map((s) => (
             <div key={s.label} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
@@ -43,7 +43,7 @@ export default function AdvertisePage() {
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Advertising Formats</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[
-              { title: 'Newsletter Sponsorship', desc: 'Your brand featured in our weekly digest, read by 5 lakh subscribers. Includes logo, headline, 2-line copy, and CTA. High visibility, guaranteed opens.', tag: 'Most Popular' },
+              { title: 'Newsletter Sponsorship', desc: 'Your brand featured in our weekly digest reaching active subscribers. Includes logo, headline, 2-line copy, and CTA. High visibility, guaranteed opens.', tag: 'Most Popular' },
               { title: 'Native Content', desc: 'Sponsor an editorial-style article written by our team on a topic relevant to your product. Clearly labelled as sponsored. Permanent archive link.', tag: 'High Trust' },
               { title: 'Display Advertising', desc: 'Banner and sidebar placements on high-traffic article pages and calculators. CPM pricing, category targeting available.', tag: 'Self-serve' },
               { title: 'Calculator Co-branding', desc: 'Your brand associated with one of our 20+ financial calculators (e.g. "Home Loan Calculator, presented by [Bank]"). Persistent attribution.', tag: 'Premium' },
@@ -66,10 +66,10 @@ export default function AdvertisePage() {
             Reach out with your brief and we&apos;ll respond with a custom media kit within 2 business days.
           </p>
           <a
-            href="mailto:advertise@onemint.com"
+            href="mailto:advertise@onemint.in"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 10, background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, textDecoration: 'none', wordBreak: 'break-all' }}
           >
-            advertise@onemint.com →
+            advertise@onemint.in →
           </a>
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', marginTop: 16, lineHeight: 1.5 }}>
             We respond within 2 business days. Please include your campaign objective, target audience, and estimated budget.

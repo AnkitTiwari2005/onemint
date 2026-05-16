@@ -98,7 +98,7 @@ export default function ContactPage() {
           {/* Reason cards */}
           {[
             { icon: AlertCircle, color: '#EF4444', title: 'Content Correction', desc: 'Found a factual error? We take accuracy seriously and will fix it within 24 hours.' },
-            { icon: Megaphone, color: 'var(--color-accent)', title: 'Advertising', desc: 'Reach 5 lakh engaged Indian readers across 12 topics. See our media kit.' },
+            { icon: Megaphone, color: 'var(--color-accent)', title: 'Advertising', desc: 'Reach engaged Indian readers across 12 topics. Enquire about our media kit and sponsorship formats.' },
             { icon: Handshake, color: '#7C3AED', title: 'Collaborate', desc: 'Partnerships, guest posts, press inquiries, and speaking requests welcome.' },
           ].map((r) => (
             <div key={r.title} style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
@@ -117,8 +117,8 @@ export default function ContactPage() {
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>Direct email</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Mail size={15} color="var(--color-accent)" />
-              <a href="mailto:contact@onemint.com" style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'none' }}>
-                contact@onemint.com
+              <a href="mailto:contact@onemint.in" style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'none' }}>
+                contact@onemint.in
               </a>
             </div>
           </div>

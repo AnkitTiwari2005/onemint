@@ -3,35 +3,10 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Press & Media — OneMint',
-  description: 'Press contacts, media kit, and OneMint in the news. For media inquiries email press@onemint.com.',
+  description: 'Press contacts, media kit, and OneMint in the news. For media inquiries email press@onemint.in.',
 };
 
-const PRESS_MENTIONS = [
-  {
-    outlet: 'Economic Times',
-    headline: '\u201cOneMint\u2019s Financial Health Quiz goes viral \u2014 2 lakh completions in a week\u201d',
-    date: 'March 2026',
-    url: '#',
-  },
-  {
-    outlet: 'YourStory',
-    headline: '\u201cHow OneMint is democratising financial literacy for India\u2019s middle class\u201d',
-    date: 'January 2026',
-    url: '#',
-  },
-  {
-    outlet: 'Inc42',
-    headline: '\u201cThe content-first fintech platforms winning India\u2019s trust\u201d',
-    date: 'November 2025',
-    url: '#',
-  },
-  {
-    outlet: 'Mint',
-    headline: '\u201cOneMint crosses 5 lakh monthly readers milestone\u201d',
-    date: 'October 2025',
-    url: '#',
-  },
-];
+
 
 export default function PressPage() {
   return (
@@ -53,10 +28,10 @@ export default function PressPage() {
           OneMint is India&apos;s trusted source for financial literacy, technology explainers, health guidance, and more. For press inquiries, speaking requests, and partnership discussions, please reach us below.
         </p>
         <a
-          href="mailto:press@onemint.com"
+          href="mailto:press@onemint.in"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 8, background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
         >
-          press@onemint.com
+          press@onemint.in
         </a>
       </div>
 
@@ -64,8 +39,8 @@ export default function PressPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-7 mb-12">
         {[
           { label: 'Founded', value: '2010' },
-          { label: 'Monthly Readers', value: '5,00,000+' },
-          { label: 'Articles Published', value: '10,000+' },
+          { label: 'Content Categories', value: '12+' },
+          { label: 'Financial Tools', value: '25+' },
         ].map((f) => (
           <div key={f.label} style={{ textAlign: 'center' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--color-accent)', margin: '0 0 4px' }}>{f.value}</p>
@@ -75,26 +50,15 @@ export default function PressPage() {
       </div>
 
       {/* Press mentions */}
-      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>
-        OneMint in the News
+      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 12 }}>
+        Media Coverage
       </h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 48 }}>
-        {PRESS_MENTIONS.map((m) => (
-          <a
-            key={m.headline}
-            href={m.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: 'block', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '20px 24px', textDecoration: 'none' }}
-            className="hover:border-[var(--color-accent)] transition-colors"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, color: 'var(--color-accent)', background: 'var(--color-surface-alt)', padding: '3px 10px', borderRadius: 10, border: '1px solid var(--color-border)' }}>{m.outlet}</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{m.date}</span>
-            </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink)', margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>{m.headline}</p>
-          </a>
-        ))}
+      <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '28px 32px', marginBottom: 48 }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.7 }}>
+          We&apos;re building our press archive. If you&apos;ve covered OneMint, please email us at{' '}
+          <a href="mailto:press@onemint.in" style={{ color: 'var(--color-accent)' }}>press@onemint.in</a>{' '}
+          and we&apos;ll add your coverage here.
+        </p>
       </div>
 
       {/* Press kit */}

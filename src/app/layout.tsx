@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     template: "%s | OneMint",
   },
   description:
-    "Trusted by 500,000+ readers. Expert articles on personal finance, technology, health, career, and more. Free tools & calculators. Zero spam.",
+    "Expert articles on personal finance, technology, health, career, and more. Free tools & calculators. Zero spam.",
   keywords: [
     "personal finance India", "investing", "SIP calculator", "tax planning",
     "technology news", "health advice", "career tips", "Indian knowledge platform",
@@ -79,13 +79,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://onemint.com",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onemint.in",
     siteName: "OneMint",
     title: "OneMint — India's Most Trusted Knowledge Platform",
     description: "Expert articles on finance, tech, health & more. Free tools. Zero spam.",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://onemint.com"}/og-image.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onemint.in"}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "OneMint — India's Most Trusted Knowledge Platform",
@@ -95,7 +95,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "@onemint",
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://onemint.com"}/og-image.png`],
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onemint.in"}/og-image.png`],
   },
   robots: { index: true, follow: true },
 };

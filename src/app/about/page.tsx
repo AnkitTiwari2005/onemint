@@ -71,10 +71,10 @@ export default async function AboutPage() {
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-[var(--color-border)]">
             {[
-              { num: '500K+', label: 'Monthly readers' },
-              { num: '2,000+', label: 'Expert articles' },
+              { num: '12+', label: 'Topic categories' },
               { num: '25+', label: 'Free tools' },
-              { num: '12', label: 'Topic categories' },
+              { num: '100%', label: 'Free to read' },
+              { num: '0', label: 'Ads disguised as content' },
             ].map((s) => (
               <div key={s.label} className="py-8 text-center">
                 <p className="font-[family-name:var(--font-mono)] text-3xl lg:text-4xl font-bold text-[var(--color-accent)]">{s.num}</p>
