@@ -33,6 +33,7 @@ function SearchPageContent() {
   const [loading, setLoading] = useState(false);
   const [searchDegraded, setSearchDegraded] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [popularTags, setPopularTags] = useState<string[]>(['SIP', 'Tax Planning', 'AI', 'Health Checkup', 'Salary', 'Real Estate']);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -41,6 +42,19 @@ function SearchPageContent() {
       if (stored) setRecentSearches(JSON.parse(stored).slice(0, 5));
     }
   }, []);
+
+  // Fetch popular tags from the database
+  useEffect(() => {
+    fetch('/api/tags')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+          setPopularTags(data.tags.slice(0, 8));
+        }
+      })
+      .catch(() => {}); // keep defaults on error
+  }, []);
+
 
   // Live search via /api/search (Typesense) with 300ms debounce
   useEffect(() => {
@@ -233,7 +247,7 @@ function SearchPageContent() {
                 Popular Tags
               </h3>
               <div className="flex flex-wrap gap-2">
-                {['SIP', 'Tax Planning', 'AI', 'Health Checkup', 'Salary', 'Real Estate'].map(tag => (
+                {popularTags.map(tag => (
                   <button 
                     key={tag}
                     onClick={() => { setQuery(tag); handleSearch({ preventDefault: () => {} } as React.FormEvent); }}

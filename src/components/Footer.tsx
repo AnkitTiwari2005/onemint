@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -46,6 +46,14 @@ const TOOL_LINKS = [
 export function Footer() {
   const [email, setEmail] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
+  const [copyright, setCopyright] = useState(`© ${new Date().getFullYear()} OneMint. All rights reserved. Not SEBI registered. Educational content only.`);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(r => r.json())
+      .then(d => { if (d?.footerCopyright) setCopyright(d.footerCopyright); })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +202,7 @@ export function Footer() {
       <div style={{ borderTop: '1px solid var(--color-border)' }}>
         <div className="max-w-[var(--content-max)] mx-auto px-6 lg:px-8 py-4 flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3">
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0, textAlign: 'center' }}>
-            © {new Date().getFullYear()} OneMint. All rights reserved. Not SEBI registered. Educational content only.
+            {copyright}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5">
             <Link href="/privacy-policy" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textDecoration: 'none' }} className="hover:text-[var(--color-ink)] transition-colors">Privacy Policy</Link>

@@ -4,7 +4,7 @@ import { articles as staticArticles } from '@/data/articles';
 import { categories as staticCategories } from '@/data/categories';
 import { authors as staticAuthors } from '@/data/authors';
 
-const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://onemint.com').replace(/\/$/, '');
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').replace(/\/$/, '');
 
 const TOOL_SLUGS = [
   'sip', 'lumpsum', 'swp', 'step-up-sip', 'mf-returns',

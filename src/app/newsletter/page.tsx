@@ -44,7 +44,7 @@ export default function NewsletterPage() {
               The smartest newsletter<br />in India
             </h1>
             <p className="text-lg lg:text-xl opacity-90 max-w-xl mx-auto font-[family-name:var(--font-body)] leading-relaxed mb-8">
-              One email, 3× a week. Covers money, tech, health — and the stuff nobody else explains well. Read by 500,000+ curious Indians.
+              One email, 3× a week. Covers money, tech, health — and the stuff nobody else explains well.
             </p>
 
             <AnimatePresence mode="wait">
@@ -92,29 +92,7 @@ export default function NewsletterPage() {
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section className="border-b border-[var(--color-border)]">
-        <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {[1,2,3,4,5].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-accent-light)] to-[var(--color-accent)] border-2 border-[var(--color-surface)] flex items-center justify-center text-[10px] font-bold text-white">
-                    {['A', 'R', 'P', 'S', 'V'][i - 1]}
-                  </div>
-                ))}
-              </div>
-              <span className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">500K+ readers</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {[1,2,3,4,5].map(i => (
-                <Star key={i} size={16} className="fill-yellow-400 text-yellow-400" />
-              ))}
-              <span className="text-sm text-[var(--color-ink-secondary)] ml-2 font-[family-name:var(--font-ui)]">4.9/5 from 12K reviews</span>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* What You Get */}
       <section className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
@@ -134,25 +112,20 @@ export default function NewsletterPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Why Subscribe */}
       <section className="bg-[var(--color-surface-alt)] border-y border-[var(--color-border)]">
-        <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-12 text-center">What readers say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 text-center">
+          <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-6">Why subscribe?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
             {[
-              { name: 'Priya M.', role: 'Product Manager, Bengaluru', quote: 'The only newsletter I actually open every single time. The Monday Money Brief alone saved me ₹40K in taxes last year.' },
-              { name: 'Rohit K.', role: 'Software Engineer, Pune', quote: 'Finally, financial advice written for Indians by Indians. No US-centric nonsense. The SIP calculator is brilliant.' },
-              { name: 'Ananya S.', role: 'Doctor, Delhi', quote: 'I share the health articles with my patients. They explain things better than most medical pamphlets I\'ve seen.' },
-            ].map((t) => (
-              <div key={t.name} className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1,2,3,4,5].map(i => <Star key={i} size={14} className="fill-yellow-400 text-yellow-400" />)}
-                </div>
-                <p className="text-sm text-[var(--color-ink)] mb-4 leading-relaxed font-[family-name:var(--font-body)] italic">&ldquo;{t.quote}&rdquo;</p>
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">{t.name}</p>
-                  <p className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{t.role}</p>
-                </div>
+              { emoji: '🎯', title: 'Focused', desc: 'No fluff, no clickbait — just the stories that matter to your money and life.' },
+              { emoji: '🇮🇳', title: 'India-first', desc: 'Written specifically for the Indian context — not translated from US personal finance.' },
+              { emoji: '📖', title: 'Free forever', desc: 'No premium tier. No paywalls. Everything we publish is free for all subscribers.' },
+            ].map((item) => (
+              <div key={item.title} className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
+                <div className="text-3xl mb-3">{item.emoji}</div>
+                <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold text-[var(--color-ink)] mb-2">{item.title}</h3>
+                <p className="text-sm text-[var(--color-ink-secondary)] leading-relaxed font-[family-name:var(--font-body)]">{item.desc}</p>
               </div>
             ))}
           </div>

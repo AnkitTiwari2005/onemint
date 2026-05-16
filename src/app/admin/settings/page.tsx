@@ -28,7 +28,7 @@ const DEFAULTS: SettingsState = {
   siteName: 'OneMint',
   tagline: 'One Rupee at a Time — Finance, Technology, Health & Career',
   adminEmail: 'admin@onemint.com',
-  siteUrl: 'https://onemint.vercel.app',
+  siteUrl: 'https://www.onemint.in',
   twitterHandle: '@OneMint',
   gaTrackingId: '',
   adsensePublisherId: '',
@@ -179,13 +179,21 @@ export default function AdminSettingsPage() {
             </label>
           </Field>
         ))}
-        <Field label="Maintenance Mode" help="Redirects all public pages to a maintenance notice.">
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-            <input type="checkbox" checked={settings.maintenanceMode} onChange={(e) => set('maintenanceMode', e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#DC2626' }} />
-            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: settings.maintenanceMode ? '#DC2626' : 'var(--color-ink-secondary)', fontWeight: settings.maintenanceMode ? 600 : 400 }}>
-              {settings.maintenanceMode ? '⚠️ Maintenance mode is ON' : 'Off'}
-            </span>
-          </label>
+        <Field label="Maintenance Mode" help="Redirects all public visitors to a maintenance page.">
+          <div style={{ padding: '10px 14px', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8 }}>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-secondary)', margin: '0 0 6px', lineHeight: 1.6 }}>
+              Maintenance mode is controlled via a <strong>Vercel Environment Variable</strong> for instant effect without redeployment lag.
+            </p>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
+              Go to <strong>Vercel → Settings → Environment Variables</strong> and set:
+            </p>
+            <code style={{ display: 'block', marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 12, background: '#0F1117', color: '#A3E635', padding: '8px 12px', borderRadius: 6 }}>
+              MAINTENANCE_MODE = true
+            </code>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: '6px 0 0' }}>
+              Remove the variable or set it to <code>false</code> to disable. Redeploy is required.
+            </p>
+          </div>
         </Field>
       </Section>
 

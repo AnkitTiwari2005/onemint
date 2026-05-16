@@ -12,6 +12,15 @@ export function GiscusComments({ theme: themeProp }: GiscusCommentsProps) {
   const ref = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const [theme, setTheme] = useState<string>(themeProp || 'preferred_color_scheme');
+  const [enabled, setEnabled] = useState<boolean | null>(null); // null = loading
+
+  // Check commentsEnabled from site settings
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(r => r.json())
+      .then(d => setEnabled(d?.commentsEnabled !== false))
+      .catch(() => setEnabled(true)); // default: show on error
+  }, []);
 
   // Sync theme with site preference
   useEffect(() => {
@@ -64,6 +73,9 @@ export function GiscusComments({ theme: themeProp }: GiscusCommentsProps) {
     );
   }, [theme]);
 
+  // Don't render if disabled in admin settings (null = still loading, wait)
+  if (enabled === false) return null;
+
   return (
     <div className="pt-8 mt-8 border-t border-[var(--color-border)]">
       <h3
@@ -81,3 +93,4 @@ export function GiscusComments({ theme: themeProp }: GiscusCommentsProps) {
     </div>
   );
 }
+

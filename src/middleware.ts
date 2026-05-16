@@ -8,8 +8,6 @@ const SESSION_COOKIE = 'onemint_admin_session';
  */
 async function verifyToken(token: string): Promise<boolean> {
   try {
-    // Prefer a dedicated signing secret — avoids coupling auth tokens to the
-    // password hash or service-role key. Set ADMIN_SESSION_SECRET in Vercel.
     const secret =
       process.env.ADMIN_SESSION_SECRET ||
       process.env.ADMIN_PASSWORD_HASH ||
@@ -20,7 +18,6 @@ async function verifyToken(token: string): Promise<boolean> {
     if (parts.length !== 3) return false;
     const [nonce, expiry, sig] = parts;
 
-    // Check expiry
     if (Date.now() > parseInt(expiry, 10)) return false;
 
     const payload = `${nonce}:${expiry}`;
@@ -37,7 +34,6 @@ async function verifyToken(token: string): Promise<boolean> {
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    // Constant-time comparison to prevent timing attacks
     if (computedHex.length !== sig.length) return false;
     let diff = 0;
     for (let i = 0; i < computedHex.length; i++) {
@@ -49,14 +45,41 @@ async function verifyToken(token: string): Promise<boolean> {
   }
 }
 
+/**
+ * Maintenance mode: read from MAINTENANCE_MODE env var (set to "true" to enable).
+ * Using an env var (not DB) because middleware runs in Edge runtime without
+ * DB access, and env vars are instantly available after Vercel redeploy.
+ * In admin/settings, remind user to set this env var.
+ */
+function isMaintenanceMode(): boolean {
+  return process.env.MAINTENANCE_MODE === 'true';
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Always allow: login page and auth endpoints
   if (pathname === '/admin/login') return NextResponse.next();
   if (pathname.startsWith('/api/admin/auth')) return NextResponse.next();
-  // Allow GA4 OAuth flow — must redirect to Google before a session exists
+  // Allow GA4 OAuth flow
   if (pathname.startsWith('/api/admin/analytics/oauth')) return NextResponse.next();
+
+  // ── Maintenance mode ─────────────────────────────────────────────────────
+  // Redirect all public (non-admin, non-API) routes to /maintenance page
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isApiRoute   = pathname.startsWith('/api');
+  const isPublicAsset = pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname === '/favicon.ico';
+  const isMaintenancePage = pathname === '/maintenance';
+
+  if (
+    isMaintenanceMode() &&
+    !isAdminRoute &&
+    !isApiRoute &&
+    !isPublicAsset &&
+    !isMaintenancePage
+  ) {
+    return NextResponse.redirect(new URL('/maintenance', req.nextUrl.origin));
+  }
 
   // Protect: /admin/* UI pages AND /api/admin/* API routes
   const isAdminUI  = pathname.startsWith('/admin');
@@ -65,8 +88,6 @@ export async function middleware(req: NextRequest) {
   if (!isAdminUI && !isAdminAPI) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-
-  // Legacy plain-text fallback check removed — all new sessions use HMAC tokens
   const valid = token ? await verifyToken(token) : false;
 
   if (!valid) {
@@ -81,5 +102,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/admin/:path*', '/((?!_next|static|favicon.ico).*)'],
 };

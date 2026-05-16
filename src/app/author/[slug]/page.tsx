@@ -103,8 +103,6 @@ export default async function AuthorPage({ params }: Props) {
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 40, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
         <span>›</span>
-        <Link href="/about" style={{ color: 'inherit', textDecoration: 'none' }}>Authors</Link>
-        <span>›</span>
         <span style={{ color: 'var(--color-ink)' }}>{authorName}</span>
       </nav>
 
