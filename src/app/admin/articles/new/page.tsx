@@ -208,7 +208,7 @@ export default function NewArticlePage() {
         </div>
 
         {/* Right: Settings Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto', paddingBottom: 80, scrollbarWidth: 'thin' }}>
           {/* Status */}
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 18 }}>
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Status</label>
