@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, CheckCircle2, Loader2, Star, Users, Zap } from 'lucide-react';
+import { Mail, CheckCircle2, Loader2, Star, Users, Zap, Target, IndianRupee, Unlock } from 'lucide-react';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -122,12 +122,35 @@ export default function NewsletterContent() {
           <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-6">Why subscribe?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
             {[
-              { emoji: '🎯', title: 'Focused', desc: 'No fluff, no clickbait — just the stories that matter to your money and life.' },
-              { emoji: '🇮🇳', title: 'India-first', desc: 'Written specifically for the Indian context — not translated from US personal finance.' },
-              { emoji: '📖', title: 'Free forever', desc: 'No premium tier. No paywalls. Everything we publish is free for all subscribers.' },
+              {
+                icon: <Target size={26} />,
+                bg: '#E6F3EC',
+                color: '#1B6B3A',
+                title: 'Focused',
+                desc: 'No fluff, no clickbait — just the stories that matter to your money and life.',
+              },
+              {
+                icon: <IndianRupee size={26} />,
+                bg: '#FDF0EB',
+                color: '#C94A1A',
+                title: 'India-first',
+                desc: 'Written specifically for the Indian context — not translated from US personal finance.',
+              },
+              {
+                icon: <Unlock size={26} />,
+                bg: '#FDF8EC',
+                color: '#A07820',
+                title: 'Free forever',
+                desc: 'No premium tier. No paywalls. Everything we publish is free for all subscribers.',
+              },
             ].map((item) => (
-              <div key={item.title} className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="text-3xl mb-3">{item.emoji}</div>
+              <div key={item.title} className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm text-center">
+                <div
+                  className="mx-auto mb-4 flex items-center justify-center rounded-2xl"
+                  style={{ width: 56, height: 56, background: item.bg, color: item.color }}
+                >
+                  {item.icon}
+                </div>
                 <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold text-[var(--color-ink)] mb-2">{item.title}</h3>
                 <p className="text-sm text-[var(--color-ink-secondary)] leading-relaxed font-[family-name:var(--font-body)]">{item.desc}</p>
               </div>
