@@ -73,8 +73,30 @@ export default async function SeriesHubPage() {
       </div>
 
       {allSeries.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 15 }}>
-          No series published yet. Check back soon!
+        <div style={{ textAlign: 'center', padding: '80px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+          {/* Icon */}
+          <div style={{ width: 80, height: 80, borderRadius: 24, background: 'var(--color-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+            <BookOpen size={36} color="var(--color-accent)" />
+          </div>
+
+          {/* Text */}
+          <div>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>
+              No series yet — but they&apos;re coming
+            </h2>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', maxWidth: 420, margin: '0 auto', lineHeight: 1.65 }}>
+              We&apos;re working on deep-dive multi-part series on topics that deserve more than a single article.
+              In the meantime, browse all our articles.
+            </p>
+          </div>
+
+          {/* CTA */}
+          <Link
+            href="/articles"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8, padding: '11px 22px', borderRadius: 50, background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, textDecoration: 'none', transition: 'opacity 0.15s' }}
+          >
+            Browse all articles <ArrowRight size={16} />
+          </Link>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 28 }}>
