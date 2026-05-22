@@ -365,7 +365,7 @@ export default function NewArticlePage() {
           <Eye size={14} /> Preview
         </button>
       </div>
-      <div style={{ height: 100 }} />
+      <div style={{ height: 70 }} />
     </div>
   );
 }
