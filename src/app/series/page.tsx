@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { series as staticSeries } from '@/data/series';
 import { categories } from '@/data/categories';
 import { Clock, BookOpen, ArrowRight } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -47,20 +46,9 @@ async function fetchSeries(): Promise<Series[]> {
         }));
       }
     }
-  } catch { /* fallback */ }
+  } catch { /* no series in DB */ }
 
-  // Fallback to static series
-  return staticSeries.map(s => ({
-    id: s.id,
-    name: s.name,
-    slug: s.slug,
-    description: s.description,
-    categoryId: s.categoryId,
-    coverImage: s.coverImage,
-    articleSlugs: s.articleSlugs,
-    totalReadTime: s.totalReadTime,
-    status: 'published',
-  }));
+  return [];
 }
 
 export default async function SeriesHubPage() {
