@@ -354,7 +354,7 @@ export default function NewArticlePage() {
       </div>
 
       {/* Sticky action bar */}
-      <div className="article-action-bar" style={{ position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px', display: 'flex', gap: 12, zIndex: 50, alignItems: 'center', justifyContent: 'center' }}>
+      <div className="article-action-bar" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px 12px 272px', display: 'flex', gap: 12, zIndex: 50, alignItems: 'center', justifyContent: 'flex-start' }}>
         <button onClick={() => saveArticle(false)} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save Draft
         </button>
