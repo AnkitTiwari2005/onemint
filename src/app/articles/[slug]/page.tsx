@@ -63,15 +63,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { article } = await fetchPublishedArticleBySlug(slug);
   if (!article) return {};
   const url = `${SITE_URL}/articles/${slug}`;
+
+  // Use custom meta fields if set in admin, otherwise fall back to title/excerpt
+  const seoTitle = article.meta_title?.trim() || article.title;
+  const seoDesc  = article.meta_description?.trim() || article.excerpt || '';
+
   return {
-    title: article.title,
-    description: article.excerpt,
+    title: seoTitle,
+    description: seoDesc,
     alternates: { canonical: url },
     openGraph: {
       type: 'article',
       url,
-      title: article.title,
-      description: article.excerpt || '',
+      title: seoTitle,
+      description: seoDesc,
       images: article.cover_image
         ? [{ url: article.cover_image, width: 1200, height: 630 }]
         : [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -79,8 +84,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     twitter: {
       card: 'summary_large_image',
-      title: article.title,
-      description: article.excerpt || '',
+      title: seoTitle,
+      description: seoDesc,
     },
   };
 }

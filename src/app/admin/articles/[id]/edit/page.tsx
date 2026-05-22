@@ -26,6 +26,8 @@ export default function EditArticlePage({ params }: Props) {
   const [author, setAuthor] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDesc, setMetaDesc] = useState('');
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
 
@@ -45,6 +47,8 @@ export default function EditArticlePage({ params }: Props) {
         setCategory(data.category_id || '');
         setAuthor(data.author_id || '');
         setTags(data.tags || []);
+        setMetaTitle(data.meta_title || '');
+        setMetaDesc(data.meta_description || '');
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -81,6 +85,8 @@ export default function EditArticlePage({ params }: Props) {
           category_id: category || null,
           author_id: author || null,
           tags,
+          meta_title: metaTitle,
+          meta_description: metaDesc,
           updated_at: new Date().toISOString(),
         }),
       });
@@ -143,6 +149,15 @@ export default function EditArticlePage({ params }: Props) {
               ))}
             </div>
             <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={addTag} placeholder="Type + Enter" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          {/* SEO Meta */}
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 16 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>SEO</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', marginBottom: 4 }}>Meta Title ({metaTitle.length}/60)</label>
+            <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value.slice(0, 60))} placeholder="Custom SEO title (optional)" style={{ width: '100%', padding: '8px 10px', border: `1px solid ${metaTitle.length > 55 ? '#DC2626' : 'var(--color-border)'}`, borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box', marginBottom: 10 }} />
+            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', marginBottom: 4 }}>Meta Description ({metaDesc.length}/160)</label>
+            <textarea value={metaDesc} onChange={(e) => setMetaDesc(e.target.value.slice(0, 160))} placeholder="Custom SEO description (optional)" rows={3} style={{ width: '100%', padding: '8px 10px', border: `1px solid ${metaDesc.length > 150 ? '#DC2626' : 'var(--color-border)'}`, borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--color-ink-tertiary)', margin: '6px 0 0', lineHeight: 1.5 }}>Leave blank to use the article title &amp; excerpt automatically.</p>
           </div>
         </div>
       </div>
