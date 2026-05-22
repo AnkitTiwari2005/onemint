@@ -126,7 +126,7 @@ export default function EditArticlePage({ params }: Props) {
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 24, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto', paddingBottom: 80, scrollbarWidth: 'thin' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {[
             { label: 'Status', content: <select value={status} onChange={e => setStatus(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="published">Published</option><option value="draft">Draft</option><option value="archived">Archived</option></select> },
             { label: 'Category', content: <select value={category} onChange={e => setCategory(e.target.value)} style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}><option value="">No category</option>{dbCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select> },

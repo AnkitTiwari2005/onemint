@@ -208,7 +208,7 @@ export default function NewArticlePage() {
         </div>
 
         {/* Right: Settings Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto', paddingBottom: 80, scrollbarWidth: 'thin' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Status */}
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 18 }}>
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Status</label>
@@ -356,7 +356,7 @@ export default function NewArticlePage() {
           <Eye size={14} /> Preview
         </button>
       </div>
-
+      <div style={{ height: 100 }} />
     </div>
   );
 }
