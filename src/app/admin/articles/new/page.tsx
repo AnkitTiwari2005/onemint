@@ -274,13 +274,20 @@ export default function NewArticlePage() {
           {/* SEO */}
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
             {/* Header */}
-            <div style={{ padding: '13px 18px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Search size={13} style={{ color: '#4285F4', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>SEO Settings</span>
-            </div>
+            <button type="button" onClick={() => setSeoOpen(!seoOpen)} style={{ width: '100%', padding: '13px 18px', background: 'transparent', border: 'none', borderBottom: seoOpen ? '1px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', outline: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Search size={13} style={{ color: '#4285F4', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>SEO Settings</span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em' }}>
+                {seoOpen ? '▲' : '▼'}
+              </span>
+            </button>
 
-            {/* Live Google SERP Preview */}
-            {(() => {
+            {/* Live Google SERP Preview & Fields */}
+            {seoOpen && (
+              <>
+                {(() => {
               const slugPreview = title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 36);
               const previewTitle = (metaTitle || title || 'Article title…').slice(0, 60);
               const previewDesc  = (metaDesc || deck || 'Meta description will appear here. Add one to attract more clicks from Google search results.');
@@ -338,8 +345,8 @@ export default function NewArticlePage() {
                 <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 2, marginTop: 5, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${Math.min(100, (metaDesc.length / 160) * 100)}%`, background: metaDesc.length > 150 ? '#DC2626' : metaDesc.length > 120 ? '#D97706' : '#16A34A', borderRadius: 2, transition: 'width 0.2s, background 0.2s' }} />
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

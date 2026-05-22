@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Eye, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, X, Loader2, Search } from 'lucide-react';
 
 interface DbAuthor { id: string; name: string; }
 interface DbCategory { id: string; name: string; }
@@ -28,6 +28,7 @@ export default function EditArticlePage({ params }: Props) {
   const [tagInput, setTagInput] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDesc, setMetaDesc] = useState('');
+  const [seoOpen, setSeoOpen] = useState(false);
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
 
@@ -151,13 +152,83 @@ export default function EditArticlePage({ params }: Props) {
             <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={addTag} placeholder="Type + Enter" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
           </div>
           {/* SEO Meta */}
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 16 }}>
-            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>SEO</label>
-            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', marginBottom: 4 }}>Meta Title ({metaTitle.length}/60)</label>
-            <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value.slice(0, 60))} placeholder="Custom SEO title (optional)" style={{ width: '100%', padding: '8px 10px', border: `1px solid ${metaTitle.length > 55 ? '#DC2626' : 'var(--color-border)'}`, borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box', marginBottom: 10 }} />
-            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', marginBottom: 4 }}>Meta Description ({metaDesc.length}/160)</label>
-            <textarea value={metaDesc} onChange={(e) => setMetaDesc(e.target.value.slice(0, 160))} placeholder="Custom SEO description (optional)" rows={3} style={{ width: '100%', padding: '8px 10px', border: `1px solid ${metaDesc.length > 150 ? '#DC2626' : 'var(--color-border)'}`, borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--color-ink-tertiary)', margin: '6px 0 0', lineHeight: 1.5 }}>Leave blank to use the article title &amp; excerpt automatically.</p>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
+            {/* Header */}
+            <button type="button" onClick={() => setSeoOpen(!seoOpen)} style={{ width: '100%', padding: '13px 18px', background: 'transparent', border: 'none', borderBottom: seoOpen ? '1px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', outline: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Search size={13} style={{ color: '#4285F4', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>SEO Settings</span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em' }}>
+                {seoOpen ? '▲' : '▼'}
+              </span>
+            </button>
+
+            {/* Live Google SERP Preview & Fields */}
+            {seoOpen && (
+              <>
+                {(() => {
+                  const slugPreview = slug || title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 36);
+                  const previewTitle = (metaTitle || title || 'Article title…').slice(0, 60);
+                  const previewDesc  = (metaDesc || 'Meta description will appear here. Add one to attract more clicks from Google search results.');
+                  return (
+                    <div style={{ margin: '14px 18px', padding: '12px 14px', background: '#fff', borderRadius: 8, border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                      <div style={{ fontSize: 9, color: '#888', marginBottom: 6, fontFamily: 'var(--font-ui)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Google preview</div>
+                      <div style={{ fontSize: 12, color: '#4285F4', marginBottom: 1, fontFamily: 'Arial, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.4 }}>
+                        {previewTitle} | OneMint
+                      </div>
+                      <div style={{ fontSize: 10, color: '#006621', fontFamily: 'Arial, sans-serif', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        onemint.in › articles{slugPreview ? ' › ' + slugPreview : ''}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#545454', fontFamily: 'Arial, sans-serif', lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
+                        {previewDesc}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div style={{ padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {/* Meta Title */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                      <label style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--color-ink-tertiary)' }}>Meta Title</label>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600, color: metaTitle.length > 55 ? '#DC2626' : metaTitle.length > 40 ? '#D97706' : 'var(--color-ink-tertiary)' }}>
+                        {metaTitle.length}/60
+                      </span>
+                    </div>
+                    <input
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value.slice(0, 60))}
+                      placeholder="Leave blank to use article title"
+                      style={{ width: '100%', padding: '8px 10px', border: `1px solid ${metaTitle.length > 55 ? '#DC2626' : 'var(--color-border)'}`, borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+                    />
+                    <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 2, marginTop: 5, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.min(100, (metaTitle.length / 60) * 100)}%`, background: metaTitle.length > 55 ? '#DC2626' : metaTitle.length > 40 ? '#D97706' : '#16A34A', borderRadius: 2, transition: 'width 0.2s, background 0.2s' }} />
+                    </div>
+                  </div>
+
+                  {/* Meta Description */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                      <label style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, color: 'var(--color-ink-tertiary)' }}>Meta Description</label>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 600, color: metaDesc.length > 150 ? '#DC2626' : metaDesc.length > 120 ? '#D97706' : 'var(--color-ink-tertiary)' }}>
+                        {metaDesc.length}/160
+                      </span>
+                    </div>
+                    <textarea
+                      value={metaDesc}
+                      onChange={(e) => setMetaDesc(e.target.value.slice(0, 160))}
+                      placeholder="Leave blank to use the article excerpt"
+                      rows={3}
+                      style={{ width: '100%', padding: '8px 10px', border: `1px solid ${metaDesc.length > 150 ? '#DC2626' : 'var(--color-border)'}`, borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+                    />
+                    <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 2, marginTop: 5, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.min(100, (metaDesc.length / 160) * 100)}%`, background: metaDesc.length > 150 ? '#DC2626' : metaDesc.length > 120 ? '#D97706' : '#16A34A', borderRadius: 2, transition: 'width 0.2s, background 0.2s' }} />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
