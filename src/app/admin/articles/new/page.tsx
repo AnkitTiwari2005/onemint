@@ -156,7 +156,7 @@ export default function NewArticlePage() {
   };
 
   return (
-    <div>
+    <div style={{ paddingBottom: 80 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <Link href="/admin/articles" style={{ color: 'var(--color-ink-tertiary)', display: 'flex', textDecoration: 'none' }}><ArrowLeft size={18} /></Link>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>New Article</h1>
@@ -365,7 +365,6 @@ export default function NewArticlePage() {
           <Eye size={14} /> Preview
         </button>
       </div>
-      <div style={{ height: 70 }} />
     </div>
   );
 }
