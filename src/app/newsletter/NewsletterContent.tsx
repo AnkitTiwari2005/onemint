@@ -122,12 +122,48 @@ export default function NewsletterContent() {
           <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-6">Why subscribe?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
             {[
-              { emoji: '🎯', title: 'Focused', desc: 'No fluff, no clickbait — just the stories that matter to your money and life.' },
-              { emoji: '🇮🇳', title: 'India-first', desc: 'Written specifically for the Indian context — not translated from US personal finance.' },
-              { emoji: '📖', title: 'Free forever', desc: 'No premium tier. No paywalls. Everything we publish is free for all subscribers.' },
+              { 
+                icon: (
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4">
+                    <circle cx="24" cy="24" r="20" fill="#FEE2E2"/>
+                    <circle cx="24" cy="24" r="14" fill="#EF4444"/>
+                    <circle cx="24" cy="24" r="8" fill="#FEE2E2"/>
+                    <circle cx="24" cy="24" r="4" fill="#EF4444"/>
+                  </svg>
+                ), 
+                title: 'Focused', 
+                desc: 'No fluff, no clickbait \u2014 just the stories that matter to your money and life.' 
+              },
+              { 
+                icon: (
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4">
+                    <rect x="6" y="12" width="36" height="24" rx="4" fill="#FFFFFF" stroke="#E5E7EB" strokeWidth="1"/>
+                    <path d="M6 16C6 13.7909 7.79086 12 10 12H38C40.2091 12 42 13.7909 42 16V20H6V16Z" fill="#FF9933"/>
+                    <path d="M6 28H42V32C42 34.2091 40.2091 36 38 36H10C7.79086 36 6 34.2091 6 32V28Z" fill="#138808"/>
+                    <circle cx="24" cy="24" r="4" fill="#000080"/>
+                    <circle cx="24" cy="24" r="4" stroke="#000080" strokeWidth="0.5" strokeDasharray="1.5 1.5"/>
+                    <path d="M24 19V29M19 24H29M20.5 20.5L27.5 27.5M20.5 27.5L27.5 20.5" stroke="#000080" strokeWidth="0.5"/>
+                  </svg>
+                ), 
+                title: 'India-first', 
+                desc: 'Written specifically for the Indian context \u2014 not translated from US personal finance.' 
+              },
+              { 
+                icon: (
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4">
+                    <path d="M24 14C24 14 18 6 8 6C8 6 8 34 8 34C18 34 24 38 24 38C24 38 30 34 40 34C40 34 40 6 40 6C30 6 24 14 24 14Z" fill="#E0F2FE"/>
+                    <path d="M24 14C24 14 18 6 8 6V34C18 34 24 38 24 38V14Z" fill="#BAE6FD"/>
+                    <path d="M24 14C24 14 30 6 40 6V34C30 34 24 38 24 38V14Z" fill="#E0F2FE"/>
+                    <path d="M24 14V38" stroke="#0284C7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 6V34C18 34 24 38 24 38C24 38 30 34 40 34V6C30 6 24 14 24 14C24 14 18 6 8 6Z" stroke="#0284C7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ), 
+                title: 'Free forever', 
+                desc: 'No premium tier. No paywalls. Everything we publish is free for all subscribers.' 
+              },
             ].map((item) => (
               <div key={item.title} className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="text-3xl mb-3">{item.emoji}</div>
+                {item.icon}
                 <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold text-[var(--color-ink)] mb-2">{item.title}</h3>
                 <p className="text-sm text-[var(--color-ink-secondary)] leading-relaxed font-[family-name:var(--font-body)]">{item.desc}</p>
               </div>
