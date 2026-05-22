@@ -128,7 +128,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                     {featuredCategory.name}
                   </motion.span>
                 )}
-                <motion.h2
+                <motion.h1
                   variants={prefersReduced ? undefined : heroVariants.title}
                   initial="initial"
                   animate="animate"
@@ -136,7 +136,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                   data-motion="true"
                 >
                   {featured.title}
-                </motion.h2>
+                </motion.h1>
                 <motion.div
                   variants={prefersReduced ? undefined : heroVariants.meta}
                   initial="initial"

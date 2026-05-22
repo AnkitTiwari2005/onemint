@@ -69,8 +69,17 @@ export default function SuggestContent() {
           .select('*')
           .order('votes', { ascending: false });
         if (data && data.length > 0) {
-          setSuggestions(data as Suggestion[]);
-          setUsingSeedData(false);
+          // Filter out records with missing required fields or unknown status values
+          const valid = (data as Suggestion[]).filter(
+            (s) => s.id && s.title && STATUS_COLORS[s.status]
+          );
+          if (valid.length > 0) {
+            setSuggestions(valid);
+            setUsingSeedData(false);
+          } else {
+            setSuggestions(SEED_SUGGESTIONS);
+            setUsingSeedData(true);
+          }
         } else {
           // DB is empty — show seed examples, clearly labeled
           setSuggestions(SEED_SUGGESTIONS);
@@ -210,7 +219,9 @@ export default function SuggestContent() {
           <div className="flex flex-col gap-3">
             {suggestionsLoaded && suggestions.map((s, i) => {
               const voted = votedIds.has(s.id);
-              const statusConfig = STATUS_COLORS[s.status];
+              // Safe fallback — prevents crash when DB has an unrecognised status value
+              const statusConfig = STATUS_COLORS[s.status] ?? STATUS_COLORS['planned'];
+              const voteCount = typeof s.votes === 'number' ? s.votes : 0;
               return (
                 <motion.div
                   key={s.id}
@@ -245,7 +256,7 @@ export default function SuggestContent() {
                     aria-label={voted ? 'Already voted' : `Vote for: ${s.title}`}
                   >
                     <ChevronUp size={14} strokeWidth={voted ? 2.5 : 1.5} />
-                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>{s.votes}</span>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>{voteCount}</span>
                   </button>
 
                   {/* Content */}
