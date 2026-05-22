@@ -1,9 +1,21 @@
 import Link from 'next/link';
 import { Calculator, HeartPulse, Briefcase, IndianRupee, Home, GraduationCap, TrendingUp, Sparkles, Lock, MapPin } from 'lucide-react';
+import { JsonLd } from '@/components/JsonLd';
+import { buildItemList, buildBreadcrumbs } from '@/lib/jsonld';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata = {
   title: 'Tools & Calculators',
   description: 'Free, data-driven calculators for personal finance, health, and career planning in India.',
+  alternates: { canonical: `${SITE_URL}/tools` },
+  openGraph: {
+    type: 'website',
+    url: `${SITE_URL}/tools`,
+    title: 'Free Financial Tools & Calculators | OneMint',
+    description: 'Free, data-driven calculators for personal finance, health, and career planning in India. SIP, EMI, Tax, BMI and 20+ more.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Tools & Calculators' }],
+  },
 };
 
 const toolCategories = [
@@ -66,8 +78,24 @@ const toolCategories = [
 ];
 
 export default function ToolsHubPage() {
+  // Flatten all tools for the ItemList schema
+  const allToolsFlat = toolCategories.flatMap((cat) =>
+    cat.tools.map((t) => ({
+      name: t.name,
+      url: `${SITE_URL}/tools/${t.slug}`,
+      description: t.desc,
+    }))
+  );
+  const itemListSchema = buildItemList(allToolsFlat, 'Free Financial Tools & Calculators | OneMint', `${SITE_URL}/tools`);
+  const breadcrumbSchema = buildBreadcrumbs([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools & Calculators', url: `${SITE_URL}/tools` },
+  ]);
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
+      <JsonLd data={itemListSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <header className="bg-[var(--color-surface-alt)] py-12 lg:py-20 border-b border-[var(--color-border)]">
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Calculator className="w-12 h-12 mx-auto text-[var(--color-accent)] mb-6" strokeWidth={1.5} />

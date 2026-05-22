@@ -4,10 +4,22 @@ import { categories } from '@/data/categories';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { supabaseAdmin } from '@/lib/supabase';
 import { articles as staticArticles, getArticlesByCategory } from '@/data/articles';
+import { JsonLd } from '@/components/JsonLd';
+import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata = {
   title: 'All Topics',
   description: 'Explore our comprehensive guides and articles across personal finance, technology, health, career, and more.',
+  alternates: { canonical: `${SITE_URL}/topics` },
+  openGraph: {
+    type: 'website',
+    url: `${SITE_URL}/topics`,
+    title: 'All Topics | OneMint',
+    description: 'Explore our comprehensive guides and articles across personal finance, technology, health, career, and more.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Topics' }],
+  },
 };
 
 export const dynamic = 'force-dynamic';
@@ -59,8 +71,20 @@ async function fetchTopicData(): Promise<Record<string, TopicData>> {
 export default async function TopicsHubPage() {
   const topicData = await fetchTopicData();
 
+  const collectionSchema = buildCollectionPage(
+    'All Topics | OneMint',
+    'Explore our comprehensive guides and articles across personal finance, technology, health, career, and more.',
+    `${SITE_URL}/topics`
+  );
+  const breadcrumbSchema = buildBreadcrumbs([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Topics', url: `${SITE_URL}/topics` },
+  ]);
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
+      <JsonLd data={collectionSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <header className="bg-[var(--color-surface-alt)] py-12 lg:py-20 border-b border-[var(--color-border)]">
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-ink)] mb-4">

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ClientLayout } from "@/components/ClientLayout";
+import { JsonLd } from "@/components/JsonLd";
+import { buildWebSite, buildOrganization } from "@/lib/jsonld";
 
 // ── Self-hosted fonts (downloaded from Google Fonts, same woff2 files) ────────
 // Build-time network-independent — no Google CDN fetch during `next build`.
@@ -64,7 +66,10 @@ const jetbrains = localFont({
   ],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "OneMint — India's Most Trusted Knowledge Platform",
     template: "%s | OneMint",
@@ -75,17 +80,20 @@ export const metadata: Metadata = {
     "personal finance India", "investing", "SIP calculator", "tax planning",
     "technology news", "health advice", "career tips", "Indian knowledge platform",
   ],
-  authors: [{ name: "OneMint" }],
+  authors: [{ name: "OneMint", url: SITE_URL }],
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onemint.in",
+    url: SITE_URL,
     siteName: "OneMint",
     title: "OneMint — India's Most Trusted Knowledge Platform",
     description: "Expert articles on finance, tech, health & more. Free tools. Zero spam.",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onemint.in"}/og-image.png`,
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "OneMint — India's Most Trusted Knowledge Platform",
@@ -95,9 +103,19 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "@onemint",
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onemint.in"}/og-image.png`],
+    images: ["/og-image.png"],
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 const fontVars = [
@@ -142,6 +160,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="OneMint" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="OneMint" />
+        {/* JSON-LD: WebSite (enables Sitelinks Search Box) + Organization */}
+        <JsonLd data={buildWebSite()} />
+        <JsonLd data={buildOrganization()} />
         {/* Google Analytics 4 — page-view tracking */}
         {/* ID driven by NEXT_PUBLIC_GA4_MEASUREMENT_ID env var */}
         <script

@@ -15,6 +15,8 @@ import { FontSizeControl } from '@/components/FontSizeControl';
 import { GlossaryTooltip } from '@/components/GlossaryTooltip';
 import { GiscusComments } from '@/components/GiscusComments';
 import { Clock, BookOpen } from 'lucide-react';
+import { JsonLd } from '@/components/JsonLd';
+import { buildArticle, buildBreadcrumbs } from '@/lib/jsonld';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,17 +56,31 @@ const mdComponents = {
   },
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const { article } = await fetchPublishedArticleBySlug(slug);
   if (!article) return {};
+  const url = `${SITE_URL}/articles/${slug}`;
   return {
     title: article.title,
     description: article.excerpt,
+    alternates: { canonical: url },
     openGraph: {
+      type: 'article',
+      url,
       title: article.title,
       description: article.excerpt || '',
-      images: article.cover_image ? [{ url: article.cover_image, width: 800, height: 450 }] : [],
+      images: article.cover_image
+        ? [{ url: article.cover_image, width: 1200, height: 630 }]
+        : [{ url: '/og-image.png', width: 1200, height: 630 }],
+      publishedTime: article.published_at ?? undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt || '',
     },
   };
 }
@@ -108,8 +124,30 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         { id: 'understanding-sip-investing', text: 'Understanding SIP Investing', level: 2 },
       ];
 
+  // ── Structured data ────────────────────────────────────────────────────
+  const articleUrl = `${SITE_URL}/articles/${slug}`;
+  const breadcrumbItems = [
+    { name: 'Home', url: SITE_URL },
+    ...(category ? [{ name: category.name, url: `${SITE_URL}/topics/${category.slug}` }] : []),
+    { name: article!.title, url: articleUrl },
+  ];
+  const articleSchema = buildArticle({
+    title: article!.title,
+    description: article!.excerpt ?? '',
+    url: articleUrl,
+    imageUrl: article!.cover_image,
+    datePublished: article!.published_at ?? new Date().toISOString(),
+    dateModified: article!.published_at ?? new Date().toISOString(),
+    authorName: author?.name ?? 'OneMint Editorial',
+    authorUrl: author ? `${SITE_URL}/author/${author.slug}` : SITE_URL,
+  });
+  const breadcrumbSchema = buildBreadcrumbs(breadcrumbItems);
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
+      {/* JSON-LD structured data */}
+      <JsonLd data={articleSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <article className="max-w-[var(--article-max)] mx-auto px-4 sm:px-6 py-8 lg:py-12">
 
         {/* Breadcrumb */}

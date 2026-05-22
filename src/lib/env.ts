@@ -51,5 +51,5 @@ export const ENV = {
   GISCUS_CATEGORY_ID: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOSGou_s4C7WAm',
 
   // Site
-  SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://onemint-alpha.vercel.app',
+  SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.in',
 };
