@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       .insert([{
         title: body.title.trim(),
         slug: body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        deck: body.deck || null,
         excerpt: body.excerpt || '',
         content: body.content || '',
         cover_image: body.cover_image || '',

@@ -19,6 +19,7 @@ export default function EditArticlePage({ params }: Props) {
   const [saveError, setSaveError] = useState('');
 
   const [title, setTitle] = useState('');
+  const [deck, setDeck] = useState('');
   const [body, setBody] = useState('');
   const [slug, setSlug] = useState('');
   const [status, setStatus] = useState('published');
@@ -42,6 +43,7 @@ export default function EditArticlePage({ params }: Props) {
       .then(data => {
         if (!data) return;
         setTitle(data.title || '');
+        setDeck(data.deck || data.subtitle || '');
         setBody(data.content || data.body || '');
         setSlug(data.slug || '');
         setStatus(data.status || 'published');
@@ -81,6 +83,7 @@ export default function EditArticlePage({ params }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
+          deck: deck || null,
           content: body,
           status,
           category_id: category || null,
@@ -121,6 +124,7 @@ export default function EditArticlePage({ params }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: '100%', padding: '12px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
+          <input value={deck} onChange={e => setDeck(e.target.value)} placeholder="Article deck / subtitle (optional)…" style={{ width: '100%', padding: '11px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-body)', fontSize: 15, fontStyle: 'italic', color: 'var(--color-ink-secondary)', outline: 'none', boxSizing: 'border-box' }} />
           <textarea value={body} onChange={e => setBody(e.target.value)} style={{ width: '100%', minHeight: 500, padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: 1.8, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
             {body.trim().split(/\s+/).filter(Boolean).length} words · ~{Math.max(1, Math.ceil(body.trim().split(/\s+/).length / 200))} min read
