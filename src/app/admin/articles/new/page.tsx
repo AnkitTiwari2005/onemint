@@ -43,6 +43,8 @@ function mdToHtml(md: string) {
 export default function NewArticlePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugEdited, setSlugEdited] = useState(false);
   const [deck, setDeck] = useState('');
   const [body, setBody] = useState('');
   const [tab, setTab] = useState<'edit' | 'preview'>('edit');
@@ -125,14 +127,19 @@ export default function NewArticlePage() {
     setSaving(true);
     setSaveError('');
     try {
-      const slug = title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const rawSlug = slug.trim() || title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      // Truncate to 50 chars at a word boundary
+      const truncated = rawSlug.length > 50
+        ? rawSlug.slice(0, 51).replace(/-[^-]*$/, '')
+        : rawSlug;
+      const finalSlug = truncated || rawSlug.slice(0, 50);
       const finalStatus = publish ? 'published' : status;
       const res = await fetch('/api/admin/articles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
-          slug,
+          slug: finalSlug,
           excerpt: deck.trim(),
           content: body,
           cover_image: featuredImage,
@@ -167,7 +174,29 @@ export default function NewArticlePage() {
         {/* Left: Editor */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Title */}
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Article title…" style={{ width: '100%', padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
+          <input
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (!slugEdited) {
+                const raw = e.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const truncated = raw.length > 50 ? raw.slice(0, 51).replace(/-[^-]*$/, '') : raw;
+                setSlug(truncated || raw.slice(0, 50));
+              }
+            }}
+            placeholder="Article title…"
+            style={{ width: '100%', padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
+          />
+          {/* Slug */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, boxSizing: 'border-box' }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap', flexShrink: 0 }}>onemint.in/articles/</span>
+            <input
+              value={slug}
+              onChange={(e) => { setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')); setSlugEdited(true); }}
+              placeholder="url-slug"
+              style={{ flex: 1, border: 'none', background: 'transparent', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', minWidth: 0 }}
+            />
+          </div>
           {/* Deck */}
           <input value={deck} onChange={(e) => setDeck(e.target.value)} placeholder="Article deck / subtitle (optional)…" style={{ width: '100%', padding: '11px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-body)', fontSize: 15, fontStyle: 'italic', color: 'var(--color-ink-secondary)', outline: 'none', boxSizing: 'border-box' }} />
 

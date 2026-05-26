@@ -83,6 +83,7 @@ export default function EditArticlePage({ params }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
+          slug: slug || undefined,
           deck: deck || null,
           content: body,
           status,
@@ -124,6 +125,16 @@ export default function EditArticlePage({ params }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <input value={title} onChange={e => setTitle(e.target.value)} style={{ width: '100%', padding: '12px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
+          {/* Editable slug */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, boxSizing: 'border-box' }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap', flexShrink: 0 }}>onemint.in/articles/</span>
+            <input
+              value={slug}
+              onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              placeholder="url-slug"
+              style={{ flex: 1, border: 'none', background: 'transparent', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', minWidth: 0 }}
+            />
+          </div>
           <input value={deck} onChange={e => setDeck(e.target.value)} placeholder="Article deck / subtitle (optional)…" style={{ width: '100%', padding: '11px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-body)', fontSize: 15, fontStyle: 'italic', color: 'var(--color-ink-secondary)', outline: 'none', boxSizing: 'border-box' }} />
           <textarea value={body} onChange={e => setBody(e.target.value)} style={{ width: '100%', minHeight: 500, padding: '14px 16px', border: '1px solid var(--color-border)', borderRadius: 10, background: 'var(--color-surface)', fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: 1.8, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
