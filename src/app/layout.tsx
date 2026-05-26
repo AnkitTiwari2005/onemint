@@ -179,6 +179,12 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Google AdSense — site verification + ad serving */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9948709371742259"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${fontVars} min-h-screen flex flex-col`} suppressHydrationWarning>
         <a href="#main-content" className="skip-to-content">
