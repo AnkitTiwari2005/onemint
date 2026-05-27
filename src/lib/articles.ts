@@ -78,7 +78,7 @@ export async function fetchPublishedArticles(): Promise<{
         .select(
           'id, title, slug, excerpt, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
-          'categories(id, name, slug, accent_color, light_color), ' +
+          'categories(*), ' +
           'authors(id, name, slug, avatar, role)'
         )
         .eq('status', 'published')
@@ -125,8 +125,8 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
           'meta_title, meta_description, ' +
-          'categories(id, name, slug, accent_color, light_color), ' +
-          'authors(id, name, slug, avatar, role, bio, twitter, linkedin)'
+          'categories(*), ' +
+          'authors(*)'
         )
         .eq('slug', slug)
         .eq('status', 'published')
