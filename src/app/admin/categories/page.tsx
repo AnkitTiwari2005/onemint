@@ -33,7 +33,17 @@ export default function AdminCategoriesPage() {
     setLoading(true);
     fetch('/api/admin/categories')
       .then(r => r.json())
-      .then(data => setCategories(Array.isArray(data) && data.length > 0 ? data : (staticCategories as Category[])))
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          // Normalize snake_case DB fields to camelCase for the component
+          setCategories(data.map((c: Record<string, unknown>) => ({
+            ...c,
+            accentColor: (c.accentColor || c.accent_color || '#1B6B3A') as string,
+          })) as Category[]);
+        } else {
+          setCategories(staticCategories as Category[]);
+        }
+      })
       .catch(() => setCategories(staticCategories as Category[]))
       .finally(() => setLoading(false));
   };
@@ -172,7 +182,7 @@ export default function AdminCategoriesPage() {
             {categories.map((cat, i) => (
               <tr key={cat.id} style={{ borderBottom: i < categories.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                 <td style={{ padding: '12px 14px' }}>
-                  <div style={{ width: 24, height: 24, borderRadius: 6, background: cat.accentColor }} />
+                  <div style={{ width: 24, height: 24, borderRadius: 6, background: (cat.accentColor || '#cccccc'), border: '1px solid rgba(0,0,0,0.1)' }} />
                 </td>
                 <td style={{ padding: '12px 14px', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{cat.name}</td>
                 <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{cat.slug}</td>
@@ -180,7 +190,7 @@ export default function AdminCategoriesPage() {
                 <td style={{ padding: '12px 14px', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-secondary)', textAlign: 'center' }}>{cat.articleCount ?? '—'}</td>
                 <td style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => { setEditing(cat); setIsNew(false); }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
+                    <button onClick={() => { setEditing({ ...cat, accentColor: cat.accentColor || '#1B6B3A' }); setIsNew(false); }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
                     <button onClick={() => handleDelete(cat.id)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
                   </div>
                 </td>
