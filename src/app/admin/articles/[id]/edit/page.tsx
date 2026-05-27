@@ -1,17 +1,20 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, Eye, X, Loader2, Search } from 'lucide-react';
 
 interface DbAuthor { id: string; name: string; }
 interface DbCategory { id: string; name: string; }
-interface Props { params: Promise<{ id: string }> }
 
-export default function EditArticlePage({ params }: Props) {
-  const { id } = use(params);
+export default function EditArticlePage() {
+  const params = useParams();
   const router = useRouter();
+  const id = params.id as string;
+  
+  const [hasHistory, setHasHistory] = useState(false);
+  useEffect(() => { setHasHistory(window.history.length > 1); }, []);
 
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -102,7 +105,8 @@ export default function EditArticlePage({ params }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Save failed');
-      router.push('/admin/articles');
+      if (hasHistory) router.back();
+      else router.push('/admin/articles');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Save failed');
     } finally {

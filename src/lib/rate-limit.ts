@@ -5,6 +5,14 @@
  */
 const store = new Map<string, { count: number; resetAt: number }>();
 
+/** Evict all expired entries when the store grows large (lazy GC). */
+function maybePrune(now: number) {
+  if (store.size < 5_000) return;
+  for (const [key, val] of store) {
+    if (now > val.resetAt) store.delete(key);
+  }
+}
+
 export function rateLimit(
   ip: string,
   namespace: string,
@@ -13,6 +21,9 @@ export function rateLimit(
 ): { limited: boolean; retryAfterSec: number } {
   const id = `${namespace}:${ip}`;
   const now = Date.now();
+
+  maybePrune(now);
+
   const entry = store.get(id);
 
   if (!entry || now > entry.resetAt) {

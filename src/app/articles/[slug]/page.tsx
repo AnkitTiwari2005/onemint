@@ -18,7 +18,13 @@ import { Clock, BookOpen } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildArticle, buildBreadcrumbs } from '@/lib/jsonld';
 
-export const dynamic = 'force-dynamic';
+// ISR: cache each article page for up to 1 hour.
+// On the next request after expiry, Next.js re-fetches from Supabase in the background.
+// This eliminates per-request DB reads while keeping content fresh.
+export const revalidate = 3600;
+
+// Allow on-demand slug rendering (new articles don't need a redeploy)
+export const dynamicParams = true;
 
 /** Slugify a heading text into an HTML-safe id */
 function headingId(text: string): string {
