@@ -140,9 +140,10 @@ export default function NewArticlePage() {
         body: JSON.stringify({
           title: title.trim(),
           slug: finalSlug,
-          excerpt: deck.trim(),
+          deck: deck.trim() || null,
+          excerpt: deck.trim() || '',   // keep excerpt in sync for backward compat
           content: body,
-          cover_image: featuredImage,
+          cover_image: featuredImage || null,
           category_id: category || null,
           author_id: author || null,
           tags,

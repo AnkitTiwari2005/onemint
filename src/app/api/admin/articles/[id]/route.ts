@@ -45,7 +45,20 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const updates: Record<string, unknown> = { ...body, updated_at: new Date().toISOString() };
+
+    // Whitelist only safe, user-editable fields — never allow id / created_at etc.
+    const updates: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    const allowed = [
+      'title', 'slug', 'deck', 'excerpt', 'content', 'cover_image',
+      'status', 'category_id', 'author_id', 'tags',
+      'meta_title', 'meta_description', 'published_at',
+      'read_time_minutes',
+    ];
+    for (const key of allowed) {
+      if (key in body) updates[key] = body[key];
+    }
 
     // Auto-set published_at when publishing for the first time
     if (body.status === 'published' && !body.published_at) {

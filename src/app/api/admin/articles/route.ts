@@ -38,13 +38,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
+    const candidateSlug = (body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).slice(0, 80);
+
+    // Check slug uniqueness before insert — gives a clear error instead of a DB crash
+    const { data: existing } = await supabaseAdmin
+      .from('articles')
+      .select('id')
+      .eq('slug', candidateSlug)
+      .maybeSingle();
+    if (existing) {
+      return NextResponse.json({ error: `Slug "${candidateSlug}" is already taken. Choose a different slug.` }, { status: 409 });
+    }
+
     const isPublished = body.status === 'published';
 
     const { data, error } = await supabaseAdmin
       .from('articles')
       .insert([{
         title: body.title.trim(),
-        slug: body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        slug: candidateSlug,
         deck: body.deck || null,
         excerpt: body.excerpt || '',
         content: body.content || '',

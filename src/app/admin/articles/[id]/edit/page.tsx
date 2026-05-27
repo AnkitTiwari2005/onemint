@@ -20,6 +20,7 @@ export default function EditArticlePage({ params }: Props) {
 
   const [title, setTitle] = useState('');
   const [deck, setDeck] = useState('');
+  const [coverImage, setCoverImage] = useState('');
   const [body, setBody] = useState('');
   const [slug, setSlug] = useState('');
   const [status, setStatus] = useState('published');
@@ -44,6 +45,7 @@ export default function EditArticlePage({ params }: Props) {
         if (!data) return;
         setTitle(data.title || '');
         setDeck(data.deck || data.subtitle || '');
+        setCoverImage(data.cover_image || '');
         setBody(data.content || data.body || '');
         setSlug(data.slug || '');
         setStatus(data.status || 'published');
@@ -75,6 +77,9 @@ export default function EditArticlePage({ params }: Props) {
   };
 
   const save = async () => {
+    const trimmedSlug = slug.trim();
+    if (!title.trim()) { setSaveError('Title is required'); return; }
+    if (!trimmedSlug) { setSaveError('Slug cannot be empty'); return; }
     setSaving(true);
     setSaveError('');
     try {
@@ -83,8 +88,9 @@ export default function EditArticlePage({ params }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
-          slug: slug || undefined,
+          slug: trimmedSlug,
           deck: deck || null,
+          cover_image: coverImage || null,
           content: body,
           status,
           category_id: category || null,
@@ -92,7 +98,6 @@ export default function EditArticlePage({ params }: Props) {
           tags,
           meta_title: metaTitle,
           meta_description: metaDesc,
-          updated_at: new Date().toISOString(),
         }),
       });
       const data = await res.json();
@@ -165,6 +170,23 @@ export default function EditArticlePage({ params }: Props) {
               ))}
             </div>
             <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={addTag} placeholder="Type + Enter" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          {/* Featured Image */}
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 16 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Featured Image</label>
+            <input
+              type="url"
+              value={coverImage}
+              onChange={e => setCoverImage(e.target.value)}
+              placeholder="https://… or paste URL"
+              style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
+            />
+            {coverImage && (
+              <div style={{ position: 'relative', marginTop: 8 }}>
+                <img src={coverImage} alt="Cover preview" style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 6 }} onError={e => (e.currentTarget.style.display = 'none')} />
+                <button onClick={() => setCoverImage('')} title="Remove image" style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>✕</button>
+              </div>
+            )}
           </div>
           {/* SEO Meta */}
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
