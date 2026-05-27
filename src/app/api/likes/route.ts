@@ -3,6 +3,12 @@ import { supabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
 import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
+/** Build a pseudonymous fingerprint from IP + User-Agent (no PII stored). */
+function buildFingerprint(req: NextRequest): string {
+  const ip = getClientIP(req);
+  const ua = req.headers.get('user-agent') || '';
+  return crypto.createHash('sha256').update(`${ip}:${ua}`).digest('hex').slice(0, 32);
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,7 +20,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ liked: false, count: 0, source: 'unavailable' });
     }
 
-    const fingerprint = getFingerprint(req);
+    const fingerprint = buildFingerprint(req);
+
     const [likeRes, countRes] = await Promise.all([
       supabaseAdmin
         .from('article_likes')
@@ -49,12 +56,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const ip = getClientIP(req);
-    const fingerprint = crypto.createHash('sha256')
-      .update(`${ip}:${req.headers.get('user-agent') || ''}`)
-      .digest('hex').slice(0, 32);
+    const fingerprint = buildFingerprint(req);
 
-    // Rate limit: max 20 toggles per fingerprint per hour
+    // Rate limit: max 20 like-toggles per fingerprint per hour
     const { limited } = rateLimit(fingerprint, 'likes', 20, 60 * 60 * 1000);
     if (limited) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
