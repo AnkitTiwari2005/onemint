@@ -76,7 +76,7 @@ export async function fetchPublishedArticles(): Promise<{
       const { data, error } = await supabaseAdmin
         .from('articles')
         .select(
-          'id, title, slug, excerpt, cover_image, featured, ' +
+          'id, title, slug, excerpt, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
           'categories(id, name, slug, accent_color, light_color), ' +
           'authors(id, name, slug, avatar, role)'
