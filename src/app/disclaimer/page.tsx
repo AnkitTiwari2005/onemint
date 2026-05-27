@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -180,13 +180,13 @@ export default function DisclaimerPage() {
         <h2 id="contact">8. Contact</h2>
         <p>
           If you find any factual error or have concerns about content on OneMint, please contact us
-          at <a href="mailto:editorial@onemint.com">editorial@onemint.com</a>. We take editorial
+          at <a href="mailto:contact@onemint.in">contact@onemint.in</a>. We take editorial
           accuracy seriously and will investigate and correct errors promptly.
         </p>
         <p>
-          For legal matters: <a href="mailto:legal@onemint.com">legal@onemint.com</a>.
+          For legal matters: <a href="mailto:contact@onemint.in">contact@onemint.in</a>.
           For privacy concerns: <Link href="/privacy-policy">Privacy Policy</Link> |{' '}
-          <a href="mailto:privacy@onemint.com">privacy@onemint.com</a>.
+          <a href="mailto:contact@onemint.in">contact@onemint.in</a>.
         </p>
       </div>
     </div>

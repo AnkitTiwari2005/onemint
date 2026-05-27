@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,7 +55,7 @@ export default function FinancialHealthPage() {
   };
 
   const shareScore = () => {
-    const text = `I scored ${totalScore}/100 on OneMint's Financial Health Quiz! Grade: ${grade.label} ${grade.emoji}\n\nCheck your score at onemint.com/tools/financial-health`;
+    const text = `I scored ${totalScore}/100 on OneMint's Financial Health Quiz! Grade: ${grade.label} ${grade.emoji}\n\nCheck your score at onemint.in/tools/financial-health`;
     if (navigator.share) {
       navigator.share({ text });
     } else {

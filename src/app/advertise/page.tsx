@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Advertise with OneMint',
@@ -66,10 +66,10 @@ export default function AdvertisePage() {
             Reach out with your brief and we&apos;ll respond with a custom media kit within 2 business days.
           </p>
           <a
-            href="mailto:advertise@onemint.in"
+            href="mailto:contact@onemint.in"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 10, background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, textDecoration: 'none', wordBreak: 'break-all' }}
           >
-            advertise@onemint.in →
+            contact@onemint.in →
           </a>
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', marginTop: 16, lineHeight: 1.5 }}>
             We respond within 2 business days. Please include your campaign objective, target audience, and estimated budget.

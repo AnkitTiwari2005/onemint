@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Press & Media — OneMint',
-  description: 'Press contacts, media kit, and OneMint in the news. For media inquiries email press@onemint.in.',
+  description: 'Press contacts, media kit, and OneMint in the news. For media inquiries email contact@onemint.in.',
 };
 
 
@@ -28,10 +28,10 @@ export default function PressPage() {
           OneMint is India&apos;s trusted source for financial literacy, technology explainers, health guidance, and more. For press inquiries, speaking requests, and partnership discussions, please reach us below.
         </p>
         <a
-          href="mailto:press@onemint.in"
+          href="mailto:contact@onemint.in"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 8, background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}
         >
-          press@onemint.in
+          contact@onemint.in
         </a>
       </div>
 
@@ -56,7 +56,7 @@ export default function PressPage() {
       <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '28px 32px', marginBottom: 48 }}>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.7 }}>
           We&apos;re building our press archive. If you&apos;ve covered OneMint, please email us at{' '}
-          <a href="mailto:press@onemint.in" style={{ color: 'var(--color-accent)' }}>press@onemint.in</a>{' '}
+          <a href="mailto:contact@onemint.in" style={{ color: 'var(--color-accent)' }}>contact@onemint.in</a>{' '}
           and we&apos;ll add your coverage here.
         </p>
       </div>

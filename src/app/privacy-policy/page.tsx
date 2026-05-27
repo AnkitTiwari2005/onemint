@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { TableOfContents } from '@/components/TableOfContents';
 
 export const metadata: Metadata = {
@@ -295,7 +295,7 @@ export default function PrivacyPolicyPage() {
           </ul>
           <p>
             To exercise any of these rights, email us at{' '}
-            <a href="mailto:privacy@onemint.com">privacy@onemint.com</a>. We will respond within 30
+            <a href="mailto:contact@onemint.in">contact@onemint.in</a>. We will respond within 30
             days.
           </p>
 
@@ -305,7 +305,7 @@ export default function PrivacyPolicyPage() {
             personal information from children under 13. If we become aware that a child under 13 has
             provided us personal data, we will delete it immediately. If you are a parent or guardian
             and believe your child has submitted information to us, please contact us at{' '}
-            <a href="mailto:privacy@onemint.com">privacy@onemint.com</a>.
+            <a href="mailto:contact@onemint.in">contact@onemint.in</a>.
           </p>
 
           <h2 id="policy-changes" style={{ scrollMarginTop: 90 }}>9. Changes to This Policy</h2>
@@ -323,7 +323,7 @@ export default function PrivacyPolicyPage() {
           <ul>
             <li>
               <strong>Email:</strong>{' '}
-              <a href="mailto:privacy@onemint.com">privacy@onemint.com</a>
+              <a href="mailto:contact@onemint.in">contact@onemint.in</a>
             </li>
             <li>
               <strong>Subject line:</strong> &ldquo;Privacy Request — [your name]&rdquo;

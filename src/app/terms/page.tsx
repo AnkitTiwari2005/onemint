@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -78,7 +78,7 @@ export default function TermsPage() {
       <div className="article-body">
         <h2 id="acceptance">1. Acceptance of Terms</h2>
         <p>
-          By accessing or using the OneMint website (<strong>onemint.com</strong>), you agree to comply
+          By accessing or using the OneMint website (<strong>onemint.in</strong>), you agree to comply
           with and be bound by these Terms of Service and our Privacy Policy. If you do not agree to
           these terms, please do not use our website. These terms apply to all visitors, readers, and
           anyone who accesses or uses OneMint.
@@ -221,7 +221,7 @@ export default function TermsPage() {
         <h2 id="contact">11. Contact</h2>
         <p>
           For legal inquiries or permissions requests, contact us at:{' '}
-          <a href="mailto:legal@onemint.com">legal@onemint.com</a>
+          <a href="mailto:contact@onemint.in">contact@onemint.in</a>
         </p>
       </div>
     </div>
