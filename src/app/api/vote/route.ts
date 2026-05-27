@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
+  // 10 votes per hour per IP
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'vote', 10, 60 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { error: `Too many votes. Try again in ${Math.ceil(retryAfterSec / 60)} minutes.` },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
   try {
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
@@ -31,7 +40,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, alreadyVoted: true });
       }
       console.error('[Vote] Insert error:', insertError.message);
-      return NextResponse.json({ error: insertError.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to record vote. Please try again.' }, { status: 500 });
     }
 
     // Await RPC before responding — ensures count is consistent with insert

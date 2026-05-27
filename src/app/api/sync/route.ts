@@ -4,8 +4,11 @@ import { typesenseAdmin } from '@/lib/typesense';
 
 /** Validate that callers provide the correct internal service secret */
 function authorizeServiceCall(req: NextRequest): boolean {
-  const syncSecret = process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '';
-  if (!syncSecret) return false; // fail closed if not configured
+  const syncSecret = process.env.SYNC_SECRET || '';
+  if (!syncSecret) {
+    console.warn('[Sync] SYNC_SECRET env var is not set — all sync requests will be rejected');
+    return false; // fail closed
+  }
   return req.headers.get('x-sync-secret') === syncSecret;
 }
 

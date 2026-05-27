@@ -122,10 +122,11 @@ export default function AdminArticlesPage() {
           <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-ink-tertiary)' }} />
           <input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} placeholder="Search articles…" style={{ width: '100%', padding: '9px 12px 9px 34px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
         </div>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
+        <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }} style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface)', fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink)', cursor: 'pointer' }}>
           <option value="all">All Status</option>
           <option value="published">Published</option>
           <option value="draft">Draft</option>
+          <option value="archived">Archived</option>
         </select>
       </div>
 
@@ -155,6 +156,7 @@ export default function AdminArticlesPage() {
                   const cat = categories.find(c => c.id === a.category_id);
                   const badge = statusBadge(a.status);
                   const dateStr = (a.published_at || a.created_at || '').slice(0, 10);
+                  const dateDisplay = dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
                   return (
                     <tr key={a.id} style={{ borderTop: '1px solid var(--color-border)', background: i % 2 === 1 ? 'var(--color-surface-alt)' : 'transparent' }}>
                       <td style={{ padding: '12px 16px', maxWidth: 280 }}>
@@ -171,7 +173,7 @@ export default function AdminArticlesPage() {
                           ) : null;
                         })()}
                       </td>
-                      <td style={{ padding: '12px 16px', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap' }}>{dateStr}</td>
+                      <td style={{ padding: '12px 16px', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', whiteSpace: 'nowrap' }}>{dateDisplay}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: badge.background, color: badge.color, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600 }}>{badge.label}</span>
                       </td>
