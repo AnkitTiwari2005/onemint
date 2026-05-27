@@ -6,7 +6,7 @@ export async function GET() {
     if (!supabaseAdmin) return NextResponse.json([]);
     const { data, error } = await supabaseAdmin
       .from('contact_messages').select('*').order('created_at', { ascending: false });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: 'Database error' }, { status: 500 });
     return NextResponse.json(data || []);
   } catch { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }); }
 }

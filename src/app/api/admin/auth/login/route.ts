@@ -2,27 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { randomBytes, createHmac } from 'crypto';
 import { ENV } from '@/lib/env';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-// --- Simple in-memory rate limiter (max 10 attempts / 15 min per IP) ---
-// Note: resets across serverless cold-starts — good enough for basic protection.
-const loginAttempts = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = { max: 10, windowMs: 15 * 60 * 1000 };
-
-function checkRateLimit(ip: string): { limited: boolean; retryAfterSec: number } {
-  const now = Date.now();
-  const entry = loginAttempts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + RATE_LIMIT.windowMs });
-    return { limited: false, retryAfterSec: 0 };
-  }
-  entry.count++;
-  if (entry.count > RATE_LIMIT.max) {
-    return { limited: true, retryAfterSec: Math.ceil((entry.resetAt - now) / 1000) };
-  }
-  return { limited: false, retryAfterSec: 0 };
-}
 
 /**
  * Generate a signed session token using HMAC-SHA256.
@@ -38,12 +21,8 @@ function generateToken(secret: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit by IP
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      req.headers.get('x-real-ip') ||
-      'unknown';
-    const { limited, retryAfterSec } = checkRateLimit(ip);
+    const ip = getClientIP(req);
+    const { limited, retryAfterSec } = rateLimit(ip, 'admin-login', 10, 15 * 60 * 1000);
     if (limited) {
       return NextResponse.json(
         { error: `Too many login attempts. Try again in ${retryAfterSec}s.` },

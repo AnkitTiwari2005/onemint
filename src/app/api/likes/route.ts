@@ -1,29 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
-// Simple in-memory rate limit: max 20 like-toggles per fingerprint per hour
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 20;
-const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-
-function getFingerprint(req: NextRequest): string {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  const ua = req.headers.get('user-agent') || '';
-  return crypto.createHash('sha256').update(`${ip}:${ua}`).digest('hex').slice(0, 32);
-}
-
-function checkRateLimit(fingerprint: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(fingerprint);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(fingerprint, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true; // allowed
-  }
-  if (entry.count >= RATE_LIMIT) return false; // blocked
-  entry.count++;
-  return true;
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -70,10 +49,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }
 
-    const fingerprint = getFingerprint(req);
+    const ip = getClientIP(req);
+    const fingerprint = crypto.createHash('sha256')
+      .update(`${ip}:${req.headers.get('user-agent') || ''}`)
+      .digest('hex').slice(0, 32);
 
-    // Rate limit check
-    if (!checkRateLimit(fingerprint)) {
+    // Rate limit: max 20 toggles per fingerprint per hour
+    const { limited } = rateLimit(fingerprint, 'likes', 20, 60 * 60 * 1000);
+    if (limited) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 

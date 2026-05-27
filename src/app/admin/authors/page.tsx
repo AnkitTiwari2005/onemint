@@ -276,7 +276,11 @@ export default function AdminAuthorsPage() {
                 </td>
                 <td style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => { setEditing(author); setIsNew(false); }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
+                    <button onClick={() => {
+                      const raw = author as unknown as Record<string, unknown>;
+                      setEditing({ ...author, joinedDate: String(raw.joined_date ?? raw.joinedDate ?? '') });
+                      setIsNew(false);
+                    }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
                     <Link href={`/author/${author.slug}`} target="_blank" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', display: 'flex', alignItems: 'center' }}><ExternalLink size={13} /></Link>
                     <button onClick={() => handleDelete(author.id)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
                   </div>

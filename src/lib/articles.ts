@@ -76,10 +76,10 @@ export async function fetchPublishedArticles(): Promise<{
       const { data, error } = await supabaseAdmin
         .from('articles')
         .select(
-          'id, title, slug, excerpt, content, cover_image, ' +
+          'id, title, slug, excerpt, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
-          'categories(id, name, slug), ' +
-          'authors(id, name, slug, avatar, role, bio, twitter, linkedin)'
+          'categories(id, name, slug, accent_color, light_color), ' +
+          'authors(id, name, slug, avatar, role)'
         )
         .eq('status', 'published')
         .order('published_at', { ascending: false });
@@ -124,7 +124,8 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
         .select(
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
-          'categories(id, name, slug), ' +
+          'meta_title, meta_description, ' +
+          'categories(id, name, slug, accent_color, light_color), ' +
           'authors(id, name, slug, avatar, role, bio, twitter, linkedin)'
         )
         .eq('slug', slug)

@@ -7,13 +7,20 @@ export async function GET() {
       return NextResponse.json({ error: 'DB not configured', categories: [], degraded: true }, { status: 503 });
     }
     const { data, error } = await supabaseAdmin
-      .from('categories').select('*').order('name', { ascending: true });
+      .from('categories')
+      .select('*, articles(count)')
+      .order('name', { ascending: true });
     if (error) {
       console.error('[Admin categories GET]', error.message);
-      return NextResponse.json({ error: error.message, categories: [], degraded: true }, { status: 500 });
+      return NextResponse.json({ error: 'Database error', categories: [], degraded: true }, { status: 500 });
     }
-    // Return DB categories (may be empty if not yet seeded — caller should show seed prompt)
-    return NextResponse.json(data ?? []);
+    // Normalize: flatten nested article count + snake_case accent_color
+    const normalized = (data ?? []).map((c) => ({
+      ...c,
+      accentColor: c.accent_color || '#1B6B3A',
+      articleCount: Array.isArray(c.articles) ? (c.articles[0]?.count ?? 0) : 0,
+    }));
+    return NextResponse.json(normalized);
   } catch (err) {
     console.error('[Admin categories GET] Unexpected:', err);
     return NextResponse.json([]);

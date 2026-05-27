@@ -156,14 +156,18 @@ export default function AdminNewsletterPage() {
               >
                 <Send size={14} /> Send to {active.toLocaleString()} subscribers
               </button>
-              <a
-                href={`data:text/html;charset=utf-8,${encodeURIComponent(htmlBody)}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', border: '1px solid var(--color-border)', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, cursor: 'pointer', textDecoration: 'none' }}
+              <button
+                onClick={() => {
+                  if (!htmlBody.trim()) return;
+                  const blob = new Blob([htmlBody], { type: 'text/html' });
+                  const url = URL.createObjectURL(blob);
+                  const w = window.open(url, '_blank');
+                  if (w) setTimeout(() => URL.revokeObjectURL(url), 10000);
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', border: '1px solid var(--color-border)', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
               >
                 <Eye size={14} /> Preview HTML
-              </a>
+              </button>
             </div>
           </div>
         </div>

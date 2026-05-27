@@ -68,7 +68,9 @@ async function sendAuthorWelcomeEmail(name: string, email: string, slug: string)
       const body = await res.json().catch(() => ({}));
       console.error('[Admin authors] Welcome email failed:', JSON.stringify(body));
     } else {
-      console.log('[Admin authors] Welcome email sent to', email);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[Admin authors] Welcome email sent to', email);
+      }
     }
   } catch (err) {
     console.error('[Admin authors] Welcome email exception:', err);
@@ -79,12 +81,19 @@ export async function GET() {
   try {
     if (!supabaseAdmin) return NextResponse.json([], { status: 503 });
     const { data, error } = await supabaseAdmin
-      .from('authors').select('*').order('name', { ascending: true });
+      .from('authors')
+      .select('*, articles(count)')
+      .order('name', { ascending: true });
     if (error) {
       console.error('[Admin authors GET]', error.message);
       return NextResponse.json([], { status: 500 });
     }
-    return NextResponse.json(data ?? []);
+    const normalized = (data ?? []).map((a) => ({
+      ...a,
+      articleCount: Array.isArray(a.articles) ? (a.articles[0]?.count ?? 0) : 0,
+      joinedDate: a.joined_date ?? '',
+    }));
+    return NextResponse.json(normalized);
   } catch (err) {
     console.error('[Admin authors GET] Unexpected:', err);
     return NextResponse.json([]);

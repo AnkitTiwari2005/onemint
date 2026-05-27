@@ -6,9 +6,12 @@ export async function GET() {
     if (!supabaseAdmin) return NextResponse.json([]);
     const { data, error } = await supabaseAdmin
       .from('series').select('*').order('created_at', { ascending: false });
-    if (error) return NextResponse.json([]);
+    if (error) {
+      console.error('[Admin series GET]', error.message);
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    }
     return NextResponse.json(data || []);
-  } catch { return NextResponse.json([]); }
+  } catch { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }); }
 }
 
 export async function POST(req: NextRequest) {

@@ -14,7 +14,7 @@ export async function GET() {
       .order('votes', { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     return NextResponse.json(data || []);
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest) {
       .eq('id', id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
@@ -70,7 +70,7 @@ export async function DELETE(req: NextRequest) {
       .eq('id', id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

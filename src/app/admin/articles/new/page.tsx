@@ -133,7 +133,7 @@ export default function NewArticlePage() {
         ? rawSlug.slice(0, 51).replace(/-[^-]*$/, '')
         : rawSlug;
       const finalSlug = truncated || rawSlug.slice(0, 50);
-      const finalStatus = publish ? 'published' : status;
+      const finalStatus = publish ? 'published' : 'draft';
       const res = await fetch('/api/admin/articles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -391,7 +391,7 @@ export default function NewArticlePage() {
         <button onClick={() => saveArticle(true)} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />} Publish
         </button>
-        <button onClick={() => title && window.open(`/articles/${title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`, '_blank')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
+        <button onClick={() => slug && window.open(`/articles/${slug}`, '_blank')} disabled={!slug} title={slug ? `Preview /articles/${slug}` : 'Save first to preview'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: slug ? 'var(--color-ink-secondary)' : 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: slug ? 'pointer' : 'not-allowed', opacity: slug ? 1 : 0.5 }}>
           <Eye size={14} /> Preview
         </button>
       </div>
