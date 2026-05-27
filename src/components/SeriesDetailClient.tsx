@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { articles } from '@/data/articles';
 import { categories } from '@/data/categories';
 import { Clock, CheckCircle2, ArrowRight, ArrowLeft, BookOpen, Play } from 'lucide-react';
@@ -61,7 +62,7 @@ export function SeriesDetailClient({ series: s }: Props) {
 
       {/* Hero */}
       <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', marginBottom: 40, height: 240 }}>
-        <img src={s.coverImage} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <Image src={s.coverImage} alt={s.name} fill style={{ objectFit: 'cover' }} unoptimized={s.coverImage.startsWith('http')} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)' }} />
         <div style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}>
           {cat && (

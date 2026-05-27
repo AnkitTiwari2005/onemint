@@ -153,7 +153,6 @@ export default function AdminArticlesPage() {
                 {paged.length === 0 ? (
                   <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-tertiary)' }}>{query ? 'No articles match your search.' : 'No articles yet. Create your first one!'}</td></tr>
                 ) : paged.map((a, i) => {
-                  const cat = categories.find(c => c.id === a.category_id);
                   const badge = statusBadge(a.status);
                   const dateStr = (a.published_at || a.created_at || '').slice(0, 10);
                   const dateDisplay = dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';

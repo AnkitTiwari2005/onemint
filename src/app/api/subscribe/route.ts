@@ -80,7 +80,9 @@ async function sendWelcomeEmail(email: string, name: string): Promise<void> {
     const body = await res.json().catch(() => ({}));
     console.error('[Subscribe] Welcome email failed:', JSON.stringify(body));
   } else {
-    console.log('[Subscribe] Welcome email sent to', email);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[Subscribe] Welcome email sent to', email);
+    }
   }
 }
 

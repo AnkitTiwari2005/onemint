@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Clock, BookOpen, ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -65,7 +66,7 @@ export default function SeriesProgressClient({ series: s, cat }: Props) {
       {/* Cover Image */}
       <div style={{ position: 'relative', height: 180, overflow: 'hidden' }}>
         {s.coverImage ? (
-          <img src={s.coverImage} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <Image src={s.coverImage} alt={s.name} fill style={{ objectFit: 'cover' }} unoptimized={s.coverImage.startsWith('http')} />
         ) : (
           <div style={{ width: '100%', height: '100%', background: cat ? cat.accentColor : 'var(--color-accent)', opacity: 0.15 }} />
         )}

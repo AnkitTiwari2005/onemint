@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { articles as staticArticles } from '@/data/articles';
 import { categories as staticCategories } from '@/data/categories';
 import { authors as staticAuthors } from '@/data/authors';
+import { series as staticSeries } from '@/data/series';
 
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').replace(/\/$/, '');
 
@@ -158,6 +159,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  // ── Series ────────────────────────────────────────────────────────────────
+  let seriesPages: MetadataRoute.Sitemap;
+  try {
+    const dbSeries = supabaseAdmin
+      ? await supabaseAdmin
+          .from('series')
+          .select('slug, updated_at')
+          .eq('status', 'published')
+          .then(({ data }) => data)
+      : null;
+    const seriesSlugs = dbSeries && dbSeries.length > 0
+      ? dbSeries.map((s: { slug: string; updated_at: string | null }) => ({ slug: s.slug, updated: s.updated_at }))
+      : staticSeries.map(s => ({ slug: s.slug, updated: null }));
+    seriesPages = seriesSlugs.map(({ slug, updated }) => ({
+      url: `${BASE}/series/${slug}`,
+      lastModified: updated ? new Date(updated) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+  } catch {
+    seriesPages = staticSeries.map(s => ({
+      url: `${BASE}/series/${s.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+  }
+
   return [
     ...staticPages,
     ...articlePages,
@@ -165,5 +194,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...authorPages,
     ...toolPages,
     ...tagPages,
+    ...seriesPages,
   ];
 }
