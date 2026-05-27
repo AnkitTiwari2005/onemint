@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Save, CheckCircle2, Loader2 } from 'lucide-react';
@@ -72,6 +72,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULTS);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const set = (key: keyof SettingsState, value: string | boolean | number) =>
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -100,13 +101,15 @@ export default function AdminSettingsPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(`Save failed: ${err.error || 'Unknown error'}`);
+        setSaveError(`Save failed: ${err.error || 'Unknown error'}`);
+        setTimeout(() => setSaveError(''), 4000);
         return;
       }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      alert('Failed to save settings. Check your connection.');
+      setSaveError('Failed to save settings. Check your connection.');
+      setTimeout(() => setSaveError(''), 4000);
     } finally {
       setSaving(false);
     }
@@ -122,6 +125,7 @@ export default function AdminSettingsPage() {
         <button onClick={saveAll} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--color-accent)', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} {saved ? '✓ Saved' : 'Save Changes'}
         </button>
+        {saveError && <span style={{ fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '6px 12px', borderRadius: 8, fontFamily: 'var(--font-ui)', fontWeight: 500 }}>⚠ {saveError}</span>}
       </div>
 
       <Section title="General">

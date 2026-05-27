@@ -2,23 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { ENV } from '@/lib/env';
 
-// GET /api/admin/articles — list all articles for admin
-export async function GET() {
+// GET /api/admin/articles — list all articles for admin (paginated)
+export async function GET(req: NextRequest) {
   try {
     if (!supabaseAdmin) {
       return NextResponse.json({ error: 'Supabase admin not configured' }, { status: 503 });
     }
 
-    const { data, error } = await supabaseAdmin
+    const { searchParams } = new URL(req.url);
+    const page   = Math.max(1, parseInt(searchParams.get('page')  || '1', 10));
+    const limit  = Math.min(500, Math.max(1, parseInt(searchParams.get('limit') || '200', 10)));
+    const from   = (page - 1) * limit;
+    const to     = from + limit - 1;
+
+    const { data, error, count } = await supabaseAdmin
       .from('articles')
-      .select(`id, title, slug, status, published_at, created_at, category_id, author_id, read_time_minutes, categories(name), authors(name)`)
-      .order('created_at', { ascending: false });
+      .select('id, title, slug, status, published_at, created_at, category_id, author_id, read_time_minutes, categories(name), authors(name)', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[Admin articles GET]', error.message);
+      return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    return NextResponse.json({ articles: data || [], total: count ?? 0, page, limit });
   } catch (err) {
     console.error('[Admin articles GET]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

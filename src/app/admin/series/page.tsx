@@ -24,6 +24,7 @@ export default function AdminSeriesPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [toastMsg, setToastMsg] = useState('');
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -74,7 +75,8 @@ export default function AdminSeriesPage() {
       setEditing(null);
       setIsNew(false);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Save failed — please try again.');
+      setToastMsg(err instanceof Error ? err.message : 'Save failed — please try again.');
+      setTimeout(() => setToastMsg(''), 4000);
     } finally {
       setSaving(false);
     }
@@ -89,7 +91,8 @@ export default function AdminSeriesPage() {
       if (!res.ok) throw new Error('Delete failed');
     } catch {
       setSeries(prev); // rollback
-      alert('Delete failed — please try again.');
+      setToastMsg('Delete failed — please try again.');
+      setTimeout(() => setToastMsg(''), 4000);
     }
   };
 
@@ -232,6 +235,13 @@ export default function AdminSeriesPage() {
           <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 14 }}>No series found</div>
         )}
       </div>
+
+      {/* Toast */}
+      {toastMsg && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          ⚠ {toastMsg}
+        </div>
+      )}
     </div>
   );
 }

@@ -30,6 +30,9 @@ export default function AdminAuthorsPage() {
   const [saveError, setSaveError] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [loading, setLoading] = useState(true);
+  const [toastErr, setToastErr] = useState('');
+
+  const showToast = (msg: string) => { setToastErr(msg); setTimeout(() => setToastErr(''), 4000); };
 
   const loadAuthors = () => {
     setLoading(true);
@@ -117,10 +120,10 @@ export default function AdminAuthorsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
-      if (!res.ok) { const d = await res.json(); alert(d.error || 'Delete failed'); return; }
+      if (!res.ok) { const d = await res.json(); showToast(d.error || 'Delete failed'); return; }
       loadAuthors(); // Refresh from DB
     } catch {
-      alert('Delete failed — please try again');
+      showToast('Delete failed — please try again');
     }
   };
 
@@ -298,6 +301,12 @@ export default function AdminAuthorsPage() {
         </>
         )}
       </div>
+
+      {toastErr && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          ⚠ {toastErr}
+        </div>
+      )}
     </div>
   );
 }

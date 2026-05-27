@@ -42,9 +42,11 @@ export default function AdminArticlesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/articles');
+      const res = await fetch('/api/admin/articles?limit=200');
       const data = await res.json();
-      setAllArticles(Array.isArray(data) ? data : []);
+      // API now returns { articles: [], total: N } — fall back to bare array for safety
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.articles) ? data.articles : []);
+      setAllArticles(list);
     } catch {
       setAllArticles([]);
     } finally {

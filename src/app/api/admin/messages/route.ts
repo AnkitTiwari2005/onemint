@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
     const { error } = await supabaseAdmin
       .from('contact_messages').update({ read: read ?? true }).eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: 'Database error' }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }); }
 }
@@ -29,7 +29,7 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
     const { error } = await supabaseAdmin.from('contact_messages').delete().eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: 'Database error' }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }); }
 }

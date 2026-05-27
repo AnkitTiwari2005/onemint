@@ -154,7 +154,7 @@ export default function AdminNewsletterPage() {
                 }}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: '#7C3AED', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
               >
-                <Send size={14} /> Send to {active.toLocaleString()} subscribers
+                <Send size={14} /> Send to {loading ? '…' : active.toLocaleString()} subscribers
               </button>
               <button
                 onClick={() => {

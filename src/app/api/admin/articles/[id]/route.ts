@@ -73,7 +73,7 @@ export async function PATCH(
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });
     }
 
     // Trigger Typesense sync if publishing (non-blocking)
@@ -113,7 +113,7 @@ export async function DELETE(
       .eq('id', id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to delete article' }, { status: 500 });
     }
 
     // De-index from Typesense so deleted content stops appearing in search

@@ -28,16 +28,61 @@ function calcReadTime(text: string) {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-function mdToHtml(md: string) {
-  return md
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+function mdToHtml(md: string): string {
+  const lines = md.split('\n');
+  const out: string[] = [];
+  let inCode = false;
+  let codeLines: string[] = [];
+  let codeLang = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Fenced code blocks
+    if (line.startsWith('```')) {
+      if (!inCode) { inCode = true; codeLang = line.slice(3).trim(); codeLines = []; continue; }
+      out.push(`<pre style="background:#1e1e2e;color:#cdd6f4;padding:14px 18px;border-radius:8px;overflow-x:auto;font-size:13px;margin:16px 0"><code${codeLang ? ` class="language-${codeLang}"` : ''}>${codeLines.map(l => l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')).join('\n')}</code></pre>`);
+      inCode = false; codeLines = []; continue;
+    }
+    if (inCode) { codeLines.push(line); continue; }
+
+    // Headings
+    const h4 = line.match(/^#### (.+)$/); if (h4) { out.push(`<h4 style="font-size:16px;margin:20px 0 8px">${inline(h4[1])}</h4>`); continue; }
+    const h3 = line.match(/^### (.+)$/);  if (h3) { out.push(`<h3 style="font-size:18px;margin:24px 0 10px">${inline(h3[1])}</h3>`); continue; }
+    const h2 = line.match(/^## (.+)$/);   if (h2) { out.push(`<h2 style="font-size:22px;margin:28px 0 12px">${inline(h2[1])}</h2>`); continue; }
+    const h1 = line.match(/^# (.+)$/);    if (h1) { out.push(`<h1 style="font-size:28px;margin:32px 0 14px">${inline(h1[1])}</h1>`); continue; }
+
+    // HR
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) { out.push('<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">'); continue; }
+
+    // Blockquote
+    const bq = line.match(/^> (.+)$/); if (bq) { out.push(`<blockquote style="border-left:3px solid #9ca3af;margin:16px 0;padding:8px 16px;color:#6b7280;font-style:italic">${inline(bq[1])}</blockquote>`); continue; }
+
+    // Unordered list
+    const ul = line.match(/^[-*+] (.+)$/); if (ul) { out.push(`<li style="margin:4px 0 4px 20px;list-style-type:disc">${inline(ul[1])}</li>`); continue; }
+
+    // Ordered list
+    const ol = line.match(/^\d+\. (.+)$/); if (ol) { out.push(`<li style="margin:4px 0 4px 20px;list-style-type:decimal">${inline(ol[1])}</li>`); continue; }
+
+    // Empty line — paragraph break
+    if (!line.trim()) { out.push('<br>'); continue; }
+
+    // Normal paragraph
+    out.push(`<p style="margin:0 0 12px;line-height:1.7">${inline(line)}</p>`);
+  }
+
+  return out.join('\n');
+}
+
+function inline(text: string): string {
+  return text
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:6px">')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline">$1</a>')
+    .replace(/`([^`]+)`/g, '<code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:0.9em">$1</code>')
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hpb])(.+)$/gm, '<p>$1</p>');
+    .replace(/~~(.+?)~~/g, '<del>$1</del>');
 }
 
 export default function NewArticlePage() {
