@@ -63,28 +63,21 @@ export default function AdminDashboard() {
   const [weeklyChart, setWeeklyChart] = useState<{ day: string; views: number; unique: number }[]>([]);
   const [chartLoading, setChartLoading] = useState(true);
 
+  // Single consolidated fetch for stats + recent articles + top suggestions
   useEffect(() => {
-    fetch('/api/admin/stats')
+    fetch('/api/admin/dashboard')
       .then(r => r.json())
-      .then(d => { if (!d.error) setStats(d); })
+      .then(d => {
+        if (d.stats) setStats(d.stats);
+        if (Array.isArray(d.recentArticles)) setRecentArticles(d.recentArticles);
+        if (Array.isArray(d.topSuggestions)) setSuggestions(d.topSuggestions);
+      })
       .catch(() => {})
-      .finally(() => setStatsLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/admin/suggestions')
-      .then(r => r.json())
-      .then(d => { if (Array.isArray(d)) setSuggestions(d.slice(0, 5)); })
-      .catch(() => {})
-      .finally(() => setSuggestionsLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/admin/articles')
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setRecentArticles(d.slice(0, 5)); })
-      .catch(() => {})
-      .finally(() => setArticlesLoading(false));
+      .finally(() => {
+        setStatsLoading(false);
+        setSuggestionsLoading(false);
+        setArticlesLoading(false);
+      });
   }, []);
 
   useEffect(() => {
