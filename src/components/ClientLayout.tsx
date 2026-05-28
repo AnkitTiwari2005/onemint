@@ -33,12 +33,6 @@ export function ClientLayout({ children }: { children: ReactNode }) {
   // Admin routes get a completely clean slate — no site chrome, no motion wrappers
   const isAdmin = pathname?.startsWith('/admin');
 
-  // Scroll to top instantly on every navigation — prevents the previous page's
-  // scroll position from carrying over into the new page momentarily.
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-  }, [pathname]);
-
   // Keyboard shortcut: Cmd+K / Ctrl+K to open search
   useEffect(() => {
     if (isAdmin) return;
