@@ -15,16 +15,14 @@ import { BackToTop } from '@/components/BackToTop';
 const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 const pageVariants = {
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.32, ease: easeOut },
+    transition: { duration: 0.18, ease: easeOut },
   },
   exit: {
     opacity: 0,
-    y: -8,
-    transition: { duration: 0.2 },
+    transition: { duration: 0.1 },
   },
 };
 
@@ -34,6 +32,12 @@ export function ClientLayout({ children }: { children: ReactNode }) {
 
   // Admin routes get a completely clean slate — no site chrome, no motion wrappers
   const isAdmin = pathname?.startsWith('/admin');
+
+  // Scroll to top instantly on every navigation — prevents the previous page's
+  // scroll position from carrying over into the new page momentarily.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [pathname]);
 
   // Keyboard shortcut: Cmd+K / Ctrl+K to open search
   useEffect(() => {
@@ -58,7 +62,10 @@ export function ClientLayout({ children }: { children: ReactNode }) {
       <ReadingProgressBar />
       <Header onSearchOpen={() => setSearchOpen(true)} />
       <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-      <AnimatePresence mode="wait">
+      {/* initial={false} — prevents opacity-0 flash on first hydration render.
+          mode="sync"   — new page fades in immediately; no dead-black gap
+                          waiting for the old page's exit to finish. */}
+      <AnimatePresence mode="sync" initial={false}>
         <motion.main
           key={pathname}
           id="main-content"
