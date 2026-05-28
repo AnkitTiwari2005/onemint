@@ -247,6 +247,20 @@ function getDurationLabel(duration: string, customFrom?: string, customTo?: stri
   }
 }
 
+// ── SVG strings for the report HTML (inline, no external deps) ───────────────
+const R = {
+  eye:    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  users:  `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  clock:  `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  bounce: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
+  mail:   `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+  file:   `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+  check:  `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  warn:   `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  clock2: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  bar:    `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+};
+
 // ── Premium PDF Report HTML Builder ──────────────────────────────────────────
 function buildReportHTML(
   duration: string,
@@ -285,10 +299,13 @@ function buildReportHTML(
 
   const articleRows = data.topArticles.slice(0, 10).map((a, i) => `
     <tr class="${i % 2 === 0 ? 're' : 'ro'}">
-      <td class="rank">${i + 1}</td>
-      <td class="ttl">${a.title.length > 70 ? a.title.slice(0, 70) + '…' : a.title}</td>
+      <td class="rank"><div class="rank-badge" style="background:${i < 3 ? ['#16A34A','#2563EB','#7C3AED'][i] : '#CBD5E1'}">${i + 1}</div></td>
+      <td class="ttl">${a.title.length > 68 ? a.title.slice(0, 68) + '…' : a.title}</td>
       <td class="vws">${a.views.toLocaleString('en-IN')}</td>
-      <td class="${a.trend === 'up' ? 'tup' : 'tdn'}">${a.trend === 'up' ? '▲' : '▼'}</td>
+      <td class="${a.trend === 'up' ? 'tup' : 'tdn'}">${a.trend === 'up'
+        ? `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`
+        : `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
+      }</td>
     </tr>`).join('');
 
   const deviceRows = data.deviceSplit.map((d, i) => {
@@ -306,252 +323,268 @@ function buildReportHTML(
 <head>
 <meta charset="UTF-8"/>
 <title>OneMint Analytics Report — ${label}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:13px}
 body{font-family:'Inter',-apple-system,sans-serif;background:#fff;color:#0F172A;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
 /* COVER */
-.cover{width:100%;min-height:100vh;background:linear-gradient(140deg,#0B1120 0%,#0F1E38 45%,#05210F 100%);display:flex;flex-direction:column;justify-content:space-between;padding:56px 64px;page-break-after:always;position:relative;overflow:hidden}
-.cover::before{content:'';position:absolute;top:-180px;right:-180px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(22,163,74,.18) 0%,transparent 70%);pointer-events:none}
-.cover::after{content:'';position:absolute;bottom:-140px;left:-140px;width:440px;height:440px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.13) 0%,transparent 70%);pointer-events:none}
-.c-logo{display:flex;align-items:center;gap:12px;z-index:1}
-.c-mark{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#16A34A,#0A5E2A);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff}
-.c-brand{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.cover{width:100%;min-height:100vh;display:flex;flex-direction:column;page-break-after:always;position:relative;overflow:hidden}
+.cover-bg{position:absolute;inset:0;background:linear-gradient(145deg,#060D1A 0%,#0A1628 38%,#071A0E 72%,#060D1A 100%)}
+.g1{position:absolute;top:-140px;right:-140px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(22,163,74,.24) 0%,transparent 65%)}
+.g2{position:absolute;bottom:-110px;left:-110px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.17) 0%,transparent 65%)}
+.g3{position:absolute;top:44%;left:28%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.09) 0%,transparent 65%)}
+.cc{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;min-height:100vh;padding:50px 58px}
+.c-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto}
+.c-logo{display:flex;align-items:center;gap:11px}
+.c-mark{width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,#16A34A,#0A5E2A);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;box-shadow:0 4px 18px rgba(22,163,74,.38)}
+.c-brand{font-size:19px;font-weight:800;color:#fff;letter-spacing:-.02em}
 .c-brand span{color:#4ADE80}
-.c-main{z-index:1}
-.c-badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(22,163,74,.18);border:1px solid rgba(22,163,74,.35);color:#4ADE80;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:20px}
-.c-title{font-size:52px;font-weight:900;color:#fff;line-height:1.04;letter-spacing:-.03em;margin-bottom:10px}
-.c-sub{font-size:17px;font-weight:400;color:rgba(255,255,255,.55);margin-bottom:28px}
-.c-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);color:rgba(255,255,255,.8);font-size:13px;font-weight:500}
-.c-foot{z-index:1}
-.c-gen{font-size:11px;color:rgba(255,255,255,.38);margin-bottom:4px}
-.c-gen strong{color:rgba(255,255,255,.6)}
-.c-disc{font-size:10px;color:rgba(255,255,255,.25)}
+.c-conf{font-size:10px;color:rgba(255,255,255,.32);text-align:right;line-height:1.7;font-weight:500}
+.c-mid{padding:64px 0 32px}
+.c-ey{display:flex;align-items:center;gap:7px;margin-bottom:16px}
+.c-dot{width:5px;height:5px;border-radius:50%;background:#4ADE80}
+.c-ey-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#4ADE80}
+.c-h{font-size:56px;font-weight:900;color:#fff;line-height:1.0;letter-spacing:-.035em;margin-bottom:12px}
+.c-h em{color:#4ADE80;font-style:normal}
+.c-bar{width:44px;height:3px;background:linear-gradient(90deg,#16A34A,#4ADE80);border-radius:999px;margin-bottom:18px}
+.c-p{font-size:15px;color:rgba(255,255,255,.48);line-height:1.7;max-width:440px;margin-bottom:30px}
+.c-pill{display:inline-flex;align-items:center;gap:9px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.75);font-size:13px;font-weight:500;margin-bottom:48px}
+.c-kpis{display:flex;gap:36px}
+.c-kpi-v{font-size:27px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1}
+.c-kpi-l{font-size:11px;color:rgba(255,255,255,.38);margin-top:4px}
+.c-bot{margin-top:auto}
+.c-line{height:1px;background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.18),rgba(255,255,255,.06));margin-bottom:20px}
+.c-foot{display:flex;align-items:center;justify-content:space-between;font-size:11px}
+.c-gen{color:rgba(255,255,255,.34)}
+.c-gen strong{color:rgba(255,255,255,.58)}
+.c-disc{font-size:10px;color:rgba(255,255,255,.2);text-align:right}
 
 /* SECTIONS */
-.sec{padding:44px 56px}
+.sec{padding:38px 52px}
 .sec+.sec{border-top:1px solid #E2E8F0}
-.sec-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#16A34A;margin-bottom:5px}
-.sec-title{font-size:21px;font-weight:800;color:#0F172A;letter-spacing:-.02em}
-.sec-sub{font-size:12px;color:#64748B;margin-top:3px;margin-bottom:24px}
+.stag{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#16A34A;padding:3px 9px;border-radius:999px;background:#F0FDF4;border:1px solid #BBF7D0;margin-bottom:5px}
+.stitle{font-size:19px;font-weight:800;color:#0F172A;letter-spacing:-.02em}
+.ssub{font-size:12px;color:#64748B;margin-top:3px;margin-bottom:18px}
 
-/* METRICS GRID */
-.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
-.mc{padding:18px 20px;border-radius:12px;border:1px solid #E2E8F0;position:relative;overflow:hidden}
-.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+/* METRICS */
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:16px}
+.mc{padding:15px 16px;border-radius:11px;border:1px solid #E2E8F0;background:#fff;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:11px 11px 0 0}
 .mc.g::before{background:linear-gradient(90deg,#16A34A,#4ADE80)}
 .mc.b::before{background:linear-gradient(90deg,#2563EB,#60A5FA)}
 .mc.p::before{background:linear-gradient(90deg,#7C3AED,#A78BFA)}
 .mc.a::before{background:linear-gradient(90deg,#D97706,#FCD34D)}
 .mc.t::before{background:linear-gradient(90deg,#0891B2,#22D3EE)}
 .mc.r::before{background:linear-gradient(90deg,#9D174D,#FB7185)}
-.mi{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:15px}
-.mi.g{background:#DCFCE7}.mi.b{background:#DBEAFE}.mi.p{background:#EDE9FE}.mi.a{background:#FEF3C7}.mi.t{background:#CFFAFE}.mi.r{background:#FFE4E6}
-.mv{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-bottom:3px}
+.mc-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mi{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.mi.g{background:#DCFCE7;color:#16A34A}.mi.b{background:#DBEAFE;color:#2563EB}.mi.p{background:#EDE9FE;color:#7C3AED}
+.mi.a{background:#FEF3C7;color:#D97706}.mi.t{background:#CFFAFE;color:#0891B2}.mi.r{background:#FFE4E6;color:#9D174D}
+.mv{font-size:23px;font-weight:800;letter-spacing:-.02em;margin-bottom:2px}
 .mv.g{color:#16A34A}.mv.b{color:#2563EB}.mv.p{color:#7C3AED}.mv.a{color:#D97706}.mv.t{color:#0891B2}.mv.r{color:#9D174D}
-.ml{font-size:11px;color:#64748B;font-weight:500}
+.ml{font-size:10px;color:#64748B;font-weight:500}
 
 /* ENGAGEMENT */
-.eng-card{padding:18px 20px;border-radius:12px;border:1px solid #E2E8F0;background:linear-gradient(135deg,#F0FDF4,#EFF6FF);display:flex;align-items:center;gap:20px}
-.eng-score{font-size:40px;font-weight:900;letter-spacing:-.03em;flex-shrink:0}
-.eng-right{flex:1}
-.eng-label{font-size:12px;font-weight:700;color:#334155;margin-bottom:6px}
-.eng-track{height:7px;background:#E2E8F0;border-radius:999px;overflow:hidden;margin-bottom:5px}
-.eng-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#16A34A,#4ADE80)}
-.eng-hint{font-size:10px;color:#94A3B8}
+.eng{padding:16px 18px;border-radius:11px;background:linear-gradient(135deg,#F0FDF4,#EFF6FF);border:1px solid #E2E8F0;display:flex;align-items:center;gap:20px}
+.e-ring{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:2.5px solid #E2E8F0}
+.e-n{font-size:18px;font-weight:900;line-height:1}
+.e-d{font-size:9px;color:#94A3B8;font-weight:500}
+.e-right{flex:1}
+.e-lbl{font-size:11px;font-weight:700;color:#334155;margin-bottom:6px}
+.e-track{height:6px;background:#E2E8F0;border-radius:999px;overflow:hidden;margin-bottom:3px}
+.e-fill{height:100%;border-radius:999px}
+.e-hint{font-size:10px;color:#94A3B8;line-height:1.5}
 
 /* INSIGHTS */
-.ins-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:0}
-.ins{padding:14px 16px;border-radius:10px;border-left:3px solid}
-.ins.pos{border-color:#16A34A;background:#F0FDF4}
-.ins.neu{border-color:#2563EB;background:#EFF6FF}
-.ins.wrn{border-color:#D97706;background:#FFFBEB}
-.ins-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:5px}
-.ins-b{font-size:12px;color:#334155;line-height:1.55}
+.ins-row{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.ins{padding:13px 14px;border-radius:10px;border:1px solid}
+.ins.pos{border-color:#BBF7D0;background:linear-gradient(135deg,#F0FDF4,#fff)}
+.ins.neu{border-color:#BFDBFE;background:linear-gradient(135deg,#EFF6FF,#fff)}
+.ins.wrn{border-color:#FDE68A;background:linear-gradient(135deg,#FFFBEB,#fff)}
+.ins-h{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.ins-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#334155}
+.ins-b{font-size:11px;color:#475569;line-height:1.55}
 
 /* CHARTS */
-.chart-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.chart-card{border:1px solid #E2E8F0;border-radius:12px;padding:18px}
-.cc-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:14px}
-.chart-area{display:flex;align-items:flex-end;gap:6px;height:120px;padding-bottom:20px}
+.chart-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart-card{border:1px solid #E2E8F0;border-radius:11px;padding:14px;background:#FAFAFA}
+.cc-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #E2E8F0}
+.chart-area{display:flex;align-items:flex-end;gap:4px;height:100px;padding-bottom:16px}
 .bar-group{display:flex;flex-direction:column;align-items:center;flex:1;height:100%}
-.bar-track{flex:1;width:100%;display:flex;align-items:flex-end;max-width:28px;margin:0 auto}
-.bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:4px}
+.bar-track{flex:1;width:100%;display:flex;align-items:flex-end;max-width:24px;margin:0 auto}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;min-height:3px}
 .bar-fill.green{background:linear-gradient(180deg,#4ADE80,#16A34A)}
 .bar-fill.blue{background:linear-gradient(180deg,#60A5FA,#2563EB)}
-.bar-label{font-size:9px;color:#94A3B8;margin-top:5px;text-align:center;white-space:nowrap}
+.bar-label{font-size:9px;color:#94A3B8;margin-top:4px;text-align:center;white-space:nowrap}
 .bar-val{font-size:8px;color:#CBD5E1;text-align:center;margin-top:1px}
 
-/* ARTICLES TABLE */
-.atbl{width:100%;border-collapse:collapse}
-.atbl thead tr{background:#F8FAFC}
-.atbl th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94A3B8;border-bottom:1px solid #E2E8F0}
-.atbl td{padding:11px 14px;font-size:12px;border-bottom:1px solid #F1F5F9}
-.re{background:#fff}.ro{background:#FAFAFA}
-.rank{width:36px;text-align:center;font-weight:800;color:#CBD5E1}
-.ttl{color:#1E293B;font-weight:500}
-.vws{font-weight:700;color:#2563EB;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.tup{text-align:center;font-weight:700;color:#16A34A;font-size:13px}
-.tdn{text-align:center;font-weight:700;color:#DC2626;font-size:13px}
+/* ARTICLES */
+.atbl{width:100%;border-collapse:collapse;border:1px solid #E2E8F0;border-radius:10px;overflow:hidden}
+.atbl thead tr{background:linear-gradient(90deg,#F8FAFC,#F1F5F9)}
+.atbl th{padding:9px 13px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94A3B8;border-bottom:2px solid #E2E8F0}
+.atbl td{padding:11px 13px;font-size:12px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+.re{background:#fff}.ro{background:#FAFBFC}
+.rank{width:42px;text-align:center}
+.rbadge{width:21px;height:21px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;margin:0 auto}
+.ttl{color:#1E293B;font-weight:500;line-height:1.4}
+.vws{font-weight:800;color:#2563EB;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:12px}
+.tup,.tdn{text-align:center;vertical-align:middle}
 
 /* AUDIENCE */
-.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.aud-card{border:1px solid #E2E8F0;border-radius:12px;padding:18px}
-.aud-card-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:16px}
-.aud-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.aud-name{font-size:12px;color:#334155;width:72px;flex-shrink:0;font-weight:500}
+.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.aud-card{border:1px solid #E2E8F0;border-radius:11px;padding:14px;background:#FAFAFA}
+.aud-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid #E2E8F0}
+.aud-row{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.aud-name{font-size:11px;color:#334155;width:68px;flex-shrink:0;font-weight:500}
 .aud-track{flex:1;height:7px;background:#F1F5F9;border-radius:999px;overflow:hidden}
 .aud-fill{height:100%;border-radius:999px}
-.aud-pct{font-size:11px;font-weight:700;color:#0F172A;width:34px;text-align:right}
-.src-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.aud-pct{font-size:11px;font-weight:800;width:34px;text-align:right}
+.src-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
-/* PAGE FOOTER */
-.pfooter{margin-top:40px;padding-top:16px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94A3B8}
+/* FOOTER */
+.pfooter{padding-top:14px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94A3B8}
 .pfooter strong{color:#475569}
+.wm{text-align:center;padding:16px 0 4px;font-size:10px;color:#E2E8F0;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 
-@page{size:A4;margin:12mm 0}
-@media print{
-  .sec{page-break-inside:avoid}
-  body{font-size:12px}
-}
+@page{size:A4;margin:10mm 0}
+@media print{.sec{page-break-inside:avoid}body{font-size:12px}}
 </style>
 </head>
 <body>
 
-<!-- ── COVER ─────────────────────────────────────────────────────────────── -->
+<!-- COVER -->
 <div class="cover">
-  <div class="c-logo">
-    <div class="c-mark">O</div>
-    <div class="c-brand">One<span>Mint</span></div>
-  </div>
-  <div class="c-main">
-    <div class="c-badge">Analytics Report</div>
-    <h1 class="c-title">Performance<br/>Dashboard</h1>
-    <p class="c-sub">Comprehensive analytics insights for your content platform</p>
-    <div class="c-pill">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.65)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      ${label}
+  <div class="cover-bg"></div><div class="g1"></div><div class="g2"></div><div class="g3"></div>
+  <div class="cc">
+    <div class="c-top">
+      <div class="c-logo">
+        <div class="c-mark">O</div>
+        <div class="c-brand">One<span>Mint</span></div>
+      </div>
+      <div class="c-conf"><div style="color:rgba(255,255,255,.52);font-size:11px">Confidential</div><div>Internal Use Only</div></div>
     </div>
-  </div>
-  <div class="c-foot">
-    <div class="c-gen">Generated on <strong>${generatedAt} IST</strong></div>
-    <div class="c-disc">Data sourced from Google Analytics 4 &middot; Confidential &mdash; For internal use only</div>
+    <div class="c-mid">
+      <div class="c-ey"><div class="c-dot"></div><div class="c-ey-t">Analytics Report</div></div>
+      <div class="c-h">Performance<br/><em>Dashboard</em></div>
+      <div class="c-bar"></div>
+      <div class="c-p">Comprehensive analytics insights, content performance metrics, and audience intelligence for your editorial platform.</div>
+      <div class="c-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        ${label}
+      </div>
+      <div class="c-kpis">
+        <div><div class="c-kpi-v">${data.pageViews.toLocaleString('en-IN')}</div><div class="c-kpi-l">Page Views</div></div>
+        <div><div class="c-kpi-v">${data.uniqueVisitors.toLocaleString('en-IN')}</div><div class="c-kpi-l">Unique Visitors</div></div>
+        <div><div class="c-kpi-v">${data.totalSubscribers.toLocaleString('en-IN')}</div><div class="c-kpi-l">Subscribers</div></div>
+      </div>
+    </div>
+    <div class="c-bot">
+      <div class="c-line"></div>
+      <div class="c-foot">
+        <div class="c-gen">Generated on <strong>${generatedAt} IST</strong></div>
+        <div class="c-disc">Data sourced from Google Analytics 4 &middot; onemint.in</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ── EXECUTIVE SUMMARY ─────────────────────────────────────────────────── -->
+<!-- EXECUTIVE SUMMARY -->
 <div class="sec">
-  <div class="sec-tag">Executive Summary</div>
-  <div class="sec-title">Key Performance Metrics</div>
-  <div class="sec-sub">Core indicators for: ${label}</div>
-
+  <div class="stag"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Executive Summary</div>
+  <div class="stitle">Key Performance Metrics</div>
+  <div class="ssub">Core indicators for: ${label}</div>
   <div class="mg">
-    <div class="mc g"><div class="mi g">📈</div><div class="mv g">${data.pageViews.toLocaleString('en-IN')}</div><div class="ml">Total Page Views</div></div>
-    <div class="mc b"><div class="mi b">👥</div><div class="mv b">${data.uniqueVisitors.toLocaleString('en-IN')}</div><div class="ml">Unique Visitors</div></div>
-    <div class="mc p"><div class="mi p">⏱️</div><div class="mv p">${fmtSec(data.avgSessionSec)}</div><div class="ml">Avg. Session Duration</div></div>
-    <div class="mc a"><div class="mi a">🔄</div><div class="mv a">${data.bounceRate}%</div><div class="ml">Bounce Rate</div></div>
-    <div class="mc t"><div class="mi t">📧</div><div class="mv t">${data.totalSubscribers.toLocaleString('en-IN')}</div><div class="ml">Newsletter Subscribers</div></div>
-    <div class="mc r"><div class="mi r">📝</div><div class="mv r">${data.totalArticles.toLocaleString('en-IN')}</div><div class="ml">Published Articles</div></div>
+    <div class="mc g"><div class="mc-h"><div class="mi g">${R.eye}</div></div><div class="mv g">${data.pageViews.toLocaleString('en-IN')}</div><div class="ml">Total Page Views</div></div>
+    <div class="mc b"><div class="mc-h"><div class="mi b">${R.users}</div></div><div class="mv b">${data.uniqueVisitors.toLocaleString('en-IN')}</div><div class="ml">Unique Visitors</div></div>
+    <div class="mc p"><div class="mc-h"><div class="mi p">${R.clock}</div></div><div class="mv p">${fmtSec(data.avgSessionSec)}</div><div class="ml">Avg. Session Duration</div></div>
+    <div class="mc a"><div class="mc-h"><div class="mi a">${R.bounce}</div></div><div class="mv a">${data.bounceRate}%</div><div class="ml">Bounce Rate</div></div>
+    <div class="mc t"><div class="mc-h"><div class="mi t">${R.mail}</div></div><div class="mv t">${data.totalSubscribers.toLocaleString('en-IN')}</div><div class="ml">Newsletter Subscribers</div></div>
+    <div class="mc r"><div class="mc-h"><div class="mi r">${R.file}</div></div><div class="mv r">${data.totalArticles.toLocaleString('en-IN')}</div><div class="ml">Published Articles</div></div>
   </div>
-
-  <div class="eng-card">
-    <div class="eng-score" style="color:${scoreColor}">${engagementScore}<span style="font-size:16px;font-weight:500;color:#94A3B8">/100</span></div>
-    <div class="eng-right">
-      <div class="eng-label">Overall Engagement Score</div>
-      <div class="eng-track"><div class="eng-fill" style="width:${engagementScore}%"></div></div>
-      <div class="eng-hint">Composite score based on bounce rate, session duration, and total traffic volume</div>
+  <div class="eng">
+    <div class="e-ring" style="border-color:${scoreColor}28"><div class="e-n" style="color:${scoreColor}">${engagementScore}</div><div class="e-d">/100</div></div>
+    <div class="e-right">
+      <div class="e-lbl">Overall Engagement Score</div>
+      <div class="e-track"><div class="e-fill" style="width:${engagementScore}%;background:linear-gradient(90deg,${scoreColor},${scoreColor}77)"></div></div>
+      <div class="e-hint">Composite score: bounce rate (50%) + session duration (30%) + traffic volume (20%)</div>
     </div>
   </div>
 </div>
 
-<!-- ── INSIGHTS ──────────────────────────────────────────────────────────── -->
+<!-- INSIGHTS -->
 <div class="sec">
-  <div class="sec-tag">Intelligence</div>
-  <div class="sec-title">Key Insights &amp; Analysis</div>
-  <div class="sec-sub">Automated observations derived from your analytics data</div>
+  <div class="stag"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Intelligence</div>
+  <div class="stitle">Key Insights &amp; Analysis</div>
+  <div class="ssub">Automated observations derived from your analytics data</div>
   <div class="ins-row">
     <div class="ins ${data.bounceRate < 55 ? 'pos' : 'wrn'}">
-      <div class="ins-t">${data.bounceRate < 55 ? '✓ Strong Engagement' : '⚠ High Bounce Rate'}</div>
-      <div class="ins-b">${data.bounceRate < 55
-        ? `A bounce rate of ${data.bounceRate}% is excellent — visitors are engaging deeply with content.`
-        : `Bounce rate of ${data.bounceRate}% is above benchmark. Consider improving content relevance and page experience.`
-      }</div>
+      <div class="ins-h">${data.bounceRate < 55 ? R.check : R.warn}<div class="ins-t">${data.bounceRate < 55 ? 'Strong Engagement' : 'High Bounce Rate'}</div></div>
+      <div class="ins-b">${data.bounceRate < 55 ? `Bounce rate of ${data.bounceRate}% is excellent \u2014 visitors engage deeply with content.` : `Bounce rate of ${data.bounceRate}% is above benchmark. Improve content relevance and page UX.`}</div>
     </div>
     <div class="ins neu">
-      <div class="ins-t">⏱ Session Quality</div>
-      <div class="ins-b">Avg. session of ${fmtSec(data.avgSessionSec)} ${data.avgSessionSec > 120 ? 'shows readers spending quality time consuming content.' : 'suggests room to increase content depth and internal linking.'}</div>
+      <div class="ins-h">${R.clock2}<div class="ins-t">Session Quality</div></div>
+      <div class="ins-b">Avg. session of ${fmtSec(data.avgSessionSec)} ${data.avgSessionSec > 120 ? 'shows readers investing quality time in content.' : 'suggests room to improve content depth and internal linking.'}</div>
     </div>
     <div class="ins pos">
-      <div class="ins-t">📊 Content Scale</div>
-      <div class="ins-b">${data.totalArticles} published articles with ${data.totalSubscribers.toLocaleString('en-IN')} subscribers — a strong content-to-audience ratio for a knowledge platform.</div>
+      <div class="ins-h">${R.bar}<div class="ins-t">Content Scale</div></div>
+      <div class="ins-b">${data.totalArticles} articles with ${data.totalSubscribers.toLocaleString('en-IN')} subscribers \u2014 a strong editorial-to-audience ratio.</div>
     </div>
   </div>
 </div>
 
-<!-- ── TRAFFIC TRENDS ─────────────────────────────────────────────────────── -->
+<!-- TRAFFIC TRENDS -->
 ${(data.weeklyChart.length > 0 || data.monthlyChart.length > 0) ? `
 <div class="sec">
-  <div class="sec-tag">Traffic Analysis</div>
-  <div class="sec-title">Page View Trends</div>
-  <div class="sec-sub">Visualizing reader traffic patterns over time</div>
+  <div class="stag"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Traffic Analysis</div>
+  <div class="stitle">Page View Trends</div>
+  <div class="ssub">Visualizing reader traffic patterns over the selected period</div>
   <div class="chart-2">
-    ${data.weeklyChart.length > 0 ? `
-    <div class="chart-card">
-      <div class="cc-title">Daily Views — Last 7 Days</div>
-      <div class="chart-area">${weeklyBars}</div>
-    </div>` : ''}
-    ${data.monthlyChart.length > 0 ? `
-    <div class="chart-card">
-      <div class="cc-title">Monthly Views — 6-Month Trend</div>
-      <div class="chart-area">${monthlyBars}</div>
-    </div>` : ''}
+    ${data.weeklyChart.length > 0 ? `<div class="chart-card"><div class="cc-t">Daily Views</div><div class="chart-area">${weeklyBars}</div></div>` : ''}
+    ${data.monthlyChart.length > 0 ? `<div class="chart-card"><div class="cc-t">Monthly Trend</div><div class="chart-area">${monthlyBars}</div></div>` : ''}
   </div>
 </div>` : ''}
 
-<!-- ── CONTENT PERFORMANCE ────────────────────────────────────────────────── -->
+<!-- CONTENT PERFORMANCE -->
 ${data.topArticles.length > 0 ? `
 <div class="sec">
-  <div class="sec-tag">Content Performance</div>
-  <div class="sec-title">Top Performing Articles</div>
-  <div class="sec-sub">Ranked by page views for ${label}</div>
+  <div class="stag"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Content Performance</div>
+  <div class="stitle">Top Performing Articles</div>
+  <div class="ssub">Ranked by page views for ${label}</div>
   <table class="atbl">
     <thead><tr><th>#</th><th>Article Title</th><th style="text-align:right">Views</th><th style="text-align:center">Trend</th></tr></thead>
     <tbody>${articleRows}</tbody>
   </table>
 </div>` : ''}
 
-<!-- ── AUDIENCE INTELLIGENCE ─────────────────────────────────────────────── -->
+<!-- AUDIENCE INTELLIGENCE -->
 <div class="sec">
-  <div class="sec-tag">Audience Intelligence</div>
-  <div class="sec-title">Device &amp; Traffic Source Breakdown</div>
-  <div class="sec-sub">Understanding how and where your audience finds you</div>
+  <div class="stag"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Audience Intelligence</div>
+  <div class="stitle">Device &amp; Traffic Source Breakdown</div>
+  <div class="ssub">Understanding how and where your audience finds you</div>
   <div class="aud-grid">
     <div class="aud-card">
-      <div class="aud-card-t">Device Split</div>
-      ${data.deviceSplit.length > 0 ? deviceRows : '<div style="font-size:12px;color:#94A3B8">No device data available for this period.</div>'}
+      <div class="aud-t">Device Split</div>
+      ${data.deviceSplit.length > 0 ? deviceRows : '<div style="font-size:12px;color:#94A3B8;padding:6px 0">No device data available for this period.</div>'}
     </div>
     <div class="aud-card">
-      <div class="aud-card-t">Traffic Sources</div>
-      ${data.trafficSources.length > 0 ? sourceRows : '<div style="font-size:12px;color:#94A3B8">No traffic source data available for this period.</div>'}
+      <div class="aud-t">Traffic Sources</div>
+      ${data.trafficSources.length > 0 ? sourceRows : '<div style="font-size:12px;color:#94A3B8;padding:6px 0">No source data available for this period.</div>'}
     </div>
   </div>
 </div>
 
-<!-- ── REPORT FOOTER ──────────────────────────────────────────────────────── -->
+<!-- FOOTER -->
 <div class="sec">
   <div class="pfooter">
     <div>OneMint Analytics &middot; <strong>${label}</strong> &middot; Generated ${generatedAt} IST</div>
     <div>Confidential &middot; Not for external distribution &middot; onemint.in</div>
   </div>
+  <div class="wm">OneMint &mdash; India&rsquo;s Most Trusted Knowledge Platform</div>
 </div>
 
-<script>
-  window.addEventListener('load', function() {
-    setTimeout(function() { window.print(); }, 900);
-  });
-</script>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},900);});</script>
 </body>
 </html>`;
 }
@@ -715,7 +748,7 @@ function ReportModal({
           marginBottom: 18,
           display: 'flex', alignItems: 'flex-start', gap: 8,
         }}>
-          <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--color-ink-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.6 }}>
             The report opens in a new tab. Use <strong>Print → Save as PDF</strong> to export. Formatted for A4, suitable for executive presentations.
           </p>
