@@ -88,6 +88,22 @@ export function HomePageClient({ articles }: HomePageClientProps) {
   return (
     <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">
 
+      {/* Visually-hidden H1 for SEO — gives the homepage a proper single <h1>
+          without affecting visual design. Screen readers will announce it. */}
+      <h1
+        style={{
+          position: 'absolute',
+          clip: 'rect(0 0 0 0)',
+          clipPath: 'inset(50%)',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        OneMint — India&apos;s Most Trusted Knowledge Platform
+      </h1>
+
       {/* ── Market Ticker ──────────────────────────────────────────────── */}
       <MarketTicker />
 
@@ -128,7 +144,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                     {featuredCategory.name}
                   </motion.span>
                 )}
-                <motion.h1
+                <motion.h2
                   variants={prefersReduced ? undefined : heroVariants.title}
                   initial="initial"
                   animate="animate"
@@ -136,7 +152,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                   data-motion="true"
                 >
                   {featured.title}
-                </motion.h1>
+                </motion.h2>
                 <motion.div
                   variants={prefersReduced ? undefined : heroVariants.meta}
                   initial="initial"
