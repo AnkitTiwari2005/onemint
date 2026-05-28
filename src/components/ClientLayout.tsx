@@ -18,11 +18,11 @@ const pageVariants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    transition: { duration: 0.18, ease: easeOut },
+    transition: { duration: 0.15, ease: easeOut },
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.1 },
+    transition: { duration: 0 },
   },
 };
 
@@ -62,10 +62,11 @@ export function ClientLayout({ children }: { children: ReactNode }) {
       <ReadingProgressBar />
       <Header onSearchOpen={() => setSearchOpen(true)} />
       <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-      {/* initial={false} — prevents opacity-0 flash on first hydration render.
-          mode="sync"   — new page fades in immediately; no dead-black gap
-                          waiting for the old page's exit to finish. */}
-      <AnimatePresence mode="sync" initial={false}>
+      {/* mode="wait" with instant exit (duration:0) + fast 150ms fade-in.
+          This gives a clean professional feel with no overlap jerk and no
+          dead-black gap — the old page disappears immediately, new page
+          fades in smoothly. initial={false} prevents hydration FOIC. */}
+      <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={pathname}
           id="main-content"
