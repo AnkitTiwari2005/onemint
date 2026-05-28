@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import {
   getAggregate7d, getTimeseries7d, getTimeseries6mo,
   getTopPages, getTrafficSources, getDeviceSplit,
+  getAggregateForRange, getTimeseriesForRange, getTimeseriesMonthlyForRange,
+  getTopPagesForRange, getTrafficSourcesForRange, getDeviceSplitForRange,
   isGA4Configured, extractMetric, extractDimension,
 } from '@/lib/ga4';
 
@@ -39,7 +41,7 @@ async function getSupabaseTopArticles() {
   if (!supabaseAdmin) return [];
   const { data } = await supabaseAdmin
     .from('articles').select('title, view_count').eq('status', 'published')
-    .order('view_count', { ascending: false, nullsFirst: false }).limit(5);
+    .order('view_count', { ascending: false, nullsFirst: false }).limit(10);
   const rows = data ?? [];
   const median = rows.length > 0
     ? (rows[Math.floor(rows.length / 2)]?.view_count ?? 0)
@@ -47,14 +49,49 @@ async function getSupabaseTopArticles() {
   return rows.map((a) => ({
     title: a.title as string,
     views: (a.view_count as number) ?? 0,
-    // 'up' if this article has above-median views; 'down' otherwise
     trend: ((a.view_count ?? 0) >= median ? 'up' : 'down') as 'up' | 'down',
   }));
 }
 
+// ── Date range resolver ───────────────────────────────────────────────────────
+/**
+ * Given optional ?start= and ?end= params, returns { startDate, endDate }
+ * in the format GA4 accepts (YYYY-MM-DD or NdaysAgo strings).
+ * When no params are provided, defaults to the standard 7-day dashboard range.
+ */
+function resolveDateRange(start: string | null, end: string | null): { startDate: string; endDate: string } | null {
+  if (!start && !end) return null; // signal to use default helpers
+
+  const today = new Date();
+  const fmt = (d: Date) => d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  if (start && end) {
+    return { startDate: start, endDate: end };
+  }
+
+  // Preset shorthands passed from the frontend
+  switch (start) {
+    case 'last7':    return { startDate: '7daysAgo',   endDate: 'today' };
+    case 'last30':   return { startDate: '30daysAgo',  endDate: 'today' };
+    case 'last90':   return { startDate: '90daysAgo',  endDate: 'today' };
+    case 'thisYear': {
+      const jan1 = new Date(today.getFullYear(), 0, 1);
+      return { startDate: fmt(jan1), endDate: 'today' };
+    }
+    case 'lifetime': return { startDate: '2020-01-01', endDate: 'today' };
+    default:         return null;
+  }
+}
+
 // ── Route ─────────────────────────────────────────────────────────────────────
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    // Parse optional date-range query params
+    const sp    = req.nextUrl.searchParams;
+    const start = sp.get('start');
+    const end   = sp.get('end');
+    const range = resolveDateRange(start, end);
+
     const { subscribers, articles } = await getSupabaseCounts();
 
     // GA4 credentials not set — return zeroed stats with Supabase data only
@@ -69,14 +106,28 @@ export async function GET() {
       } satisfies AnalyticsStats);
     }
 
-    // Fetch GA4 reports in parallel — each call fails independently; reduces latency
-    const [
-      aggregateResult, weeklyResult, monthlyResult,
-      topPagesResult, sourcesResult, devicesResult,
-    ] = await Promise.allSettled([
-      getAggregate7d(), getTimeseries7d(), getTimeseries6mo(),
-      getTopPages(), getTrafficSources(), getDeviceSplit(),
-    ]);
+    // ── Fetch GA4 in parallel — use range-specific helpers when a range is given
+    let aggregateResult, weeklyResult, monthlyResult, topPagesResult, sourcesResult, devicesResult;
+
+    if (range) {
+      // Report mode: fetch everything for the requested date range
+      [aggregateResult, weeklyResult, monthlyResult, topPagesResult, sourcesResult, devicesResult] =
+        await Promise.allSettled([
+          getAggregateForRange(range.startDate, range.endDate),
+          getTimeseriesForRange(range.startDate, range.endDate),
+          getTimeseriesMonthlyForRange(range.startDate, range.endDate),
+          getTopPagesForRange(range.startDate, range.endDate),
+          getTrafficSourcesForRange(range.startDate, range.endDate),
+          getDeviceSplitForRange(range.startDate, range.endDate),
+        ]);
+    } else {
+      // Dashboard mode: use the fixed-window helpers (unchanged behaviour)
+      [aggregateResult, weeklyResult, monthlyResult, topPagesResult, sourcesResult, devicesResult] =
+        await Promise.allSettled([
+          getAggregate7d(), getTimeseries7d(), getTimeseries6mo(),
+          getTopPages(), getTrafficSources(), getDeviceSplit(),
+        ]);
+    }
 
     const aggregate = aggregateResult.status === 'fulfilled' ? aggregateResult.value : null;
     const weekly    = weeklyResult.status    === 'fulfilled' ? weeklyResult.value    : null;
@@ -103,7 +154,7 @@ export async function GET() {
     const bounceRate     = Math.round(extractMetric(aggregate, 2) * 100);
     const avgSessionSec  = Math.round(extractMetric(aggregate, 3));
 
-    // Weekly chart
+    // Daily chart — if the range is > 90 days, group by month-level labels instead
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const weeklyChart = (weekly?.rows ?? []).map((row: any) => {
       const dateStr = extractDimension(row, 0); // YYYYMMDD
@@ -130,6 +181,7 @@ export async function GET() {
     const ga4TopRows = (topPages?.rows ?? []) as any[];
     const ga4ViewCounts = ga4TopRows.map(r => Math.round(parseFloat(r.metricValues?.[0]?.value ?? '0')));
     const ga4Median = ga4ViewCounts.length > 0 ? ga4ViewCounts[Math.floor(ga4ViewCounts.length / 2)] : 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ga4TopArticles = ga4TopRows.map((row: any, i: number) => {
       const path  = extractDimension(row, 0);
       const title = path.replace('/articles/', '').replace(/-/g, ' ')
@@ -138,7 +190,6 @@ export async function GET() {
       return {
         title,
         views,
-        // 'up' if this article has above-median views within the top list
         trend: (views >= ga4Median ? 'up' : 'down') as 'up' | 'down',
       };
     });

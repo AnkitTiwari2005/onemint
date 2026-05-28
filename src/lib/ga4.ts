@@ -92,6 +92,8 @@ async function runReport(body: Record<string, unknown>): Promise<any> {
   }
 }
 
+// ── Fixed-range helpers (used by the live dashboard) ─────────────────────────
+
 /** Aggregate: last 7 days (pageviews, users, bounce rate, avg session) */
 export function getAggregate7d() {
   return runReport({
@@ -162,6 +164,81 @@ export function getDeviceSplit() {
     orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
   });
 }
+
+// ── Parameterised helpers (used by the report generator) ─────────────────────
+
+/** Aggregate metrics for an arbitrary date range. */
+export function getAggregateForRange(startDate: string, endDate: string) {
+  return runReport({
+    dateRanges: [{ startDate, endDate }],
+    metrics: [
+      { name: 'screenPageViews' },
+      { name: 'totalUsers' },
+      { name: 'bounceRate' },
+      { name: 'averageSessionDuration' },
+    ],
+  });
+}
+
+/** Daily timeseries for an arbitrary date range (max 90 points sensibly). */
+export function getTimeseriesForRange(startDate: string, endDate: string) {
+  return runReport({
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'date' }],
+    metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
+    orderBys: [{ dimension: { dimensionName: 'date' } }],
+  });
+}
+
+/** Monthly timeseries for an arbitrary date range. */
+export function getTimeseriesMonthlyForRange(startDate: string, endDate: string) {
+  return runReport({
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'yearMonth' }],
+    metrics: [{ name: 'screenPageViews' }],
+    orderBys: [{ dimension: { dimensionName: 'yearMonth' } }],
+  });
+}
+
+/** Top /articles/* pages for an arbitrary date range. */
+export function getTopPagesForRange(startDate: string, endDate: string) {
+  return runReport({
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'pagePath' }],
+    metrics: [{ name: 'screenPageViews' }],
+    dimensionFilter: {
+      filter: {
+        fieldName: 'pagePath',
+        stringFilter: { matchType: 'BEGINS_WITH', value: '/articles/' },
+      },
+    },
+    orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+    limit: 10,
+  });
+}
+
+/** Traffic sources for an arbitrary date range. */
+export function getTrafficSourcesForRange(startDate: string, endDate: string) {
+  return runReport({
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'sessionDefaultChannelGrouping' }],
+    metrics: [{ name: 'sessions' }],
+    orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+    limit: 6,
+  });
+}
+
+/** Device split for an arbitrary date range. */
+export function getDeviceSplitForRange(startDate: string, endDate: string) {
+  return runReport({
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'deviceCategory' }],
+    metrics: [{ name: 'sessions' }],
+    orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+  });
+}
+
+// ── Shared extraction utilities ───────────────────────────────────────────────
 
 /** Extract a numeric metric value from a GA4 report's first row. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
