@@ -102,7 +102,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@onemint",
+    site: "@one_mint_",
     images: ["/og-image.png"],
   },
   robots: {

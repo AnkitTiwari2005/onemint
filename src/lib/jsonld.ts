@@ -51,10 +51,9 @@ export function buildOrganization() {
     },
     image: { '@id': `${SITE}/#logo` },
     sameAs: [
-      'https://twitter.com/onemint',
-      'https://www.facebook.com/onemint',
-      'https://www.linkedin.com/company/onemint',
-      'https://www.instagram.com/onemint.in',
+      'https://twitter.com/one_mint_',
+      'https://www.linkedin.com/company/onemint-india/',
+      'https://www.instagram.com/onemint.in/',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
