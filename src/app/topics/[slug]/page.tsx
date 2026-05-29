@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getCategoryBySlug, categories } from '@/data/categories';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { getAuthorById } from '@/data/authors';
 import { ArticleCard } from '@/components/ArticleCard';
@@ -22,6 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${category.name} — OneMint`,
     description: category.description,
+    alternates: { canonical: `${SITE_URL}/topics/${slug}` },
   };
 }
 

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArticleCard } from '@/components/ArticleCard';
@@ -17,11 +19,15 @@ function slugifyTag(tag: string): string {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  // We don't pre-compute tags from static data — just use the slug as the display name
   const display = slug.replace(/-/g, ' ');
+  const canonicalUrl = `${SITE_URL}/tag/${slug}`;
   return {
     title: `#${display} — OneMint`,
     description: `Browse OneMint articles tagged with "${display}".`,
+    alternates: { canonical: canonicalUrl },
+    // Tag pages with very few articles are low-value; keep them out of Google's index
+    // but allow following links so Googlebot discovers the actual articles.
+    robots: { index: true, follow: true },
   };
 }
 

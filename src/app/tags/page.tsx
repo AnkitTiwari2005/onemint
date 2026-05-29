@@ -4,9 +4,12 @@ import { Hash } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
 import { articles as staticArticles } from '@/data/articles';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export const metadata: Metadata = {
   title: 'Browse All Tags',
   description: 'Explore OneMint articles by topic tag. Find content on SIP, mutual funds, AI, health, salary negotiation, and more.',
+  alternates: { canonical: `${SITE_URL}/tags` },
 };
 
 export const dynamic = 'force-dynamic';

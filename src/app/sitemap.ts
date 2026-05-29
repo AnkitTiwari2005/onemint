@@ -119,37 +119,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ── Tags ──────────────────────────────────────────────────────────────────
+  // Only include tag pages with 3+ articles — thin tag pages waste crawl budget
+  // and signal low quality to Google. Tags with 1-2 articles don't deserve their
+  // own indexed page yet.
+  const MIN_TAG_ARTICLES = 3;
   let tagPages: MetadataRoute.Sitemap;
   try {
     const dbTags = supabaseAdmin
       ? await supabaseAdmin.from('articles').select('tags').eq('status', 'published').then(({ data }) => data)
       : null;
     if (dbTags && dbTags.length > 0) {
-      const tagSet = new Set<string>();
-      dbTags.forEach((row: { tags: string[] | null }) => (row.tags ?? []).forEach(t => tagSet.add(t)));
-      tagPages = Array.from(tagSet).map(tag => ({
-        url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      }));
+      const tagCounts: Record<string, number> = {};
+      dbTags.forEach((row: { tags: string[] | null }) =>
+        (row.tags ?? []).forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; })
+      );
+      tagPages = Object.entries(tagCounts)
+        .filter(([, count]) => count >= MIN_TAG_ARTICLES)
+        .map(([tag]) => ({
+          url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+        }));
     } else {
-      const allTags = [...new Set(staticArticles.flatMap((a) => a.tags))];
-      tagPages = allTags.map(tag => ({
-        url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      }));
+      // Static fallback — count tag occurrences
+      const tagCounts: Record<string, number> = {};
+      staticArticles.forEach(a => a.tags.forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+      tagPages = Object.entries(tagCounts)
+        .filter(([, count]) => count >= MIN_TAG_ARTICLES)
+        .map(([tag]) => ({
+          url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+        }));
     }
   } catch {
-    const allTags = [...new Set(staticArticles.flatMap((a) => a.tags))];
-    tagPages = allTags.map(tag => ({
-      url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
-    }));
+    tagPages = [];
   }
 
   const toolPages: MetadataRoute.Sitemap = TOOL_SLUGS.map((slug) => ({

@@ -8,6 +8,8 @@ import { ExternalLink, Globe } from 'lucide-react';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { supabaseAdmin } from '@/lib/supabase';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export const dynamic = 'force-dynamic';
 
 interface DbAuthor {
@@ -50,6 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${name} — OneMint`,
     description: bio.slice(0, 155),
+    alternates: { canonical: `${SITE_URL}/author/${slug}` },
   };
 }
 
