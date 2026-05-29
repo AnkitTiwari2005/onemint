@@ -116,6 +116,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  // Bing Webmaster Tools site verification
+  other: {
+    'msvalidate.01': 'E16F05FA702AE155A6CBCA16F9362903',
+  },
 };
 
 const fontVars = [
