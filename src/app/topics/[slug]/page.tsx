@@ -2,14 +2,14 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getCategoryBySlug, categories } from '@/data/categories';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { getAuthorById } from '@/data/authors';
 import { ArticleCard } from '@/components/ArticleCard';
 import { formatDate } from '@/lib/utils';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { Clock, ArrowLeft } from 'lucide-react';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const dynamic = 'force-dynamic';
 

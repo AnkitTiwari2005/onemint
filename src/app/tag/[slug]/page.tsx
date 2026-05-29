@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArticleCard } from '@/components/ArticleCard';
 import { Hash, ArrowLeft } from 'lucide-react';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const dynamic = 'force-dynamic';
 
