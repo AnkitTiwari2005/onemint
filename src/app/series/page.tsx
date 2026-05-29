@@ -4,9 +4,12 @@ import { Clock, BookOpen, ArrowRight } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
 import SeriesProgressClient from '@/components/SeriesProgressClient';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export const metadata = {
   title: 'Article Series — OneMint',
   description: 'Deep-dive multi-part guides on finance, tax, health and career. Read them in order for the full picture.',
+  alternates: { canonical: `${SITE_URL}/series` },
 };
 
 export const dynamic = 'force-dynamic';

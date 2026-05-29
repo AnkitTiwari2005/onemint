@@ -93,7 +93,7 @@ export const metadata: Metadata = {
     description: "Expert articles on finance, tech, health & more. Free tools. Zero spam.",
     images: [
       {
-        url: "/og-image.png",
+        url: 'https://www.onemint.in/og-image.png',
         width: 1200,
         height: 630,
         alt: "OneMint — India's Most Trusted Knowledge Platform",
@@ -103,7 +103,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "@one_mint_",
-    images: ["/og-image.png"],
+    images: ["https://www.onemint.in/og-image.png"],
   },
   robots: {
     index: true,

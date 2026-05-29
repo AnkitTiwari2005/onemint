@@ -151,6 +151,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     dateModified: article!.published_at ?? new Date().toISOString(),
     authorName: author?.name ?? 'OneMint Editorial',
     authorUrl: author ? `${SITE_URL}/author/${author.slug}` : SITE_URL,
+    articleSection: category?.name,
   });
   const breadcrumbSchema = buildBreadcrumbs(breadcrumbItems);
 

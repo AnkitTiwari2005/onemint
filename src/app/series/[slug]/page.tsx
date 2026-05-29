@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import { SeriesDetailClient } from '@/components/SeriesDetailClient';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 // ⚠️ Do NOT use generateStaticParams here — series can now be created from
 // the admin panel and stored in the DB, so we must support dynamic slugs.
 export const dynamic = 'force-dynamic';
@@ -44,6 +46,7 @@ export async function generateMetadata({ params }: Props) {
   return {
     title: s.name,
     description: s.description.slice(0, 160),
+    alternates: { canonical: `${SITE_URL}/series/${slug}` },
   };
 }
 

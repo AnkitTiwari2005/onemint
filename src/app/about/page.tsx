@@ -6,9 +6,12 @@ import { Target, Handshake, Brain } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export const metadata = {
   title: 'About OneMint',
   description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters.",
+  alternates: { canonical: `${SITE_URL}/about` },
 };
 
 interface DbAuthor {

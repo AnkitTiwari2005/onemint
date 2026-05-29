@@ -71,20 +71,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ── Categories ────────────────────────────────────────────────────────────
+  // Only include categories that have ≥1 published article — empty category pages
+  // waste crawl budget and signal thin content to Google.
   let categoryPages: MetadataRoute.Sitemap;
   try {
-    const dbCats = supabaseAdmin
-      ? await supabaseAdmin.from('categories').select('slug').then(({ data }) => data)
-      : null;
-    const catSlugs = dbCats && dbCats.length > 0
-      ? dbCats.map((c: { slug: string }) => c.slug)
-      : staticCategories.map(c => c.slug);
-    categoryPages = catSlugs.map((slug: string) => ({
-      url: `${BASE}/topics/${slug}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.8,
-    }));
+    if (supabaseAdmin) {
+      // Query which category slugs actually have published articles.
+      // Supabase returns the joined relation as an array even for many-to-one.
+      const { data: articlesWithCats } = await supabaseAdmin
+        .from('articles')
+        .select('categories(slug)')
+        .eq('status', 'published');
+
+      if (articlesWithCats && articlesWithCats.length > 0) {
+        // Collect unique category slugs that have at least one article.
+        // categories is returned as an array by the Supabase JS client.
+        const activeCatSlugs = new Set<string>();
+        articlesWithCats.forEach((row: { categories: { slug: string }[] | null }) => {
+          const cats = row.categories ?? [];
+          cats.forEach((c) => { if (c.slug) activeCatSlugs.add(c.slug); });
+        });
+        categoryPages = Array.from(activeCatSlugs).map((slug) => ({
+          url: `${BASE}/topics/${slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'daily' as const,
+          priority: 0.8,
+        }));
+      } else {
+        // DB available but no published articles yet — fall back to all static categories.
+        categoryPages = staticCategories.map((c) => ({
+          url: `${BASE}/topics/${c.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'daily' as const,
+          priority: 0.8,
+        }));
+      }
+    } else {
+      // No DB — use all static categories (static data is always populated).
+      categoryPages = staticCategories.map((c) => ({
+        url: `${BASE}/topics/${c.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 0.8,
+      }));
+    }
   } catch {
     categoryPages = staticCategories.map((c) => ({
       url: `${BASE}/topics/${c.slug}`,

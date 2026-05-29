@@ -96,6 +96,8 @@ export interface ArticleSchemaInput {
   dateModified: string;
   authorName: string;
   authorUrl: string;
+  /** Category / topic name — maps to schema.org articleSection */
+  articleSection?: string;
 }
 
 /** NewsArticle schema for article detail pages. */
@@ -107,6 +109,9 @@ export function buildArticle(article: ArticleSchemaInput) {
     description: article.description,
     url: article.url,
     mainEntityOfPage: { '@type': 'WebPage', '@id': article.url },
+    // Link the article back to the WebSite entity so Google can build
+    // a proper entity graph (article → site → organization).
+    isPartOf: { '@id': `${SITE}/#website` },
     ...(article.imageUrl
       ? {
           image: [
@@ -121,6 +126,7 @@ export function buildArticle(article: ArticleSchemaInput) {
       : {}),
     datePublished: article.datePublished,
     dateModified: article.dateModified,
+    ...(article.articleSection ? { articleSection: article.articleSection } : {}),
     author: {
       '@type': 'Person',
       name: article.authorName,

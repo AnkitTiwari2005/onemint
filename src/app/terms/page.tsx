@@ -1,9 +1,12 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Read the Terms of Service for OneMint. Understand your rights and responsibilities when using our platform.',
   robots: { index: true, follow: true },
+  alternates: { canonical: `${SITE_URL}/terms` },
 };
 
 const EFFECTIVE_DATE = 'April 19, 2026';

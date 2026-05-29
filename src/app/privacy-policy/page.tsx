@@ -1,10 +1,13 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { TableOfContents } from '@/components/TableOfContents';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'Learn how OneMint collects, uses, and protects your personal information. We are committed to your privacy and data security.',
   robots: { index: true, follow: true },
+  alternates: { canonical: `${SITE_URL}/privacy-policy` },
 };
 
 const EFFECTIVE_DATE = 'April 19, 2026';
