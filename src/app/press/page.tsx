@@ -1,9 +1,12 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+
 export const metadata: Metadata = {
-  title: 'Press & Media — OneMint',
+  title: 'Press & Media - OneMint',
   description: 'Press contacts, media kit, and OneMint in the news. For media inquiries email contact@onemint.in.',
+  alternates: { canonical: `${SITE_URL}/press` },
 };
 
 

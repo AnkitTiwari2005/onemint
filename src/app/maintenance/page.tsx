@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Wrench } from 'lucide-react';
+
+// Maintenance pages must never be indexed — the content is temporary
+// and "We'll be back soon" is meaningless to Google.
+export const metadata: Metadata = {
+  title: 'OneMint — Scheduled Maintenance',
+  robots: { index: false, follow: false },
+};
 
 export default function MaintenancePage() {
   return (
