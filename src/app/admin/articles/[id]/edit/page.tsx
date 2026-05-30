@@ -328,7 +328,7 @@ export default function EditArticlePage() {
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: 'none', background: generatingFaqs ? 'var(--color-surface-alt)' : 'linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%)', color: generatingFaqs ? '#7C3AED' : '#fff', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, cursor: generatingFaqs || !body.trim() ? 'not-allowed' : 'pointer', opacity: !body.trim() ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'opacity 0.15s', boxShadow: generatingFaqs ? 'none' : '0 2px 8px rgba(124,58,237,0.3)' }}
                 >
                   {generatingFaqs ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                  {generatingFaqs ? 'Generating FAQs…' : faqs.length > 0 ? '🔄 Regenerate FAQs' : '✨ Generate FAQs with AI'}
+                  {generatingFaqs ? 'Generating FAQs…' : faqs.length > 0 ? 'Regenerate FAQs' : 'Generate FAQs with AI'}
                 </button>
                 {faqSuccess && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, fontFamily: 'var(--font-ui)', fontSize: 12, color: '#166534', fontWeight: 600 }}>
