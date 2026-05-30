@@ -22,6 +22,7 @@ export interface PublicArticle {
   published_at: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  faqs: { question: string; answer: string }[] | null;
   categories: {
     id: string;
     name: string;
@@ -124,7 +125,7 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
         .select(
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
-          'meta_title, meta_description, ' +
+          'meta_title, meta_description, faqs, ' +
           'categories(*), ' +
           'authors(*)'
         )

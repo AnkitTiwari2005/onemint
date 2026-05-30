@@ -156,9 +156,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   });
   const breadcrumbSchema = buildBreadcrumbs(breadcrumbItems);
 
-  const faqItems: FaqItem[] = Array.isArray((article as unknown as Record<string, unknown>).faqs)
-    ? ((article as unknown as Record<string, unknown>).faqs as FaqItem[])
-    : [];
+  const faqItems: FaqItem[] = Array.isArray(article.faqs) ? (article.faqs as FaqItem[]) : [];
   const faqSchema = faqItems.length > 0 ? buildFAQ(faqItems) : null;
 
   return (
