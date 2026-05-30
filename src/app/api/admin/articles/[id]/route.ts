@@ -54,7 +54,7 @@ export async function PATCH(
       'title', 'slug', 'deck', 'excerpt', 'content', 'cover_image',
       'status', 'category_id', 'author_id', 'tags',
       'meta_title', 'meta_description', 'published_at',
-      'read_time_minutes',
+      'read_time_minutes', 'faqs',
     ];
     for (const key of allowed) {
       if (key in body) updates[key] = body[key];

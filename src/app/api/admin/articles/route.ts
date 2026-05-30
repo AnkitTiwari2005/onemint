@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
         status: body.status || 'draft',
         meta_title: body.meta_title || '',
         meta_description: body.meta_description || '',
+        faqs: body.faqs || null,
         published_at: isPublished ? new Date().toISOString() : null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

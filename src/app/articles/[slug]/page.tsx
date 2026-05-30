@@ -16,7 +16,8 @@ import { GlossaryTooltip } from '@/components/GlossaryTooltip';
 import { GiscusComments } from '@/components/GiscusComments';
 import { Clock, BookOpen } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
-import { buildArticle, buildBreadcrumbs } from '@/lib/jsonld';
+import { buildArticle, buildBreadcrumbs, buildFAQ } from '@/lib/jsonld';
+import type { FaqItem } from '@/lib/jsonld';
 
 // ISR: cache each article page for up to 1 hour.
 // On the next request after expiry, Next.js re-fetches from Supabase in the background.
@@ -155,11 +156,17 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   });
   const breadcrumbSchema = buildBreadcrumbs(breadcrumbItems);
 
+  const faqItems: FaqItem[] = Array.isArray((article as unknown as Record<string, unknown>).faqs)
+    ? ((article as unknown as Record<string, unknown>).faqs as FaqItem[])
+    : [];
+  const faqSchema = faqItems.length > 0 ? buildFAQ(faqItems) : null;
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
       {/* JSON-LD structured data */}
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
+      {faqSchema && <JsonLd data={faqSchema} />}
       <article className="max-w-[var(--article-max)] mx-auto px-4 sm:px-6 py-8 lg:py-12">
 
         {/* Breadcrumb */}
@@ -287,6 +294,40 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
         {/* Footer */}
         <footer className="mt-16">
+          {/* FAQ Accordion — visible to both users and Google */}
+          {faqItems.length > 0 && (
+            <section
+              aria-label="Frequently Asked Questions"
+              className="mb-12 border border-[var(--color-border)] rounded-2xl overflow-hidden"
+            >
+              <div className="px-6 py-4 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-[var(--color-accent)]">
+                  <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                </svg>
+                <h2 className="text-sm font-bold text-[var(--color-ink)] font-[family-name:var(--font-ui)] uppercase tracking-wider">
+                  Frequently Asked Questions
+                </h2>
+              </div>
+              <div className="divide-y divide-[var(--color-border)]">
+                {faqItems.map((faq, i) => (
+                  <details key={i} className="group">
+                    <summary className="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer list-none hover:bg-[var(--color-surface-alt)] transition-colors">
+                      <span className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-heading)] text-sm sm:text-base leading-snug">
+                        {faq.question}
+                      </span>
+                      <span className="shrink-0 w-5 h-5 rounded-full border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-tertiary)] group-open:rotate-180 transition-transform duration-200">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </summary>
+                    <div className="px-6 pb-5 pt-1 text-[var(--color-ink-secondary)] font-[family-name:var(--font-body)] text-sm leading-relaxed">
+                      {faq.answer}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Tags */}
           {(article!.tags ?? []).length > 0 && (
             <div className="flex flex-wrap gap-2 mb-12">

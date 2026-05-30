@@ -220,3 +220,30 @@ export function buildItemList(
     })),
   };
 }
+
+// ── FAQPage ───────────────────────────────────────────────────────────────────
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * FAQPage schema — when an article ranks in the top 5, Google can expand
+ * it in search results to show accordion Q&A entries. This dramatically
+ * increases click-through rate without needing to rank higher.
+ */
+export function buildFAQ(faqs: FaqItem[]) {
+  if (!faqs || faqs.length === 0) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}

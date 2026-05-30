@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, X, Loader2, Search } from 'lucide-react';
+import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, X, Loader2, Search, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 // Static config — no closures, no refs — defined once at module level
@@ -106,6 +106,11 @@ export default function NewArticlePage() {
   const [saveError, setSaveError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // FAQ state
+  const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>([]);
+  const [faqsOpen, setFaqsOpen] = useState(false);
+  const [generatingFaqs, setGeneratingFaqs] = useState(false);
+
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
   const [noCategoriesInDb, setNoCategoriesInDb] = useState(false);
@@ -167,6 +172,27 @@ export default function NewArticlePage() {
     }
   };
 
+  const generateFaqs = async () => {
+    if (!body.trim()) return;
+    setGeneratingFaqs(true);
+    setSaveError('');
+    try {
+      const res = await fetch('/api/admin/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: body, title }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Generation failed');
+      setFaqs(data.faqs || []);
+      setFaqsOpen(true);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'FAQ generation failed');
+    } finally {
+      setGeneratingFaqs(false);
+    }
+  };
+
   const saveArticle = async (publish = false) => {
     if (!title.trim()) { setSaveError('Title is required'); return; }
     setSaving(true);
@@ -186,7 +212,7 @@ export default function NewArticlePage() {
           title: title.trim(),
           slug: finalSlug,
           deck: deck.trim() || null,
-          excerpt: deck.trim() || '',   // keep excerpt in sync for backward compat
+          excerpt: deck.trim() || '',
           content: body,
           cover_image: featuredImage || null,
           category_id: category || null,
@@ -196,6 +222,7 @@ export default function NewArticlePage() {
           status: finalStatus,
           meta_title: metaTitle,
           meta_description: metaDesc,
+          faqs: faqs.length > 0 ? faqs.filter(f => f.question.trim() && f.answer.trim()) : null,
         }),
       });
       const data = await res.json();
@@ -422,6 +449,61 @@ export default function NewArticlePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* FAQ / Rich Results */}
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
+            <button type="button" onClick={() => setFaqsOpen(!faqsOpen)} style={{ width: '100%', padding: '13px 18px', background: 'transparent', border: 'none', borderBottom: faqsOpen ? '1px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', outline: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Sparkles size={13} style={{ color: '#7C3AED', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>FAQ / Rich Results</span>
+                {faqs.length > 0 && <span style={{ background: '#7C3AED', color: '#fff', borderRadius: 20, fontSize: 10, fontWeight: 700, padding: '1px 7px', fontFamily: 'var(--font-ui)', flexShrink: 0 }}>{faqs.length}</span>}
+              </div>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: 'var(--color-ink-tertiary)', letterSpacing: '0.07em' }}>{faqsOpen ? '▲' : '▼'}</span>
+            </button>
+            {faqsOpen && (
+              <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* AI Generate Button */}
+                <button
+                  type="button"
+                  onClick={generateFaqs}
+                  disabled={generatingFaqs || !body.trim()}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: 'none', background: generatingFaqs ? 'var(--color-surface-alt)' : 'linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%)', color: generatingFaqs ? '#7C3AED' : '#fff', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, cursor: generatingFaqs || !body.trim() ? 'not-allowed' : 'pointer', opacity: !body.trim() ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'opacity 0.15s', boxShadow: generatingFaqs ? 'none' : '0 2px 8px rgba(124,58,237,0.3)' }}
+                >
+                  {generatingFaqs ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                  {generatingFaqs ? 'Generating FAQs…' : '✨ Generate FAQs with AI'}
+                </button>
+                {!body.trim() && (
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0, textAlign: 'center' }}>Write article content first to generate FAQs</p>
+                )}
+                {/* FAQ Cards */}
+                {faqs.map((faq, i) => (
+                  <div key={i} style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '10px 12px', position: 'relative' }}>
+                    <button onClick={() => setFaqs(faqs.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-tertiary)', display: 'flex', padding: 2, borderRadius: 4 }} title="Remove FAQ"><X size={12} /></button>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: '#7C3AED', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Q{i + 1}</div>
+                    <input
+                      value={faq.question}
+                      onChange={e => setFaqs(faqs.map((f, j) => j === i ? { ...f, question: e.target.value } : f))}
+                      placeholder="Question…"
+                      style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box', marginBottom: 6 }}
+                    />
+                    <textarea
+                      value={faq.answer}
+                      onChange={e => setFaqs(faqs.map((f, j) => j === i ? { ...f, answer: e.target.value } : f))}
+                      placeholder="Answer…"
+                      rows={3}
+                      style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface)', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--color-ink-secondary)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6 }}
+                    />
+                  </div>
+                ))}
+                {/* Add manually */}
+                <button
+                  type="button"
+                  onClick={() => setFaqs([...faqs, { question: '', answer: '' }])}
+                  style={{ padding: '7px 12px', borderRadius: 7, border: '1px dashed var(--color-border)', background: 'transparent', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer', width: '100%' }}
+                >+ Add FAQ manually</button>
               </div>
             )}
           </div>
