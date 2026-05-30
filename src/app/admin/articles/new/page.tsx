@@ -106,10 +106,11 @@ export default function NewArticlePage() {
   const [saveError, setSaveError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // FAQ state
-  const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>([]);
+  // FAQ state — each item has a stable client-side id so React never confuses items on delete
+  const [faqs, setFaqs] = useState<{ id: string; question: string; answer: string }[]>([]);
   const [faqsOpen, setFaqsOpen] = useState(false);
   const [generatingFaqs, setGeneratingFaqs] = useState(false);
+  const [faqSuccess, setFaqSuccess] = useState(false);
 
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
@@ -174,8 +175,11 @@ export default function NewArticlePage() {
 
   const generateFaqs = async () => {
     if (!body.trim()) return;
+    // Confirm before overwriting existing manual edits
+    if (faqs.length > 0 && !window.confirm('This will replace your existing FAQs. Continue?')) return;
     setGeneratingFaqs(true);
     setSaveError('');
+    setFaqSuccess(false);
     try {
       const res = await fetch('/api/admin/ai', {
         method: 'POST',
@@ -184,8 +188,11 @@ export default function NewArticlePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
-      setFaqs(data.faqs || []);
+      // Attach stable ids so React can diff correctly on delete
+      setFaqs((data.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
       setFaqsOpen(true);
+      setFaqSuccess(true);
+      setTimeout(() => setFaqSuccess(false), 2500);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'FAQ generation failed');
     } finally {
@@ -222,7 +229,7 @@ export default function NewArticlePage() {
           status: finalStatus,
           meta_title: metaTitle,
           meta_description: metaDesc,
-          faqs: faqs.length > 0 ? faqs.filter(f => f.question.trim() && f.answer.trim()) : null,
+          faqs: faqs.length > 0 ? faqs.filter(f => f.question.trim() && f.answer.trim()).map(({ id: _id, ...rest }) => rest) : null,
         }),
       });
       const data = await res.json();
@@ -465,7 +472,7 @@ export default function NewArticlePage() {
             </button>
             {faqsOpen && (
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* AI Generate Button */}
+                {/* AI Generate / Regenerate Button */}
                 <button
                   type="button"
                   onClick={generateFaqs}
@@ -473,25 +480,32 @@ export default function NewArticlePage() {
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: 'none', background: generatingFaqs ? 'var(--color-surface-alt)' : 'linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%)', color: generatingFaqs ? '#7C3AED' : '#fff', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, cursor: generatingFaqs || !body.trim() ? 'not-allowed' : 'pointer', opacity: !body.trim() ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'opacity 0.15s', boxShadow: generatingFaqs ? 'none' : '0 2px 8px rgba(124,58,237,0.3)' }}
                 >
                   {generatingFaqs ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                  {generatingFaqs ? 'Generating FAQs…' : '✨ Generate FAQs with AI'}
+                  {generatingFaqs ? 'Generating FAQs…' : faqs.length > 0 ? '🔄 Regenerate FAQs' : '✨ Generate FAQs with AI'}
                 </button>
+                {/* Success flash */}
+                {faqSuccess && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, fontFamily: 'var(--font-ui)', fontSize: 12, color: '#166534', fontWeight: 600 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                    {faqs.length} FAQs generated successfully!
+                  </div>
+                )}
                 {!body.trim() && (
                   <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0, textAlign: 'center' }}>Write article content first to generate FAQs</p>
                 )}
                 {/* FAQ Cards */}
                 {faqs.map((faq, i) => (
-                  <div key={i} style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '10px 12px', position: 'relative' }}>
-                    <button onClick={() => setFaqs(faqs.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-tertiary)', display: 'flex', padding: 2, borderRadius: 4 }} title="Remove FAQ"><X size={12} /></button>
+                  <div key={faq.id} style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '10px 12px', position: 'relative' }}>
+                    <button onClick={() => setFaqs(faqs.filter(f => f.id !== faq.id))} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-tertiary)', display: 'flex', padding: 2, borderRadius: 4 }} title="Remove FAQ"><X size={12} /></button>
                     <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: '#7C3AED', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Q{i + 1}</div>
                     <input
                       value={faq.question}
-                      onChange={e => setFaqs(faqs.map((f, j) => j === i ? { ...f, question: e.target.value } : f))}
+                      onChange={e => setFaqs(faqs.map(f => f.id === faq.id ? { ...f, question: e.target.value } : f))}
                       placeholder="Question…"
                       style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box', marginBottom: 6 }}
                     />
                     <textarea
                       value={faq.answer}
-                      onChange={e => setFaqs(faqs.map((f, j) => j === i ? { ...f, answer: e.target.value } : f))}
+                      onChange={e => setFaqs(faqs.map(f => f.id === faq.id ? { ...f, answer: e.target.value } : f))}
                       placeholder="Answer…"
                       rows={3}
                       style={{ width: '100%', padding: '6px 8px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface)', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--color-ink-secondary)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6 }}
@@ -501,7 +515,7 @@ export default function NewArticlePage() {
                 {/* Add manually */}
                 <button
                   type="button"
-                  onClick={() => setFaqs([...faqs, { question: '', answer: '' }])}
+                  onClick={() => setFaqs([...faqs, { id: crypto.randomUUID(), question: '', answer: '' }])}
                   style={{ padding: '7px 12px', borderRadius: 7, border: '1px dashed var(--color-border)', background: 'transparent', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer', width: '100%' }}
                 >+ Add FAQ manually</button>
               </div>
