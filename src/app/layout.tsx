@@ -74,8 +74,7 @@ export const metadata: Metadata = {
     default: "OneMint — India's Most Trusted Knowledge Platform",
     template: "%s | OneMint",
   },
-  description:
-    "Expert articles on personal finance, technology, health, career, and more. Free tools & calculators. Zero spam.",
+  description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
   keywords: [
     "personal finance India", "investing", "SIP calculator", "tax planning",
     "technology news", "health advice", "career tips", "Indian knowledge platform",
@@ -90,7 +89,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: "OneMint",
     title: "OneMint — India's Most Trusted Knowledge Platform",
-    description: "Expert articles on finance, tech, health & more. Free tools. Zero spam.",
+    description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
     images: [
       {
         url: 'https://www.onemint.in/og-image.png',

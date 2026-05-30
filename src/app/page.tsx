@@ -18,8 +18,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata: Metadata = {
   title: "OneMint — India's Most Trusted Knowledge Platform",
-  description:
-    "Expert articles on personal finance, technology, health, career, and more. Free tools & calculators. Zero spam.",
+  description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
   alternates: {
     canonical: SITE_URL,
   },
@@ -27,7 +26,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: SITE_URL,
     title: "OneMint — India's Most Trusted Knowledge Platform",
-    description: "Expert articles on finance, tech, health & more. Free tools. Zero spam.",
+    description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: "OneMint — India's Most Trusted Knowledge Platform" }],
   },
 };

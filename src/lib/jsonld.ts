@@ -19,7 +19,7 @@ export function buildWebSite() {
     alternateName: "OneMint India",
     url: SITE,
     description:
-      "Expert articles on personal finance, technology, health, career, and more. Free tools & calculators. Zero spam.",
+      "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
     inLanguage: 'en-IN',
     potentialAction: {
       '@type': 'SearchAction',
