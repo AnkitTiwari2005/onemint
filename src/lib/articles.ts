@@ -57,6 +57,7 @@ function staticToPublic(a: typeof staticArticles[number]): PublicArticle {
     published_at: a.publishedAt,
     meta_title: a.title,
     meta_description: a.excerpt,
+    faqs: null,
     categories: cat
       ? { id: cat.id, name: cat.name, slug: cat.slug, accent_color: cat.accentColor, light_color: cat.lightColor }
       : null,
