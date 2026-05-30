@@ -226,7 +226,7 @@ export default function AdminAuthorsPage() {
             <button onClick={() => { setEditing(null); setIsNew(false); setSaveError(''); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', border: '1px solid var(--color-border)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
               <X size={14} /> Cancel
             </button>
-            {saveError && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '4px 10px', borderRadius: 8 }}>⚠ {saveError}</span>}
+            {saveError && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '4px 10px', borderRadius: 8 }}>{saveError}</span>}
           </div>
         </div>
       )}
@@ -304,7 +304,7 @@ export default function AdminAuthorsPage() {
 
       {toastErr && (
         <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
-          ⚠ {toastErr}
+          {toastErr}
         </div>
       )}
     </div>

@@ -211,7 +211,7 @@ export default function AdminArticlesPage() {
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, color: 'var(--color-ink)', marginBottom: 8 }}>Delete Article?</h3>
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 12 }}>This action cannot be undone. The article will be permanently removed from Supabase.</p>
             {deleteError && (
-              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '8px 12px', borderRadius: 8, marginBottom: 16 }}>⚠ {deleteError}</p>
+              <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '8px 12px', borderRadius: 8, marginBottom: 16 }}>{deleteError}</p>
             )}
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => { setDeleteTarget(null); setDeleteError(''); }} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>

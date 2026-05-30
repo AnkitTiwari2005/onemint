@@ -123,9 +123,9 @@ export default function AdminSettingsPage() {
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>Saved to Supabase — persists across deploys</p>
         </div>
         <button onClick={saveAll} disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--color-accent)', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} {saved ? '✓ Saved' : 'Save Changes'}
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} {saved ? 'Saved' : 'Save Changes'}
         </button>
-        {saveError && <span style={{ fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '6px 12px', borderRadius: 8, fontFamily: 'var(--font-ui)', fontWeight: 500 }}>⚠ {saveError}</span>}
+        {saveError && <span style={{ fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '6px 12px', borderRadius: 8, fontFamily: 'var(--font-ui)', fontWeight: 500 }}>{saveError}</span>}
       </div>
 
       <Section title="General">

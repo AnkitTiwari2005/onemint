@@ -59,7 +59,7 @@ Respond ONLY with a valid JSON array in this exact format (no extra text, no mar
         'X-Title': 'OneMint Admin — FAQ Generator',
       },
       body: JSON.stringify({
-        model: 'google/gemini-flash-1.5',
+        model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.4,
         max_tokens: 800,

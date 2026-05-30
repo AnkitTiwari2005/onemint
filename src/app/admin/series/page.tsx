@@ -239,7 +239,7 @@ export default function AdminSeriesPage() {
       {/* Toast */}
       {toastMsg && (
         <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
-          ⚠ {toastMsg}
+          {toastMsg}
         </div>
       )}
     </div>

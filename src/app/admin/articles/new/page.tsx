@@ -247,7 +247,7 @@ export default function NewArticlePage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <Link href="/admin/articles" style={{ color: 'var(--color-ink-tertiary)', display: 'flex', textDecoration: 'none' }}><ArrowLeft size={18} /></Link>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>New Article</h1>
-        {saveError && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '3px 10px', borderRadius: 10 }}>⚠ {saveError}</span>}
+        {saveError && <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', background: '#FEE2E2', padding: '3px 10px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', gap: 5 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{saveError}</span>}
       </div>
 
       <div className="article-editor-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
@@ -333,7 +333,7 @@ export default function NewArticlePage() {
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Category</label>
             {noCategoriesInDb ? (
               <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#D97706', margin: 0, lineHeight: 1.5 }}>
-                ⚠ No categories in DB yet.<br />
+                No categories in DB yet.<br />
                 <a href="/admin/categories" style={{ color: '#D97706', fontWeight: 600 }}>Add categories first →</a>
               </p>
             ) : (
@@ -349,7 +349,7 @@ export default function NewArticlePage() {
             <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Author</label>
             {noAuthorsInDb ? (
               <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#D97706', margin: 0, lineHeight: 1.5 }}>
-                ⚠ No authors in DB yet.<br />
+                No authors in DB yet.<br />
                 <a href="/admin/authors" style={{ color: '#D97706', fontWeight: 600 }}>Add authors first →</a>
               </p>
             ) : (
