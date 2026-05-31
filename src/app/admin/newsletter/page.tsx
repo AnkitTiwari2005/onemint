@@ -17,6 +17,7 @@ export default function AdminNewsletterPage() {
   const [filter, setFilter] = useState('all');
   const [toastMsg, setToastMsg] = useState('');
   const [unsubbing, setUnsubbing] = useState<string | null>(null);
+  const [confirmUnsub, setConfirmUnsub] = useState<{ email: string; id: string } | null>(null);
 
   // Compose state
   const [composeOpen, setComposeOpen] = useState(false);
@@ -50,6 +51,9 @@ export default function AdminNewsletterPage() {
       if (res.ok) {
         setSubscribers(prev => prev.map(s => s.id === id ? { ...s, status: 'unsubscribed' } : s));
         setToastMsg('Subscriber unsubscribed successfully');
+        setTimeout(() => setToastMsg(''), 3000);
+      } else {
+        setToastMsg('Failed to unsubscribe — please try again');
         setTimeout(() => setToastMsg(''), 3000);
       }
     } catch {
@@ -256,7 +260,7 @@ export default function AdminNewsletterPage() {
                     <td style={{ padding: '11px 16px' }}>
                       {s.status === 'active' && (
                         <button
-                          onClick={() => doUnsubscribe(s.email, s.id)}
+                          onClick={() => setConfirmUnsub({ email: s.email, id: s.id })}
                           disabled={unsubbing === s.id}
                           style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 11, cursor: unsubbing === s.id ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', opacity: unsubbing === s.id ? 0.5 : 1 }}
                         >
@@ -274,8 +278,24 @@ export default function AdminNewsletterPage() {
 
       {/* Toast */}
       {toastMsg && (
-        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
-          ✓ {toastMsg}
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: toastMsg.startsWith('Failed') || toastMsg.startsWith('Error') ? '#DC2626' : '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          {toastMsg}
+        </div>
+      )}
+
+      {/* Unsubscribe confirm modal */}
+      {confirmUnsub && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>Unsubscribe this subscriber?</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              <strong>{confirmUnsub.email}</strong> will be marked as unsubscribed and will no longer receive campaigns.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmUnsub(null)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { doUnsubscribe(confirmUnsub.email, confirmUnsub.id); setConfirmUnsub(null); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Unsubscribe</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

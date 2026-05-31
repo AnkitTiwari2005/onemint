@@ -121,6 +121,7 @@ export default function AdminAuthorsPage() {
         body: JSON.stringify({ id }),
       });
       if (!res.ok) { const d = await res.json(); showToast(d.error || 'Delete failed'); return; }
+      showToast('Author moved to Trash');
       loadAuthors();
     } catch {
       showToast('Delete failed — please try again');

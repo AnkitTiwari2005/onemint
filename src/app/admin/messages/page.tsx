@@ -19,6 +19,14 @@ export default function AdminMessagesPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [toast, setToast] = useState('');
+  const [toastErr, setToastErr] = useState(false);
+  const [loadErr, setLoadErr] = useState(false);
+
+  const showToast = (msg: string, err = false) => {
+    setToast(msg); setToastErr(err);
+    setTimeout(() => setToast(''), 3500);
+  };
 
   useEffect(() => {
     fetch('/api/admin/messages')
@@ -27,28 +35,40 @@ export default function AdminMessagesPage() {
         if (Array.isArray(data)) { setMessages(data); setSelected(data[0]?.id ?? null); }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoading(false); setLoadErr(true); });
   }, []);
 
   const markRead = async (id: string) => {
-    await fetch('/api/admin/messages', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, read: true }),
-    });
-    setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
+    try {
+      const res = await fetch('/api/admin/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, read: true }),
+      });
+      if (!res.ok) throw new Error('Failed to mark read');
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
+    } catch {
+      showToast('Failed to mark message as read', true);
+    }
   };
 
   const deleteMsg = async (id: string) => {
-    await fetch('/api/admin/messages', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    const remaining = messages.filter(m => m.id !== id);
-    setMessages(remaining);
-    setSelected(remaining[0]?.id ?? null);
-    setDeleteTarget(null);
+    try {
+      const res = await fetch('/api/admin/messages', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      const remaining = messages.filter(m => m.id !== id);
+      setMessages(remaining);
+      setSelected(remaining[0]?.id ?? null);
+      setDeleteTarget(null);
+      showToast('Message deleted');
+    } catch {
+      setDeleteTarget(null);
+      showToast('Failed to delete message', true);
+    }
   };
 
   if (loading) return (
@@ -84,6 +104,12 @@ export default function AdminMessagesPage() {
 
   const current = messages.find(m => m.id === selected);
   const unread = messages.filter(m => !m.read).length;
+
+  if (loadErr) return (
+    <div style={{ padding: 40, textAlign: 'center', color: '#DC2626', fontFamily: 'var(--font-ui)', fontSize: 14 }}>
+      Failed to load messages — please refresh the page.
+    </div>
+  );
 
   return (
     <div>
@@ -163,6 +189,13 @@ export default function AdminMessagesPage() {
         </div>
       )}
       <style>{`@media(max-width:768px){[style*="grid-template-columns: 300px 1fr"]{grid-template-columns:1fr!important;}}`}</style>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: toastErr ? '#DC2626' : '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 400, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

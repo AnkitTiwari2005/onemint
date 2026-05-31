@@ -89,6 +89,8 @@ export default function AdminSeriesPage() {
     try {
       const res = await fetch('/api/admin/series', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
       if (!res.ok) throw new Error('Delete failed');
+      setToastMsg('Series moved to Trash');
+      setTimeout(() => setToastMsg(''), 3000);
     } catch {
       setSeries(prev);
       setToastMsg('Delete failed — please try again.');

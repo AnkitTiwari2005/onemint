@@ -146,6 +146,9 @@ export default function EditArticlePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Save failed');
+      setSaveError('✓ Changes saved! Redirecting…');
+      setSaving(false);
+      await new Promise(r => setTimeout(r, 700));
       if (hasHistory) router.back();
       else router.push('/admin/articles');
     } catch (err) {

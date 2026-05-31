@@ -809,6 +809,7 @@ function AnalyticsPageContent() {
   const [cacheAge, setCacheAge]     = useState<number | null>(null);
   const [reportOpen, setReportOpen]     = useState(false);
   const [reportFetching, setReportFetching] = useState(false);
+  const [reportError, setReportError] = useState('');
 
   // Pick up refresh_token from OAuth redirect and clean the URL
   useEffect(() => {
@@ -882,13 +883,15 @@ function AnalyticsPageContent() {
       setReportOpen(false);
       const win = window.open('', '_blank', 'width=1100,height=800');
       if (!win) {
-        alert('Please allow pop-ups for this site, then try again.');
+        setReportError('Please allow pop-ups for this site, then try again.');
+        setTimeout(() => setReportError(''), 5000);
         return;
       }
       win.document.write(buildReportHTML(duration, freshData, customFrom, customTo));
       win.document.close();
     } catch (err) {
-      alert(`Failed to fetch report data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setReportError(`Failed to fetch report: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setTimeout(() => setReportError(''), 5000);
     } finally {
       setReportFetching(false);
     }
@@ -1154,6 +1157,13 @@ function AnalyticsPageContent() {
           [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important;}
         }
       `}</style>
+
+      {/* Report error toast */}
+      {reportError && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 9999, boxShadow: '0 4px 16px rgba(0,0,0,0.25)', maxWidth: 360 }}>
+          {reportError}
+        </div>
+      )}
     </div>
   );
 }

@@ -29,26 +29,39 @@ export default function AdminSuggestionsPage() {
   const [filterCat, setFilterCat] = useState('all');
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
+  const [toast, setToast] = useState('');
+  const [toastErr, setToastErr] = useState(false);
+  const [loadErr, setLoadErr] = useState(false);
+  const [confirmDismiss, setConfirmDismiss] = useState<{ ids: string[]; label: string } | null>(null);
+
+  const showToast = (msg: string, err = false) => {
+    setToast(msg); setToastErr(err);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   useEffect(() => {
     fetch('/api/admin/suggestions')
       .then(r => r.json())
       .then(d => { if (Array.isArray(d)) setSuggestions(d); })
-      .catch(console.error)
+      .catch(() => setLoadErr(true))
       .finally(() => setLoading(false));
   }, []);
 
   const update = async (id: string, status: string) => {
     setSaving(id);
-    setSuggestions(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+    const prev = suggestions.find(s => s.id === id);
+    setSuggestions(p => p.map(s => s.id === id ? { ...s, status } : s));
     try {
-      await fetch('/api/admin/suggestions', {
+      const res = await fetch('/api/admin/suggestions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status }),
       });
-    } catch (e) {
-      console.error('Failed to update suggestion:', e);
+      if (!res.ok) throw new Error('Update failed');
+      showToast(`Marked as ${status}`);
+    } catch {
+      if (prev) setSuggestions(p => p.map(s => s.id === id ? { ...s, status: prev.status } : s));
+      showToast('Failed to update status — please try again', true);
     } finally {
       setSaving(null);
     }
@@ -108,7 +121,7 @@ export default function AdminSuggestionsPage() {
             <button onClick={() => { selected.forEach((id) => update(id, 'in-progress')); setSelected([]); }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #2563EB', background: '#EFF6FF', color: '#1D4ED8', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Mark {selected.length} as In Progress
             </button>
-            <button onClick={() => { selected.forEach((id) => update(id, 'dismissed')); setSelected([]); }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
+            <button onClick={() => setConfirmDismiss({ ids: selected, label: `Dismiss ${selected.length} suggestion${selected.length > 1 ? 's' : ''}?` })} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
               Dismiss selected
             </button>
           </>
@@ -145,7 +158,7 @@ export default function AdminSuggestionsPage() {
                       <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 10, background: st.bg, color: st.color, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{st.label}</span>
                       {s.status === 'pending' && <button onClick={() => update(s.id, 'in-progress')} disabled={saving === s.id} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #2563EB', background: '#EFF6FF', color: '#1D4ED8', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><Clock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />In Progress</button>}
                       {s.status !== 'published' && s.status !== 'dismissed' && <button onClick={() => update(s.id, 'published')} disabled={saving === s.id} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #16A34A', background: '#D1FAE5', color: '#065F46', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><CheckCircle2 size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />Published</button>}
-                      {s.status !== 'dismissed' && <button onClick={() => update(s.id, 'dismissed')} disabled={saving === s.id} style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><XCircle size={13} /></button>}
+                      {s.status !== 'dismissed' && <button onClick={() => setConfirmDismiss({ ids: [s.id], label: `Dismiss "${s.title.slice(0, 40)}…"?` })} disabled={saving === s.id} style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><XCircle size={13} /></button>}
                       <button onClick={() => setExpanded(open ? null : s.id)} style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                         {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                       </button>
@@ -161,6 +174,36 @@ export default function AdminSuggestionsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Dismiss confirm modal */}
+      {confirmDismiss && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>{confirmDismiss.label}</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              This will mark {confirmDismiss.ids.length > 1 ? 'these suggestions' : 'this suggestion'} as dismissed.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmDismiss(null)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { confirmDismiss.ids.forEach(id => update(id, 'dismissed')); setSelected([]); setConfirmDismiss(null); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Dismiss</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Load error */}
+      {loadErr && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 400, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          Failed to load suggestions — refresh to retry
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: toastErr ? '#DC2626' : '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 400, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          {toast}
         </div>
       )}
     </div>

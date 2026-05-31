@@ -29,6 +29,15 @@ export default function AdminApplicationsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [saved, setSaved] = useState('');
+  const [toast, setToast] = useState('');
+  const [toastErr, setToastErr] = useState(false);
+  const [loadErr, setLoadErr] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ id: string; name: string; action: 'approved' | 'rejected' } | null>(null);
+
+  const showToast = (msg: string, err = false) => {
+    setToast(msg); setToastErr(err);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   useEffect(() => {
     fetch('/api/admin/applications')
@@ -37,18 +46,24 @@ export default function AdminApplicationsPage() {
         if (Array.isArray(data)) setApps(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoading(false); setLoadErr(true); });
   }, []);
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
-    await fetch('/api/admin/applications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
-    });
-    setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-    setSaved(id);
-    setTimeout(() => setSaved(''), 2000);
+    try {
+      const res = await fetch('/api/admin/applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      if (!res.ok) throw new Error('Update failed');
+      setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+      setSaved(id);
+      setTimeout(() => setSaved(''), 2000);
+      showToast(status === 'approved' ? 'Application approved' : 'Application rejected');
+    } catch {
+      showToast('Failed to update application — please try again', true);
+    }
   };
 
   const filtered = filter === 'all' ? apps : apps.filter(a => a.status === filter);
@@ -171,13 +186,13 @@ export default function AdminApplicationsPage() {
                   {app.status === 'pending' && (
                     <div style={{ display: 'flex', gap: 10 }}>
                       <button
-                        onClick={() => updateStatus(app.id, 'approved')}
+                        onClick={() => setConfirmAction({ id: app.id, name: app.name, action: 'approved' })}
                         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8, background: '#16A34A', color: 'white', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600 }}
                       >
                         <CheckCircle2 size={14} /> Approve
                       </button>
                       <button
-                        onClick={() => updateStatus(app.id, 'rejected')}
+                        onClick={() => setConfirmAction({ id: app.id, name: app.name, action: 'rejected' })}
                         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 8, background: '#DC2626', color: 'white', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600 }}
                       >
                         <XCircle size={14} /> Reject
@@ -195,6 +210,38 @@ export default function AdminApplicationsPage() {
           </div>
         )}
       </div>
+
+      {/* Approve / Reject confirm modal */}
+      {confirmAction && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>
+              {confirmAction.action === 'approved' ? 'Approve' : 'Reject'} application?
+            </h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              {confirmAction.action === 'approved'
+                ? <><strong>{confirmAction.name}</strong>&rsquo;s application will be marked as approved.</>  
+                : <><strong>{confirmAction.name}</strong>&rsquo;s application will be rejected. This action cannot be easily undone.</>}
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmAction(null)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button
+                onClick={() => { updateStatus(confirmAction.id, confirmAction.action); setConfirmAction(null); }}
+                style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: confirmAction.action === 'approved' ? '#16A34A' : '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                {confirmAction.action === 'approved' ? 'Approve' : 'Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {(toast || loadErr) && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: toastErr || loadErr ? '#DC2626' : '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 400, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          {loadErr ? 'Failed to load applications — refresh to retry' : toast}
+        </div>
+      )}
     </div>
   );
 }

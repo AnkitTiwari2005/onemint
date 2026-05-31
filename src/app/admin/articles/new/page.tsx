@@ -236,6 +236,11 @@ export default function NewArticlePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Save failed');
+      setSaveError('');
+      // Brief success pause so admin sees confirmation before navigating
+      setSaving(false);
+      setSaveError(`✓ ${publish ? 'Published' : 'Saved'}! Redirecting…`);
+      await new Promise(r => setTimeout(r, 700));
       router.push('/admin/articles');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Save failed — try again');
