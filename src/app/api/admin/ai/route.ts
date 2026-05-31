@@ -8,19 +8,24 @@ export const runtime = 'edge';
 
 /**
  * POST /api/admin/ai
- * Body:   { content: string, title: string }
+ * Body:   { content: string; title: string; category?: string; tags?: string[] }
  * Returns:{ faqs: Array<{ question: string; answer: string }> }
  *
- * Calls Google Gemini API directly (gemini-2.5-flash).
+ * Calls Google Gemini 2.5 Flash directly.
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-const GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20';
+const GEMINI_MODEL    = 'gemini-2.5-flash-preview-05-20';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { content, title } = await req.json();
+    const { content, title, category, tags } = await req.json() as {
+      content:   string;
+      title:     string;
+      category?: string;
+      tags?:     string[];
+    };
 
     if (!content?.trim() || !title?.trim()) {
       return NextResponse.json(
@@ -37,23 +42,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2500 chars — Gemini 2.5 Flash handles longer context well
-    const truncated = content.slice(0, 2500);
+    // Send up to 6000 chars (~1500 words) — enough for a full article body
+    const truncated     = content.slice(0, 6000);
+    const categoryLine  = category ? `Category: ${category}` : '';
+    const tagsLine      = tags?.length ? `Tags: ${tags.join(', ')}` : '';
+    const contextBlock  = [categoryLine, tagsLine].filter(Boolean).join('\n');
 
-    const prompt =
-      `You are an SEO content strategist. Read the article below and produce exactly 4 FAQ entries.\n` +
-      `Rules:\n` +
-      `- Derive questions from the actual article content\n` +
-      `- Answers must be 2-3 plain sentences (no markdown, no bullet points)\n` +
-      `- Target questions real readers search for on Google\n\n` +
-      `Article title: "${title.trim()}"\n\n` +
-      `Article content:\n${truncated}\n\n` +
-      `Reply with ONLY a JSON array — no explanation, no markdown fences:\n` +
-      `[{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
+    const prompt = `You are an expert SEO content strategist specialising in Indian personal finance, health, and technology content.
 
-    // 12-second hard timeout — Gemini 2.5 Flash is fast but give it room
+Your task: Read the article below and write exactly 4 FAQ entries that will appear in a Google FAQ rich snippet.
+
+STRICT RULES:
+1. Every question must start with one of these high-intent patterns: "What is", "How", "Why", "Is", "Does", "Can", "When", "Are", "Which", "How much", "What are"
+2. Each question must target a DIFFERENT angle — no rephrasing the same question
+3. Answers must be 2–3 complete sentences. Plain prose only — no bullet points, no markdown, no lists
+4. Ground every answer in specific facts, data points, or named entities from the article
+5. Questions must reflect what an Indian reader would actually type into Google
+6. Do NOT generate generic questions like "What is this article about?" or "Why is this important?"
+7. Prefer questions with high search volume potential over obvious or trivial ones
+
+Article metadata:
+Title: "${title.trim()}"
+${contextBlock}
+
+Article content:
+${truncated}
+
+Return ONLY a valid JSON array — no explanation, no markdown fences, no preamble:
+[{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
+
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const timer = setTimeout(() => controller.abort(), 20000);
 
     let response: Response;
     try {
@@ -62,14 +81,10 @@ export async function POST(req: NextRequest) {
         signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 800,
+            temperature:      0.2,   // lower = more factual, less hallucination
+            maxOutputTokens:  1024,
             responseMimeType: 'application/json',
           },
         }),

@@ -187,7 +187,12 @@ export default function NewArticlePage() {
       const res = await fetch('/api/admin/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: body, title }),
+        body: JSON.stringify({
+          content: body,
+          title,
+          category: dbCategories.find(c => c.id === category)?.name || '',
+          tags,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
