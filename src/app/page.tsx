@@ -29,6 +29,11 @@ export const metadata: Metadata = {
     description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: "OneMint — India's Most Trusted Knowledge Platform" }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: "OneMint — India's Most Trusted Knowledge Platform",
+    description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
+  },
 };
 
 export default async function HomePage() {
