@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, FileText, Tag, Users, BookOpen, Lightbulb,
   MessageSquare, Calculator, BookMarked, Mail, BarChart3,
-  Settings, LogOut, Menu, Cog,
+  Settings, LogOut, Menu, Cog, Trash2,
 } from 'lucide-react';
 
 const NAV = [
@@ -47,6 +47,7 @@ const NAV = [
     section: 'Settings',
     items: [
       { label: 'Settings', href: '/admin/settings', icon: Settings },
+      { label: 'Trash',    href: '/admin/trash',    icon: Trash2   },
     ],
   },
 ];

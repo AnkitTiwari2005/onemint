@@ -50,6 +50,19 @@ export async function PATCH(
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
+
+    // Restore from trash: just clear deleted_at
+    if (body.restore === true) {
+      const { data, error } = await supabaseAdmin
+        .from('articles')
+        .update({ deleted_at: null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) return NextResponse.json({ error: 'Failed to restore article' }, { status: 500 });
+      return NextResponse.json(data);
+    }
+
     const allowed = [
       'title', 'slug', 'deck', 'excerpt', 'content', 'cover_image',
       'status', 'category_id', 'author_id', 'tags',
@@ -109,7 +122,7 @@ export async function DELETE(
 
     const { error } = await supabaseAdmin
       .from('articles')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {

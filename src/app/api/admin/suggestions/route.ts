@@ -11,6 +11,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from('topic_suggestions')
       .select('*')
+      .is('deleted_at', null)
       .order('votes', { ascending: false });
 
     if (error) {
@@ -66,11 +67,11 @@ export async function DELETE(req: NextRequest) {
 
     const { error } = await supabaseAdmin
       .from('topic_suggestions')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to delete suggestion' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

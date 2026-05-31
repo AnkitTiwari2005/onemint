@@ -532,7 +532,12 @@ export default function NewArticlePage() {
         <button onClick={() => saveArticle(true)} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />} Publish
         </button>
-        <button onClick={() => slug && window.open(`/articles/${slug}`, '_blank')} disabled={!slug} title={slug ? `Preview /articles/${slug}` : 'Save first to preview'} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: slug ? 'var(--color-ink-secondary)' : 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: slug ? 'pointer' : 'not-allowed', opacity: slug ? 1 : 0.5 }}>
+        <button
+          onClick={() => slug && status === 'published' && window.open(`/articles/${slug}`, '_blank')}
+          disabled={!slug || status !== 'published'}
+          title={!slug ? 'Save the article first' : status !== 'published' ? 'Article must be published to preview live' : `Preview /articles/${slug}`}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: (slug && status === 'published') ? 'var(--color-ink-secondary)' : 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: (slug && status === 'published') ? 'pointer' : 'not-allowed', opacity: (slug && status === 'published') ? 1 : 0.5 }}
+        >
           <Eye size={14} /> Preview
         </button>
       </div>

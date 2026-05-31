@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await supabaseAdmin
       .from('articles')
       .select('id, title, slug, status, published_at, created_at, category_id, author_id, read_time_minutes, categories(name), authors(name)', { count: 'exact' })
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .range(from, to);
 

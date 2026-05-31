@@ -83,6 +83,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from('authors')
       .select('*, articles(count)')
+      .is('deleted_at', null)
       .order('name', { ascending: true });
     if (error) {
       console.error('[Admin authors GET]', error.message);
@@ -166,8 +167,8 @@ export async function DELETE(req: NextRequest) {
     if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 503 });
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
-    const { error } = await supabaseAdmin.from('authors').delete().eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    const { error } = await supabaseAdmin.from('authors').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+    if (error) return NextResponse.json({ error: 'Failed to delete author' }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[Admin authors DELETE]', err);

@@ -5,7 +5,7 @@ export async function GET() {
   try {
     if (!supabaseAdmin) return NextResponse.json([]);
     const { data, error } = await supabaseAdmin
-      .from('series').select('*').order('created_at', { ascending: false });
+      .from('series').select('*').is('deleted_at', null).order('created_at', { ascending: false });
     if (error) {
       console.error('[Admin series GET]', error.message);
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
@@ -65,8 +65,8 @@ export async function DELETE(req: NextRequest) {
     if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 503 });
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
-    const { error } = await supabaseAdmin.from('series').delete().eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    const { error } = await supabaseAdmin.from('series').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+    if (error) return NextResponse.json({ error: 'Failed to delete series' }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[Admin series DELETE]', err);

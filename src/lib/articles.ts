@@ -84,6 +84,7 @@ export async function fetchPublishedArticles(): Promise<{
           'authors(id, name, slug, avatar, role)'
         )
         .eq('status', 'published')
+        .is('deleted_at', null)
         .order('published_at', { ascending: false });
 
       if (!error && data) {
@@ -132,6 +133,7 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
         )
         .eq('slug', slug)
         .eq('status', 'published')
+        .is('deleted_at', null)
         .maybeSingle();
 
       if (!error && data) {
