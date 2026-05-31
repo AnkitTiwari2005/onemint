@@ -7,7 +7,6 @@ type TrashItem = {
   id: string;
   deleted_at: string;
   created_at: string;
-  // flexible — different tables return different label fields
   title?: string;
   name?: string;
   topic?: string;
@@ -31,12 +30,12 @@ type TrashData = {
 type TabKey = keyof TrashData;
 
 const TABS: { key: TabKey; label: string; Icon: React.ElementType }[] = [
-  { key: 'articles',    label: 'Articles',          Icon: FileText     },
-  { key: 'authors',     label: 'Authors',            Icon: Users        },
-  { key: 'categories',  label: 'Categories',         Icon: Tag          },
-  { key: 'series',      label: 'Series',             Icon: BookOpen     },
-  { key: 'suggestions', label: 'Suggestions',        Icon: Lightbulb    },
-  { key: 'messages',    label: 'Messages',           Icon: MessageSquare},
+  { key: 'articles',    label: 'Articles',     Icon: FileText      },
+  { key: 'authors',     label: 'Authors',      Icon: Users         },
+  { key: 'categories',  label: 'Categories',   Icon: Tag           },
+  { key: 'series',      label: 'Series',       Icon: BookOpen      },
+  { key: 'suggestions', label: 'Suggestions',  Icon: Lightbulb     },
+  { key: 'messages',    label: 'Messages',     Icon: MessageSquare },
 ];
 
 function getLabel(item: TrashItem): string {
@@ -44,11 +43,11 @@ function getLabel(item: TrashItem): string {
 }
 
 function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
+  const diff  = Date.now() - new Date(iso).getTime();
   const days  = Math.floor(diff / 86400000);
   const hours = Math.floor(diff / 3600000);
   const mins  = Math.floor(diff / 60000);
-  if (days > 0)  return `${days}d ago`;
+  if (days  > 0) return `${days}d ago`;
   if (hours > 0) return `${hours}h ago`;
   return `${mins}m ago`;
 }
@@ -59,13 +58,13 @@ function daysUntilPurge(iso: string): number {
 }
 
 export default function TrashPage() {
-  const [data, setData]       = useState<TrashData | null>(null);
+  const [data, setData]     = useState<TrashData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab]         = useState<TabKey>('articles');
-  const [busy, setBusy]       = useState<string | null>(null); // id of item being acted on
+  const [tab, setTab]       = useState<TabKey>('articles');
+  const [busy, setBusy]     = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<TrashItem | null>(null);
   const [confirmPurge,  setConfirmPurge]  = useState(false);
-  const [toast, setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
+  const [toast, setToast]   = useState<{ msg: string; ok: boolean } | null>(null);
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok });
@@ -122,7 +121,7 @@ export default function TrashPage() {
     try {
       const res = await fetch('/api/admin/trash', { method: 'DELETE' });
       if (!res.ok) throw new Error();
-      showToast('Items older than 30 days permanently deleted');
+      showToast('Old items permanently purged');
       await load();
     } catch {
       showToast('Purge failed', false);
@@ -133,17 +132,19 @@ export default function TrashPage() {
 
   const totalCount = data ? Object.values(data).reduce((sum, arr) => sum + arr.length, 0) : 0;
   const items = data ? data[tab] : [];
+  const isEmpty = totalCount === 0 && !loading;
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: 900, margin: '0 auto' }}>
-      {/* Toast */}
+
+      {/* Toast — bottom-right, consistent with rest of admin */}
       {toast && (
         <div style={{
-          position: 'fixed', top: 20, right: 24, zIndex: 9999,
+          position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
           background: toast.ok ? '#16a34a' : '#dc2626',
-          color: 'white', padding: '10px 18px', borderRadius: 8,
-          fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          color: 'white', padding: '12px 20px', borderRadius: 10,
+          fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
           animation: 'slideIn 0.2s ease',
         }}>
           {toast.msg}
@@ -160,8 +161,10 @@ export default function TrashPage() {
             </h1>
             {totalCount > 0 && (
               <span style={{
-                background: '#fef2f2', color: '#dc2626', fontFamily: 'var(--font-ui)',
-                fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                background: '#dc262618', color: '#dc2626',
+                fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700,
+                padding: '2px 8px', borderRadius: 20,
+                border: '1px solid #dc262630',
               }}>
                 {totalCount} item{totalCount !== 1 ? 's' : ''}
               </span>
@@ -175,16 +178,36 @@ export default function TrashPage() {
           <button
             onClick={load}
             disabled={loading}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, cursor: 'pointer' }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 7,
+              border: '1px solid var(--color-border)', background: 'transparent',
+              color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)',
+              fontSize: 12, cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+            }}
           >
-            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
+            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            Refresh
           </button>
           <button
             onClick={() => setConfirmPurge(true)}
-            disabled={totalCount === 0 || busy === 'purge'}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 7, border: '1px solid #fca5a5', background: '#fef2f2', color: '#dc2626', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, cursor: totalCount === 0 ? 'not-allowed' : 'pointer', opacity: totalCount === 0 ? 0.5 : 1 }}
+            disabled={isEmpty || busy === 'purge'}
+            title={isEmpty ? 'Nothing in trash to purge' : 'Permanently delete items older than 30 days'}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 7,
+              border: `1px solid ${isEmpty ? 'var(--color-border)' : '#fca5a5'}`,
+              background: isEmpty ? 'transparent' : '#dc262612',
+              color: isEmpty ? 'var(--color-ink-tertiary)' : '#dc2626',
+              fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
+              cursor: isEmpty ? 'not-allowed' : 'pointer',
+              opacity: isEmpty ? 0.45 : 1,
+              transition: 'all 0.15s',
+            }}
           >
-            <X size={13} /> Purge Old Items
+            <Trash2 size={13} />
+            Purge Old Items
           </button>
         </div>
       </div>
@@ -192,7 +215,7 @@ export default function TrashPage() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--color-border)', marginBottom: 20 }}>
         {TABS.map(({ key, label, Icon }) => {
-          const count = data ? data[key].length : 0;
+          const count  = data ? data[key].length : 0;
           const active = tab === key;
           return (
             <button
@@ -213,7 +236,12 @@ export default function TrashPage() {
               <Icon size={13} />
               {label}
               {count > 0 && (
-                <span style={{ background: '#fef2f2', color: '#dc2626', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>
+                <span style={{
+                  background: '#dc262618', color: '#dc2626',
+                  fontSize: 10, fontWeight: 700,
+                  padding: '1px 6px', borderRadius: 10,
+                  border: '1px solid #dc262625',
+                }}>
                   {count}
                 </span>
               )}
@@ -225,19 +253,31 @@ export default function TrashPage() {
       {/* Content */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 13 }}>
+          <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 12, display: 'block', margin: '0 auto 12px' }} />
           Loading trash…
         </div>
       ) : items.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <Trash2 size={36} color="var(--color-border)" style={{ marginBottom: 12 }} />
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-tertiary)', margin: 0 }}>
-            No deleted {tab} yet
+        <div style={{ textAlign: 'center', padding: '72px 0' }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 16,
+            background: 'var(--color-surface-alt)',
+            border: '1px solid var(--color-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <Trash2 size={28} color="var(--color-ink-tertiary)" />
+          </div>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 600, color: 'var(--color-ink-secondary)', margin: '0 0 4px' }}>
+            No deleted {tab}
+          </p>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', margin: 0 }}>
+            Items you delete will appear here for 30 days.
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {items.map((item) => {
-            const purgeIn = daysUntilPurge(item.deleted_at);
+            const purgeIn  = daysUntilPurge(item.deleted_at);
             const isUrgent = purgeIn <= 3;
             return (
               <div
@@ -246,15 +286,18 @@ export default function TrashPage() {
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '12px 16px', borderRadius: 8,
                   background: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  marginBottom: 4,
+                  border: `1px solid ${isUrgent ? '#dc262640' : 'var(--color-border)'}`,
                   opacity: busy === item.id ? 0.5 : 1,
                   transition: 'opacity 0.15s',
                 }}
               >
                 {/* Label */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{
+                    fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600,
+                    color: 'var(--color-ink)', margin: '0 0 2px',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
                     {getLabel(item)}
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -264,7 +307,11 @@ export default function TrashPage() {
                       </span>
                     )}
                     {item.status && (
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: item.status === 'published' ? '#16a34a' : '#9ca3af', letterSpacing: '0.06em' }}>
+                      <span style={{
+                        fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 600,
+                        textTransform: 'uppercase', letterSpacing: '0.06em',
+                        color: item.status === 'published' ? '#16a34a' : 'var(--color-ink-tertiary)',
+                      }}>
                         {item.status}
                       </span>
                     )}
@@ -277,13 +324,17 @@ export default function TrashPage() {
                 </div>
 
                 {/* Purge countdown */}
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 90 }}>
                   <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: '0 0 2px' }}>
                     Deleted {timeAgo(item.deleted_at)}
                   </p>
-                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 600, color: isUrgent ? '#dc2626' : 'var(--color-ink-tertiary)', margin: 0 }}>
-                    {isUrgent && <AlertTriangle size={10} style={{ marginRight: 2, display: 'inline' }} />}
-                    Purges in {purgeIn}d
+                  <p style={{
+                    fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 600,
+                    color: isUrgent ? '#dc2626' : 'var(--color-ink-tertiary)', margin: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3,
+                  }}>
+                    {isUrgent && <AlertTriangle size={10} />}
+                    {purgeIn === 0 ? 'Purges today' : `Purges in ${purgeIn}d`}
                   </p>
                 </div>
 
@@ -296,9 +347,11 @@ export default function TrashPage() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '6px 12px', borderRadius: 6,
-                      border: '1px solid #86efac', background: '#f0fdf4',
-                      color: '#16a34a', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
-                      cursor: 'pointer',
+                      border: '1px solid var(--color-border)',
+                      background: 'var(--color-surface-alt)',
+                      color: '#16a34a',
+                      fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
+                      cursor: busy === item.id ? 'not-allowed' : 'pointer',
                     }}
                   >
                     <RotateCcw size={12} /> Restore
@@ -310,9 +363,11 @@ export default function TrashPage() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
                       padding: '6px 12px', borderRadius: 6,
-                      border: '1px solid #fca5a5', background: '#fef2f2',
-                      color: '#dc2626', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
-                      cursor: 'pointer',
+                      border: '1px solid var(--color-border)',
+                      background: 'var(--color-surface-alt)',
+                      color: '#dc2626',
+                      fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
+                      cursor: busy === item.id ? 'not-allowed' : 'pointer',
                     }}
                   >
                     <X size={12} /> Delete Forever
@@ -327,15 +382,15 @@ export default function TrashPage() {
       {/* Confirm permanent delete dialog */}
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <AlertTriangle size={18} color="#dc2626" />
               <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>
-                Delete Forever?
+                Delete forever?
               </h3>
             </div>
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 20, lineHeight: 1.6 }}>
-              <strong>"{getLabel(confirmDelete)}"</strong> will be permanently deleted. This cannot be undone.
+              <strong>&ldquo;{getLabel(confirmDelete)}&rdquo;</strong> will be permanently deleted. This cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
@@ -358,11 +413,11 @@ export default function TrashPage() {
       {/* Confirm purge dialog */}
       {confirmPurge && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 420, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 420, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <AlertTriangle size={18} color="#dc2626" />
               <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>
-                Purge Old Items?
+                Purge old items?
               </h3>
             </div>
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 20, lineHeight: 1.6 }}>
@@ -388,7 +443,7 @@ export default function TrashPage() {
 
       <style>{`
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin    { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );
