@@ -822,13 +822,13 @@ function AnalyticsPageContent() {
     }
   }, [searchParams]);
 
-  const load = async (force = false) => {
-    if (force) clearAnalyticsCache();
+  const load = async (force = false, p: 'weekly' | 'monthly' = period) => {
+    if (force) clearAnalyticsCache(p);
 
-    const cached = getCachedAnalytics();
+    const cached = getCachedAnalytics(p);
     if (cached) {
       setData(cached);
-      setCacheAge(getCacheAge());
+      setCacheAge(getCacheAge(p));
       setLoading(false);
       return;
     }
@@ -836,10 +836,12 @@ function AnalyticsPageContent() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/admin/analytics');
+      // weekly = default 7-day dashboard; monthly = last 30 days
+      const url = p === 'monthly' ? '/api/admin/analytics?start=last30' : '/api/admin/analytics';
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      setCachedAnalytics(json);
+      setCachedAnalytics(json, p);
       setData(json);
       setCacheAge(0);
     } catch (err) {
@@ -851,14 +853,18 @@ function AnalyticsPageContent() {
 
   useEffect(() => { load(); }, []);
 
+  // Re-fetch when period changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(false, period); }, [period]);
+
   // Live-tick the cache age every second
   useEffect(() => {
     const id = setInterval(() => {
-      const age = getCacheAge();
+      const age = getCacheAge(period);
       if (age !== null) setCacheAge(age);
     }, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [period]);
 
   // ── Generate Report — fetches fresh GA4 data for the selected range ─────────
   const handleGenerateReport = useCallback(async (
@@ -927,6 +933,8 @@ function AnalyticsPageContent() {
   );
 
   const fromGA4 = data.fromGA4;
+
+  const periodLabel = period === 'weekly' ? 'Last 7 days' : 'Last 30 days';
 
   // ── Stat cards ───────────────────────────────────────────────────────────
   const stats = [
@@ -1032,7 +1040,7 @@ function AnalyticsPageContent() {
           {/* Period toggle */}
           {(['weekly', 'monthly'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${period === p ? 'var(--color-accent)' : 'var(--color-border)'}`, background: period === p ? 'var(--color-accent)' : 'var(--color-surface)', color: period === p ? 'white' : 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
-              {p.charAt(0).toUpperCase() + p.slice(1)}
+              {p === 'weekly' ? 'Last 7 days' : 'Last 30 days'}
             </button>
           ))}
         </div>
@@ -1051,6 +1059,7 @@ function AnalyticsPageContent() {
                 {dimmed ? '—' : value}
               </p>
               <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>{label}</p>
+              {ga4 && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--color-ink-tertiary)', margin: '2px 0 0', opacity: 0.7 }}>{periodLabel}</p>}
             </div>
           );
         })}
@@ -1061,7 +1070,7 @@ function AnalyticsPageContent() {
         {/* Timeseries */}
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 20 }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 16 }}>
-            Page Views — {period === 'weekly' ? 'Last 7 days' : 'Last 6 months'}
+            Page Views — {periodLabel}
           </h2>
           <div style={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -1101,7 +1110,7 @@ function AnalyticsPageContent() {
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <TrendingUp size={15} color="var(--color-accent)" />
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>
-              Top Articles This Week
+              Top Articles — {periodLabel}
             </h2>
           </div>
           {data.topArticles.length === 0 ? (
