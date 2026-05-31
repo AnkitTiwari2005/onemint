@@ -4,6 +4,8 @@ const nextConfig = {
   // https://www.onemint.in  →  canonical (matches layout.tsx + sitemap)
   // https://www.onemint.in/ →  301 redirect to above (eliminates GSC duplicate)
   trailingSlash: false,
+  // Remove X-Powered-By: Next.js header — no functional effect, pure security hygiene
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       // Allow all HTTPS image sources — this CMS publishes content from arbitrary domains
