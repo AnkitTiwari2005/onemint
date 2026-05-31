@@ -23,6 +23,7 @@ export default function AdminCategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [toastErr, setToastErr] = useState(false);
+  const [confirmCat, setConfirmCat] = useState<Category | null>(null);
 
   const showToast = (msg: string, err = false) => {
     setToast(msg); setToastErr(err);
@@ -82,7 +83,6 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this category? Articles in this category will be unaffected.')) return;
     try {
       const res = await fetch('/api/admin/categories', {
         method: 'DELETE',
@@ -90,7 +90,7 @@ export default function AdminCategoriesPage() {
         body: JSON.stringify({ id }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Delete failed'); }
-      showToast('✓ Category deleted');
+      showToast('Category moved to trash');
       loadCategories();
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Delete failed', true);
@@ -191,7 +191,7 @@ export default function AdminCategoriesPage() {
                 <td style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => { setEditing({ ...cat, accentColor: cat.accentColor || '#1B6B3A' }); setIsNew(false); }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
-                    <button onClick={() => handleDelete(cat.id)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
+                    <button onClick={() => setConfirmCat(cat)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
                   </div>
                 </td>
               </tr>
@@ -206,6 +206,22 @@ export default function AdminCategoriesPage() {
       {toast && (
         <div style={{ position: 'fixed', bottom: 24, right: 24, background: toastErr ? '#DC2626' : '#1B6B3A', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
           {toast}
+        </div>
+      )}
+
+      {/* Custom delete confirm modal */}
+      {confirmCat && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>Delete Category?</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              <strong>&ldquo;{confirmCat.name}&rdquo;</strong> will be moved to Trash. Articles in this category will be unaffected.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmCat(null)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { handleDelete(confirmCat.id); setConfirmCat(null); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Move to Trash</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -25,6 +25,7 @@ export default function AdminSeriesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [toastMsg, setToastMsg] = useState('');
+  const [confirmSeries, setConfirmSeries] = useState<Series | null>(null);
 
   useEffect(() => {
     fetch('/api/admin/series')
@@ -83,14 +84,13 @@ export default function AdminSeriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this series?')) return;
     const prev = series;
     setSeries(p => p.filter(s => s.id !== id));
     try {
       const res = await fetch('/api/admin/series', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
       if (!res.ok) throw new Error('Delete failed');
     } catch {
-      setSeries(prev); // rollback
+      setSeries(prev);
       setToastMsg('Delete failed — please try again.');
       setTimeout(() => setToastMsg(''), 4000);
     }
@@ -223,7 +223,7 @@ export default function AdminSeriesPage() {
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => { setEditing(s); setIsNew(false); }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
                     <Link href={`/series/${s.slug}`} target="_blank" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', display: 'flex', alignItems: 'center' }}><ExternalLink size={13} /></Link>
-                    <button onClick={() => handleDelete(s.id)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
+                    <button onClick={() => setConfirmSeries(s)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
                   </div>
                 </td>
               </tr>
@@ -240,6 +240,22 @@ export default function AdminSeriesPage() {
       {toastMsg && (
         <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
           {toastMsg}
+        </div>
+      )}
+
+      {/* Custom delete confirm modal */}
+      {confirmSeries && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>Delete Series?</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              <strong>&ldquo;{confirmSeries.name}&rdquo;</strong> will be moved to Trash.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmSeries(null)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { handleDelete(confirmSeries.id); setConfirmSeries(null); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Move to Trash</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -37,11 +37,11 @@ export default function EditArticlePage() {
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
 
-  // FAQ state — each item has a stable client-side id so React never confuses items on delete
   const [faqs, setFaqs] = useState<{ id: string; question: string; answer: string }[]>([]);
   const [faqsOpen, setFaqsOpen] = useState(false);
   const [generatingFaqs, setGeneratingFaqs] = useState(false);
   const [faqSuccess, setFaqSuccess] = useState(false);
+  const [confirmFaqRegen, setConfirmFaqRegen] = useState(false);
 
   // Load article + authors + categories from API
   useEffect(() => {
@@ -92,7 +92,11 @@ export default function EditArticlePage() {
 
   const generateFaqs = async () => {
     if (!body.trim()) return;
-    if (faqs.length > 0 && !window.confirm('This will replace your existing FAQs. Continue?')) return;
+    if (faqs.length > 0) { setConfirmFaqRegen(true); return; }
+    await doGenerateFaqs();
+  };
+
+  const doGenerateFaqs = async () => {
     setGeneratingFaqs(true);
     setSaveError('');
     setFaqSuccess(false);
@@ -375,6 +379,22 @@ export default function EditArticlePage() {
       </div>
       <div style={{ height: 70 }} />
       <style>{`@media(max-width:768px){[style*="grid-template-columns: 1fr 300px"]{grid-template-columns:1fr!important;}[style*="left: 240px"]{left:0!important;}}`}</style>
+
+      {/* FAQ regeneration confirm modal */}
+      {confirmFaqRegen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>Replace existing FAQs?</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              This will replace your existing FAQs with newly generated ones. Any manual edits will be lost.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmFaqRegen(false)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setConfirmFaqRegen(false); doGenerateFaqs(); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Regenerate FAQs</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

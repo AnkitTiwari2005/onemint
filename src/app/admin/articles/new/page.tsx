@@ -106,11 +106,11 @@ export default function NewArticlePage() {
   const [saveError, setSaveError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // FAQ state — each item has a stable client-side id so React never confuses items on delete
   const [faqs, setFaqs] = useState<{ id: string; question: string; answer: string }[]>([]);
   const [faqsOpen, setFaqsOpen] = useState(false);
   const [generatingFaqs, setGeneratingFaqs] = useState(false);
   const [faqSuccess, setFaqSuccess] = useState(false);
+  const [confirmFaqRegen, setConfirmFaqRegen] = useState(false);
 
   const [dbAuthors, setDbAuthors] = useState<DbAuthor[]>([]);
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
@@ -175,8 +175,11 @@ export default function NewArticlePage() {
 
   const generateFaqs = async () => {
     if (!body.trim()) return;
-    // Confirm before overwriting existing manual edits
-    if (faqs.length > 0 && !window.confirm('This will replace your existing FAQs. Continue?')) return;
+    if (faqs.length > 0) { setConfirmFaqRegen(true); return; }
+    await doGenerateFaqs();
+  };
+
+  const doGenerateFaqs = async () => {
     setGeneratingFaqs(true);
     setSaveError('');
     setFaqSuccess(false);
@@ -188,7 +191,6 @@ export default function NewArticlePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
-      // Attach stable ids so React can diff correctly on delete
       setFaqs((data.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
       setFaqsOpen(true);
       setFaqSuccess(true);
@@ -541,6 +543,22 @@ export default function NewArticlePage() {
           <Eye size={14} /> Preview
         </button>
       </div>
+
+      {/* FAQ regeneration confirm modal */}
+      {confirmFaqRegen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>Replace existing FAQs?</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              This will replace your existing FAQs with newly generated ones. Any manual edits will be lost.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmFaqRegen(false)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setConfirmFaqRegen(false); doGenerateFaqs(); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Regenerate FAQs</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

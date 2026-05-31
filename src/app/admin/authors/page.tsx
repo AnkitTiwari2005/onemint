@@ -31,6 +31,7 @@ export default function AdminAuthorsPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [loading, setLoading] = useState(true);
   const [toastErr, setToastErr] = useState('');
+  const [confirmAuthor, setConfirmAuthor] = useState<Author | null>(null);
 
   const showToast = (msg: string) => { setToastErr(msg); setTimeout(() => setToastErr(''), 4000); };
 
@@ -113,7 +114,6 @@ export default function AdminAuthorsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this author? Their articles will be unaffected.')) return;
     try {
       const res = await fetch('/api/admin/authors', {
         method: 'DELETE',
@@ -121,7 +121,7 @@ export default function AdminAuthorsPage() {
         body: JSON.stringify({ id }),
       });
       if (!res.ok) { const d = await res.json(); showToast(d.error || 'Delete failed'); return; }
-      loadAuthors(); // Refresh from DB
+      loadAuthors();
     } catch {
       showToast('Delete failed — please try again');
     }
@@ -285,7 +285,7 @@ export default function AdminAuthorsPage() {
                       setIsNew(false);
                     }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
                     <Link href={`/author/${author.slug}`} target="_blank" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', display: 'flex', alignItems: 'center' }}><ExternalLink size={13} /></Link>
-                    <button onClick={() => handleDelete(author.id)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
+                    <button onClick={() => setConfirmAuthor(author)} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={13} /></button>
                   </div>
                 </td>
               </tr>
@@ -305,6 +305,22 @@ export default function AdminAuthorsPage() {
       {toastErr && (
         <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#DC2626', color: 'white', padding: '12px 20px', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, zIndex: 300, boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
           {toastErr}
+        </div>
+      )}
+
+      {/* Custom delete confirm modal */}
+      {confirmAuthor && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 12, padding: 28, maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 10px' }}>Delete Author?</h3>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              <strong>&ldquo;{confirmAuthor.name}&rdquo;</strong> will be moved to Trash. Their articles will be unaffected.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmAuthor(null)} style={{ padding: '8px 16px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { handleDelete(confirmAuthor.id); setConfirmAuthor(null); }} style={{ padding: '8px 16px', borderRadius: 7, border: 'none', background: '#DC2626', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Move to Trash</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
