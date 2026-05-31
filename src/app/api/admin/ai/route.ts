@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ENV } from '@/lib/env';
 
 /**
  * Edge runtime — no 10-second serverless timeout on Vercel.
- * This allows the OpenRouter call to complete even on slower connections.
  */
 export const runtime = 'edge';
 
 /**
  * POST /api/admin/ai
- * Accepts: { content: string, title: string }
- * Returns: { faqs: Array<{ question: string; answer: string }> }
+ * Body:   { content: string, title: string }
+ * Returns:{ faqs: Array<{ question: string; answer: string }> }
  *
- * Uses OpenRouter → google/gemini-2.0-flash-001
- * (non-thinking model, confirmed fast + working, ~2-3s response time).
- * The API key is server-only — never exposed to the browser.
+ * Calls Google Gemini API directly (gemini-2.5-flash).
  * Protected by HMAC session middleware on /api/admin/*.
  */
+
+const GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
 export async function POST(req: NextRequest) {
   try {
     const { content, title } = await req.json();
@@ -27,16 +29,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = ENV.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'AI service not configured — add OPENROUTER_API_KEY to Vercel env vars' },
+        { error: 'AI service not configured — add GEMINI_API_KEY to Vercel env vars' },
         { status: 503 }
       );
     }
 
-    // 1500 chars is enough context and keeps the model response fast
-    const truncated = content.slice(0, 1500);
+    // 2500 chars — Gemini 2.5 Flash handles longer context well
+    const truncated = content.slice(0, 2500);
 
     const prompt =
       `You are an SEO content strategist. Read the article below and produce exactly 4 FAQ entries.\n` +
@@ -49,26 +51,27 @@ export async function POST(req: NextRequest) {
       `Reply with ONLY a JSON array — no explanation, no markdown fences:\n` +
       `[{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
 
-    // 9-second hard timeout — returns a clear error before Vercel can kill the function
+    // 12-second hard timeout — Gemini 2.5 Flash is fast but give it room
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 9000);
+    const timer = setTimeout(() => controller.abort(), 12000);
 
     let response: Response;
     try {
-      response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
         method: 'POST',
         signal: controller.signal,
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://www.onemint.in',
-          'X-Title': 'OneMint Admin — FAQ Generator',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-001',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 600,
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 800,
+            responseMimeType: 'application/json',
+          },
         }),
       });
     } catch (fetchErr) {
@@ -83,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[AI FAQ] OpenRouter error:', response.status, errText);
+      console.error('[AI FAQ] Gemini error:', response.status, errText);
       return NextResponse.json(
         { error: `AI service error (${response.status}). Try again.` },
         { status: 502 }
@@ -91,9 +94,12 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await response.json() as {
-      choices?: Array<{ message?: { content?: string } }>;
+      candidates?: Array<{
+        content?: { parts?: Array<{ text?: string }> };
+      }>;
     };
-    const raw = result.choices?.[0]?.message?.content ?? '';
+
+    const raw = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
     if (!raw.trim()) {
       return NextResponse.json(
@@ -102,7 +108,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Strip markdown code fences if the model wraps its output
+    // Strip markdown code fences if present despite responseMimeType hint
     const cleaned = raw
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/\s*```\s*$/i, '')
@@ -131,7 +137,7 @@ export async function POST(req: NextRequest) {
       .slice(0, 5)
       .map((f) => ({
         question: String(f.question).trim(),
-        answer: String(f.answer).trim(),
+        answer:   String(f.answer).trim(),
       }));
 
     return NextResponse.json({ faqs: validated });

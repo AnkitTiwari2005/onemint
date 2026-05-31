@@ -50,6 +50,9 @@ export const ENV = {
   GISCUS_CATEGORY: process.env.NEXT_PUBLIC_GISCUS_CATEGORY || 'General',
   GISCUS_CATEGORY_ID: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOSGou_s4C7WAm',
 
+  // Google Gemini (FAQ generator + future AI features)
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+
   // Site
   SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.in',
 };
