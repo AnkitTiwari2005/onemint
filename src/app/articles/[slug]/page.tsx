@@ -75,6 +75,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const seoTitle = article.meta_title?.trim() || article.title;
   const seoDesc  = article.meta_description?.trim() || article.excerpt || '';
 
+  const author = article.authors as { slug?: string } | null | undefined;
+  const authorProfileUrl = author?.slug
+    ? `${SITE_URL}/author/${author.slug}`
+    : SITE_URL;
+
   return {
     title: seoTitle,
     description: seoDesc,
@@ -88,6 +93,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         ? [{ url: article.cover_image, width: 1200, height: 630 }]
         : [{ url: '/og-image.png', width: 1200, height: 630 }],
       publishedTime: article.published_at ?? undefined,
+      // Renders as <meta property="article:author" content="https://…/author/…" />
+      // Signals E-E-A-T authorship to crawlers and social platforms
+      authors: [authorProfileUrl],
     },
     twitter: {
       card: 'summary_large_image',
