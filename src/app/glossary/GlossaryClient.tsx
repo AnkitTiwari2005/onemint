@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 
 interface Term {
   id: string;
+  slug: string;
   term: string;
   short_definition: string;
   full_definition?: string;
@@ -67,7 +68,7 @@ export default function GlossaryClient({ terms }: { terms: Term[] }) {
                 className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 md:p-8 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
-                  <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-[var(--color-ink)]">
+                  <h2 id={item.slug} className="font-[family-name:var(--font-heading)] text-2xl font-bold text-[var(--color-ink)]">
                     {item.term}
                   </h2>
                   {item.category && (

@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 
 interface Term {
   id: string;
+  slug: string;          // anchor slug, e.g. "nps", "nifty-50"
   term: string;
   short_definition: string;
   full_definition?: string;
@@ -37,7 +38,7 @@ async function fetchTerms(): Promise<Term[]> {
     if (supabaseAdmin) {
       const { data, error } = await supabaseAdmin
         .from('glossary_terms')
-        .select('id, term, short_definition, full_definition, category')
+        .select('id, slug, term, short_definition, full_definition, category')
         .order('term', { ascending: true });
       if (!error && data && data.length > 0) return data as Term[];
     }
@@ -46,6 +47,7 @@ async function fetchTerms(): Promise<Term[]> {
   // Fallback: static glossary data
   return staticTerms.map((t) => ({
     id: t.id,
+    slug: t.id,            // static data uses id as the slug
     term: t.term,
     short_definition: t.shortDefinition,
     full_definition: t.fullDefinition,

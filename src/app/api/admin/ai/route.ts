@@ -102,6 +102,15 @@ Return ONLY a valid JSON array — no explanation, no markdown fences, no preamb
     if (!response.ok) {
       const errText = await response.text();
       console.error('[AI FAQ] Gemini error:', response.status, errText);
+
+      // 429 = Gemini free-tier rate limit hit — give the user a clear message
+      if (response.status === 429) {
+        return NextResponse.json(
+          { error: 'Rate limit reached — Gemini is temporarily throttling requests. Wait 30–60 seconds and try again.' },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
         { error: `AI service error (${response.status}). Try again.` },
         { status: 502 }
