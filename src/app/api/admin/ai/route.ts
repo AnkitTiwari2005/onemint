@@ -104,22 +104,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2500 chars (~600 words) — enough for good FAQs, keeps token count low
-    const truncated = content.slice(0, 2500);
+    // Send only title + category/tags + first 500 chars (intro/lede)
+    // This keeps total input under ~400 tokens — well within free-tier quota
+    const intro = content.slice(0, 500);
     const meta = [
-      category      ? `Category: ${category}`       : '',
-      tags?.length  ? `Tags: ${tags.join(', ')}`     : '',
+      category     ? `Category: ${category}`    : '',
+      tags?.length ? `Tags: ${tags.join(', ')}` : '',
     ].filter(Boolean).join('\n');
 
     const prompt =
 `SEO FAQ generator for Indian personal finance / health / tech content.
 Write exactly 4 FAQ entries for a Google FAQ rich snippet.
-Rules: questions start with What/How/Why/Is/Does/Can/When/Are/Which/How much/What are; each targets a different angle; answers are 2-3 plain-prose sentences grounded in article facts; no generic questions; high search-volume intent.
+Rules: questions start with What/How/Why/Is/Does/Can/When/Are/Which/How much/What are; each targets a different angle; answers are 2-3 plain-prose sentences; no generic questions; high search-volume intent.
 
-Title: "${title.trim()}"${meta ? '\n' + meta : ''}
-
-Article (excerpt):
-${truncated}
+Title: "${title.trim()}"${meta ? '\n' + meta : ''}${intro ? '\n\nArticle intro:\n' + intro : ''}
 
 Return ONLY a JSON array, no markdown, no explanation:
 [{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
