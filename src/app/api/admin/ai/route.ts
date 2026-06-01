@@ -47,36 +47,61 @@ async function callGemini(apiKey: string, prompt: string): Promise<Response> {
   }
 }
 
+/** Parse Gemini error JSON to extract a human-readable reason. */
+function geminiErrorReason(errText: string): string {
+  try {
+    const json = JSON.parse(errText);
+    const msg    = json?.error?.message ?? json?.message ?? '';
+    const status = json?.error?.status  ?? '';
+    if (msg) return `${status ? status + ': ' : ''}${msg}`.slice(0, 300);
+  } catch { /* not JSON */ }
+  return errText.slice(0, 300);
+}
+
 /**
- * Call Gemini with exponential backoff retry on 429.
- * Attempts: 1st immediately, then +3 s, +6 s, +12 s (4 total).
- * Returns the successful Response, or throws a typed error.
+ * Call Gemini with backoff retry on 429.
+ * Respects Gemini's Retry-After header when present.
+ * Returns { response, lastErrText } — caller handles non-ok status.
  */
-async function callGeminiWithRetry(apiKey: string, prompt: string): Promise<Response> {
-  const delays = [0, 3000, 6000, 12000];          // ms before each attempt
+async function callGeminiWithRetry(
+  apiKey: string,
+  prompt: string,
+): Promise<{ response: Response; lastErrText: string }> {
+  const maxAttempts = 3;
 
-  for (let attempt = 0; attempt < delays.length; attempt++) {
-    if (delays[attempt] > 0) {
-      console.log(`[AI FAQ] 429 received — retrying in ${delays[attempt] / 1000}s (attempt ${attempt + 1}/${delays.length})`);
-      await sleep(delays[attempt]);
-    }
-
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     let response: Response;
     try {
       response = await callGemini(apiKey, prompt);
     } catch (fetchErr) {
       const isTimeout = fetchErr instanceof Error && fetchErr.name === 'AbortError';
-      throw Object.assign(new Error(isTimeout ? 'timeout' : 'network'), { kind: isTimeout ? 'timeout' : 'network' });
+      throw Object.assign(
+        new Error(isTimeout ? 'timeout' : 'network'),
+        { kind: isTimeout ? 'timeout' : 'network' },
+      );
     }
 
-    // Retry only on 429; all other statuses (success or hard errors) break out
-    if (response.status !== 429) return response;
+    if (response.status !== 429) return { response, lastErrText: '' };
 
-    // On the last attempt, still return the 429 so the caller can surface it
-    if (attempt === delays.length - 1) return response;
+    const errText = await response.text();
+
+    // Last attempt — return so caller can surface the real Gemini error
+    if (attempt === maxAttempts - 1) return { response, lastErrText: errText };
+
+    // Use Gemini's Retry-After header if present, else 5 s / 10 s backoff
+    const retryAfterSec = Number(
+      response.headers.get('retry-after') ??
+      response.headers.get('x-ratelimit-reset-requests') ??
+      0,
+    );
+    const waitMs = retryAfterSec > 0 ? retryAfterSec * 1000 : (attempt + 1) * 5000;
+
+    console.log(
+      `[AI FAQ] 429 (${geminiErrorReason(errText)}) — waiting ${waitMs / 1000}s before retry ${attempt + 2}/${maxAttempts}`,
+    );
+    await sleep(waitMs);
   }
 
-  // Unreachable but TypeScript needs it
   throw new Error('retry loop exhausted');
 }
 
@@ -122,10 +147,11 @@ Title: "${title.trim()}"${meta ? '\n' + meta : ''}${intro ? '\n\nArticle intro:\
 Return ONLY a JSON array, no markdown, no explanation:
 [{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
 
-    // ── Call Gemini (auto-retries on 429 up to 4 attempts) ─────────────────
+    // ── Call Gemini (auto-retries on 429 up to 3 attempts) ─────────────────
     let response: Response;
+    let lastErrText = '';
     try {
-      response = await callGeminiWithRetry(apiKey, prompt);
+      ({ response, lastErrText } = await callGeminiWithRetry(apiKey, prompt));
     } catch (fetchErr: unknown) {
       const kind = (fetchErr as { kind?: string }).kind;
       return NextResponse.json(
@@ -135,15 +161,18 @@ Return ONLY a JSON array, no markdown, no explanation:
     }
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error('[AI FAQ] Gemini hard error after retries:', response.status, errText);
-
+      // 429: body already consumed inside callGeminiWithRetry — use lastErrText
       if (response.status === 429) {
+        const reason = lastErrText ? geminiErrorReason(lastErrText) : 'quota exhausted';
+        console.error('[AI FAQ] Gemini 429 after retries:', reason);
         return NextResponse.json(
-          { error: 'AI quota exhausted — still throttled after 4 attempts (~21 s). Wait a minute and try again, or use a shorter article.' },
+          { error: `Gemini quota error — ${reason}` },
           { status: 429 }
         );
       }
+
+      const errText = await response.text();
+      console.error('[AI FAQ] Gemini error:', response.status, errText);
 
       return NextResponse.json(
         { error: `AI service error (${response.status}). Try again.` },
