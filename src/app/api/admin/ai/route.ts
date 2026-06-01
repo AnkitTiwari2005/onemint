@@ -41,7 +41,7 @@ async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
         model:       NVIDIA_MODEL,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
-        max_tokens:  512,
+        max_tokens:  1024,
         stream:      false,
       }),
     });
@@ -114,8 +114,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Title + category/tags + first 500 chars of article — keeps tokens low
-    const intro = content.slice(0, 500);
+    // Title + category/tags + first 3000 chars of article (~750 words)
+    const intro = content.slice(0, 3000);
     const meta = [
       category     ? `Category: ${category}`    : '',
       tags?.length ? `Tags: ${tags.join(', ')}` : '',
