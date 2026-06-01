@@ -15,7 +15,7 @@ export const runtime = 'edge';
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-const GEMINI_MODEL    = 'gemini-2.0-flash';
+const GEMINI_MODEL    = 'gemini-2.0-flash-lite';   // 30 RPM free tier (2× vs flash)
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 /** Sleep for `ms` milliseconds (works in Edge runtime). */
