@@ -50,8 +50,12 @@ export const ENV = {
   GISCUS_CATEGORY: process.env.NEXT_PUBLIC_GISCUS_CATEGORY || 'General',
   GISCUS_CATEGORY_ID: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOSGou_s4C7WAm',
 
-  // Google Gemini (FAQ generator + future AI features)
+  // Google Gemini (legacy — replaced by NVIDIA NIM)
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+
+  // NVIDIA NIM — OpenAI-compatible API, generous free tier
+  // Get key at: https://build.nvidia.com → top-right → Get API Key
+  NVIDIA_API_KEY: process.env.NVIDIA_API_KEY || '',
 
   // Site
   SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.in',

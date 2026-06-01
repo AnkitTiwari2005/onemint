@@ -11,35 +11,38 @@ export const runtime = 'edge';
  * Body:   { content: string; title: string; category?: string; tags?: string[] }
  * Returns:{ faqs: Array<{ question: string; answer: string }> }
  *
- * Calls Google Gemini 2.0 Flash with automatic retry on 429.
+ * Uses NVIDIA NIM (build.nvidia.com) — OpenAI-compatible API.
+ * Model: meta/llama-3.3-70b-instruct — smart, fast, near-unlimited free tier.
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-const GEMINI_MODEL    = 'gemini-2.0-flash-lite';   // 30 RPM free tier (2× vs flash)
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const NVIDIA_MODEL    = 'meta/llama-3.1-70b-instruct';
+const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
-/** Sleep for `ms` milliseconds (works in Edge runtime). */
+/** Sleep for `ms` ms — works in Edge runtime. */
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
- * Call Gemini once. Returns the raw Response object — caller handles status.
- * Throws only on network/timeout errors.
+ * Single call to NVIDIA NIM.
+ * Returns raw Response — caller handles status codes.
  */
-async function callGemini(apiKey: string, prompt: string): Promise<Response> {
+async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25000);
   try {
-    return await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+    return await fetch(NVIDIA_ENDPOINT, {
       method:  'POST',
       signal:  controller.signal,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature:      0.2,  // more factual, less hallucination
-          maxOutputTokens:  512,  // 4 FAQ pairs never exceed 512 tokens
-          responseMimeType: 'application/json',
-        },
+        model:       NVIDIA_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+        max_tokens:  512,
+        stream:      false,
       }),
     });
   } finally {
@@ -47,23 +50,11 @@ async function callGemini(apiKey: string, prompt: string): Promise<Response> {
   }
 }
 
-/** Parse Gemini error JSON to extract a human-readable reason. */
-function geminiErrorReason(errText: string): string {
-  try {
-    const json = JSON.parse(errText);
-    const msg    = json?.error?.message ?? json?.message ?? '';
-    const status = json?.error?.status  ?? '';
-    if (msg) return `${status ? status + ': ' : ''}${msg}`.slice(0, 300);
-  } catch { /* not JSON */ }
-  return errText.slice(0, 300);
-}
-
 /**
- * Call Gemini with backoff retry on 429.
- * Respects Gemini's Retry-After header when present.
- * Returns { response, lastErrText } — caller handles non-ok status.
+ * Call NVIDIA NIM with retry on 429 (rate limit).
+ * Attempts: immediately, +5 s, +10 s (3 total).
  */
-async function callGeminiWithRetry(
+async function callNvidiaWithRetry(
   apiKey: string,
   prompt: string,
 ): Promise<{ response: Response; lastErrText: string }> {
@@ -72,7 +63,7 @@ async function callGeminiWithRetry(
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     let response: Response;
     try {
-      response = await callGemini(apiKey, prompt);
+      response = await callNvidia(apiKey, prompt);
     } catch (fetchErr) {
       const isTimeout = fetchErr instanceof Error && fetchErr.name === 'AbortError';
       throw Object.assign(
@@ -85,20 +76,14 @@ async function callGeminiWithRetry(
 
     const errText = await response.text();
 
-    // Last attempt — return so caller can surface the real Gemini error
+    // Last attempt — return so caller surfaces the error
     if (attempt === maxAttempts - 1) return { response, lastErrText: errText };
 
-    // Use Gemini's Retry-After header if present, else 5 s / 10 s backoff
-    const retryAfterSec = Number(
-      response.headers.get('retry-after') ??
-      response.headers.get('x-ratelimit-reset-requests') ??
-      0,
-    );
+    // Use Retry-After header if present, else 5 s / 10 s backoff
+    const retryAfterSec = Number(response.headers.get('retry-after') ?? 0);
     const waitMs = retryAfterSec > 0 ? retryAfterSec * 1000 : (attempt + 1) * 5000;
 
-    console.log(
-      `[AI FAQ] 429 (${geminiErrorReason(errText)}) — waiting ${waitMs / 1000}s before retry ${attempt + 2}/${maxAttempts}`,
-    );
+    console.log(`[AI FAQ] NVIDIA 429 — waiting ${waitMs / 1000}s before retry ${attempt + 2}/${maxAttempts}`);
     await sleep(waitMs);
   }
 
@@ -121,16 +106,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = ENV.GEMINI_API_KEY;
+    const apiKey = ENV.NVIDIA_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'AI service not configured — add GEMINI_API_KEY to Vercel env vars' },
+        { error: 'AI service not configured — add NVIDIA_API_KEY to Vercel env vars (get it free at build.nvidia.com)' },
         { status: 503 }
       );
     }
 
-    // Send only title + category/tags + first 500 chars (intro/lede)
-    // This keeps total input under ~400 tokens — well within free-tier quota
+    // Title + category/tags + first 500 chars of article — keeps tokens low
     const intro = content.slice(0, 500);
     const meta = [
       category     ? `Category: ${category}`    : '',
@@ -138,20 +122,26 @@ export async function POST(req: NextRequest) {
     ].filter(Boolean).join('\n');
 
     const prompt =
-`SEO FAQ generator for Indian personal finance / health / tech content.
+`You are an SEO expert writing FAQ schema for an Indian personal finance / health / tech article.
 Write exactly 4 FAQ entries for a Google FAQ rich snippet.
-Rules: questions start with What/How/Why/Is/Does/Can/When/Are/Which/How much/What are; each targets a different angle; answers are 2-3 plain-prose sentences; no generic questions; high search-volume intent.
+Rules:
+- Questions must start with: What, How, Why, Is, Does, Can, When, Are, Which, How much, What are
+- Each question targets a DIFFERENT angle — no rephrasing
+- Answers: 2-3 plain prose sentences, no bullet points, no markdown
+- Questions must reflect what an Indian reader would type into Google
+- No generic questions like "What is this article about?"
 
+Article details:
 Title: "${title.trim()}"${meta ? '\n' + meta : ''}${intro ? '\n\nArticle intro:\n' + intro : ''}
 
-Return ONLY a JSON array, no markdown, no explanation:
+Return ONLY a valid JSON array — no explanation, no markdown fences:
 [{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
 
-    // ── Call Gemini (auto-retries on 429 up to 3 attempts) ─────────────────
+    // ── Call NVIDIA NIM (auto-retries on 429 up to 3 attempts) ─────────────
     let response: Response;
     let lastErrText = '';
     try {
-      ({ response, lastErrText } = await callGeminiWithRetry(apiKey, prompt));
+      ({ response, lastErrText } = await callNvidiaWithRetry(apiKey, prompt));
     } catch (fetchErr: unknown) {
       const kind = (fetchErr as { kind?: string }).kind;
       return NextResponse.json(
@@ -161,40 +151,30 @@ Return ONLY a JSON array, no markdown, no explanation:
     }
 
     if (!response.ok) {
-      // 429: body already consumed inside callGeminiWithRetry — use lastErrText
       if (response.status === 429) {
-        const reason = lastErrText ? geminiErrorReason(lastErrText) : '';
-        console.error('[AI FAQ] Gemini 429 after retries:', reason);
-
-        // Billing quota exhausted — no retry will help
-        const isBillingQuota = reason.toLowerCase().includes('plan') ||
-                               reason.toLowerCase().includes('billing') ||
-                               reason.toLowerCase().includes('exceeded your current quota');
-
-        const userMsg = isBillingQuota
-          ? 'Free Gemini quota exhausted for today. Fix: (1) Wait until 12:30 AM IST for daily reset, or (2) Enable billing at aistudio.google.com for unlimited usage (costs ~₹0.003 per generation).'
-          : `Gemini is throttling requests. Wait 60 seconds and try again. (${reason || 'quota exceeded'})`;
-
-        return NextResponse.json({ error: userMsg }, { status: 429 });
+        console.error('[AI FAQ] NVIDIA 429 after retries:', lastErrText.slice(0, 200));
+        return NextResponse.json(
+          { error: 'NVIDIA rate limit hit — wait 60 seconds and try again.' },
+          { status: 429 }
+        );
       }
 
       const errText = await response.text();
-      console.error('[AI FAQ] Gemini error:', response.status, errText);
-
+      console.error('[AI FAQ] NVIDIA error:', response.status, errText.slice(0, 300));
       return NextResponse.json(
         { error: `AI service error (${response.status}). Try again.` },
         { status: 502 }
       );
     }
 
-    // ── Parse response ──────────────────────────────────────────────────────
+    // ── Parse OpenAI-compatible response ───────────────────────────────────
     const result = await response.json() as {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: string }> };
+      choices?: Array<{
+        message?: { content?: string };
       }>;
     };
 
-    const raw = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const raw = result.choices?.[0]?.message?.content ?? '';
 
     if (!raw.trim()) {
       return NextResponse.json(
@@ -203,7 +183,7 @@ Return ONLY a JSON array, no markdown, no explanation:
       );
     }
 
-    // Strip markdown fences if present despite responseMimeType hint
+    // Strip markdown fences if the model adds them despite instructions
     const cleaned = raw
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/\s*```\s*$/i, '')
