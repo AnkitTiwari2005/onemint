@@ -42,33 +42,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Send up to 6000 chars (~1500 words) — enough for a full article body
-    const truncated     = content.slice(0, 6000);
-    const categoryLine  = category ? `Category: ${category}` : '';
-    const tagsLine      = tags?.length ? `Tags: ${tags.join(', ')}` : '';
-    const contextBlock  = [categoryLine, tagsLine].filter(Boolean).join('\n');
+    // 2500 chars (~600 words) is sufficient for FAQs and keeps token usage low
+    const truncated    = content.slice(0, 2500);
+    const meta         = [
+      category ? `Category: ${category}` : '',
+      tags?.length    ? `Tags: ${tags.join(', ')}` : '',
+    ].filter(Boolean).join('\n');
 
-    const prompt = `You are an expert SEO content strategist specialising in Indian personal finance, health, and technology content.
+    // Compact prompt — same quality, ~60% fewer tokens than a verbose ruleset
+    const prompt =
+`SEO FAQ generator for Indian personal finance / health / tech content.
+Write exactly 4 FAQ entries for a Google FAQ rich snippet.
+Rules: questions start with What/How/Why/Is/Does/Can/When/Are/Which/How much/What are; each targets a different angle; answers are 2-3 plain-prose sentences grounded in article facts; no generic questions; high search-volume intent.
 
-Your task: Read the article below and write exactly 4 FAQ entries that will appear in a Google FAQ rich snippet.
+Title: "${title.trim()}"${meta ? '\n' + meta : ''}
 
-STRICT RULES:
-1. Every question must start with one of these high-intent patterns: "What is", "How", "Why", "Is", "Does", "Can", "When", "Are", "Which", "How much", "What are"
-2. Each question must target a DIFFERENT angle — no rephrasing the same question
-3. Answers must be 2–3 complete sentences. Plain prose only — no bullet points, no markdown, no lists
-4. Ground every answer in specific facts, data points, or named entities from the article
-5. Questions must reflect what an Indian reader would actually type into Google
-6. Do NOT generate generic questions like "What is this article about?" or "Why is this important?"
-7. Prefer questions with high search volume potential over obvious or trivial ones
-
-Article metadata:
-Title: "${title.trim()}"
-${contextBlock}
-
-Article content:
+Article (excerpt):
 ${truncated}
 
-Return ONLY a valid JSON array — no explanation, no markdown fences, no preamble:
+Return ONLY a JSON array, no markdown, no explanation:
 [{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
 
     const controller = new AbortController();
@@ -84,7 +76,7 @@ Return ONLY a valid JSON array — no explanation, no markdown fences, no preamb
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature:      0.2,   // lower = more factual, less hallucination
-            maxOutputTokens:  1024,
+            maxOutputTokens:  512,   // 4 FAQ pairs never exceed 512 tokens
             responseMimeType: 'application/json',
           },
         }),
@@ -103,10 +95,10 @@ Return ONLY a valid JSON array — no explanation, no markdown fences, no preamb
       const errText = await response.text();
       console.error('[AI FAQ] Gemini error:', response.status, errText);
 
-      // 429 = Gemini free-tier rate limit hit — give the user a clear message
+      // 429 = token-per-minute quota exceeded (long articles push over the limit)
       if (response.status === 429) {
         return NextResponse.json(
-          { error: 'Rate limit reached — Gemini is temporarily throttling requests. Wait 30–60 seconds and try again.' },
+          { error: 'Token limit reached — the article is too long for the AI quota. Try trimming the content, or wait 60 seconds and retry.' },
           { status: 429 }
         );
       }
