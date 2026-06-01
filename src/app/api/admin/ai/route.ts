@@ -163,12 +163,19 @@ Return ONLY a JSON array, no markdown, no explanation:
     if (!response.ok) {
       // 429: body already consumed inside callGeminiWithRetry — use lastErrText
       if (response.status === 429) {
-        const reason = lastErrText ? geminiErrorReason(lastErrText) : 'quota exhausted';
+        const reason = lastErrText ? geminiErrorReason(lastErrText) : '';
         console.error('[AI FAQ] Gemini 429 after retries:', reason);
-        return NextResponse.json(
-          { error: `Gemini quota error — ${reason}` },
-          { status: 429 }
-        );
+
+        // Billing quota exhausted — no retry will help
+        const isBillingQuota = reason.toLowerCase().includes('plan') ||
+                               reason.toLowerCase().includes('billing') ||
+                               reason.toLowerCase().includes('exceeded your current quota');
+
+        const userMsg = isBillingQuota
+          ? 'Free Gemini quota exhausted for today. Fix: (1) Wait until 12:30 AM IST for daily reset, or (2) Enable billing at aistudio.google.com for unlimited usage (costs ~₹0.003 per generation).'
+          : `Gemini is throttling requests. Wait 60 seconds and try again. (${reason || 'quota exceeded'})`;
+
+        return NextResponse.json({ error: userMsg }, { status: 429 });
       }
 
       const errText = await response.text();
