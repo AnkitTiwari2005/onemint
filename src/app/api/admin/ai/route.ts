@@ -184,18 +184,28 @@ Return ONLY a valid JSON array — no explanation, no markdown fences:
     }
 
     // Strip markdown fences if the model adds them despite instructions
-    const cleaned = raw
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```\s*$/i, '')
-      .trim();
+    // Then extract just the [...] array from wherever it appears —
+    // Llama sometimes adds preamble text like "Here are 4 FAQs:\n\n[...]"
+    const cleaned = (() => {
+      // Remove all markdown code fences first
+      const stripped = raw
+        .replace(/```(?:json)?/gi, '')
+        .replace(/```/g, '');
+      // Find the outermost JSON array
+      const start = stripped.indexOf('[');
+      const end   = stripped.lastIndexOf(']');
+      if (start !== -1 && end > start) return stripped.slice(start, end + 1);
+      // Fallback: return stripped text as-is and let JSON.parse report the error
+      return stripped.trim();
+    })();
 
     let faqs: { question: string; answer: string }[];
     try {
       faqs = JSON.parse(cleaned);
     } catch {
-      console.error('[AI FAQ] JSON parse failed. Raw:', raw.slice(0, 300));
+      console.error('[AI FAQ] JSON parse failed. Raw output:', raw.slice(0, 400));
       return NextResponse.json(
-        { error: 'AI returned unexpected format. Try regenerating.' },
+        { error: 'AI returned unexpected format. Please try again — this usually works on the second attempt.' },
         { status: 422 }
       );
     }
