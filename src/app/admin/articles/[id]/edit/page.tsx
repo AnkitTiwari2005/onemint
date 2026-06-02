@@ -106,7 +106,12 @@ export default function EditArticlePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: body, title }),
       });
-      const data = await res.json();
+      let data: { faqs?: { question: string; answer: string }[]; error?: string };
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('AI service returned an unexpected response. Please try again.');
+      }
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       setFaqs((data.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
       setFaqsOpen(true);
