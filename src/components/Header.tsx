@@ -170,7 +170,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
                                   {cat.name}
                                 </div>
                                 <div className="text-xs text-[var(--color-ink-tertiary)]">
-                                  {cat.articleCount.toLocaleString()} articles
+                                  {cat.description}
                                 </div>
                               </div>
                             </Link>
