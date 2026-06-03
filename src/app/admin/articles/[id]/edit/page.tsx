@@ -100,50 +100,52 @@ export default function EditArticlePage() {
     setGeneratingFaqs(true);
     setSaveError('');
     setFaqSuccess(false);
-    
-    let lastError: Error | null = null;
-    
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
+
+    try {
+      for (let attempt = 1; attempt <= 2; attempt++) {
         const res = await fetch('/api/admin/ai', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: body, title }),
         });
-        
+
+        // Try to parse JSON — failure means the server returned an HTML error
+        // page (e.g. Vercel cold-start 502). Track this separately so we never
+        // use string-comparison to decide whether to retry.
         let data: { faqs?: { question: string; answer: string }[]; error?: string };
+        let coldStartFailure = false;
         try {
           data = await res.json();
         } catch {
+          coldStartFailure = true;
+        }
+
+        if (coldStartFailure) {
           if (attempt === 1) {
-            console.warn('[AI FAQ] Received non-JSON response (likely Vercel cold-start). Retrying silently...');
+            // Silent retry — wait briefly for the Edge function to warm up
+            console.warn('[AI FAQ] Non-JSON response on attempt 1 (likely cold-start). Retrying in 1.5 s…');
             await new Promise(r => setTimeout(r, 1500));
             continue;
           }
-          throw new Error('AI service returned an unexpected response. Please try again.');
+          // Both attempts failed — surface a clear message
+          throw new Error('AI service is warming up. Please try again in a moment.');
         }
-        
-        if (!res.ok) throw new Error(data.error || 'Generation failed');
-        
-        setFaqs((data.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
+
+        // From here data is guaranteed to be assigned
+        if (!res.ok) throw new Error(data!.error || 'FAQ generation failed.');
+
+        setFaqs((data!.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
         setFaqsOpen(true);
         setFaqSuccess(true);
         setTimeout(() => setFaqSuccess(false), 2500);
-        lastError = null;
-        break; // Success
-      } catch (err) {
-        lastError = err instanceof Error ? err : new Error('FAQ generation failed');
-        // Do not retry on explicit API errors
-        if (err instanceof Error && err.message !== 'AI service returned an unexpected response. Please try again.') {
-          break;
-        }
+        break; // ✅ success — exit the loop
       }
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'FAQ generation failed.');
+    } finally {
+      // Guaranteed cleanup — spinner always stops
+      setGeneratingFaqs(false);
     }
-    
-    if (lastError) {
-      setSaveError(lastError.message);
-    }
-    setGeneratingFaqs(false);
   };
 
   const save = async () => {
