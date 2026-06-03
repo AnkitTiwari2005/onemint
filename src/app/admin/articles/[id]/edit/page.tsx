@@ -100,28 +100,50 @@ export default function EditArticlePage() {
     setGeneratingFaqs(true);
     setSaveError('');
     setFaqSuccess(false);
-    try {
-      const res = await fetch('/api/admin/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: body, title }),
-      });
-      let data: { faqs?: { question: string; answer: string }[]; error?: string };
+    
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        data = await res.json();
-      } catch {
-        throw new Error('AI service returned an unexpected response. Please try again.');
+        const res = await fetch('/api/admin/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: body, title }),
+        });
+        
+        let data: { faqs?: { question: string; answer: string }[]; error?: string };
+        try {
+          data = await res.json();
+        } catch {
+          if (attempt === 1) {
+            console.warn('[AI FAQ] Received non-JSON response (likely Vercel cold-start). Retrying silently...');
+            await new Promise(r => setTimeout(r, 1500));
+            continue;
+          }
+          throw new Error('AI service returned an unexpected response. Please try again.');
+        }
+        
+        if (!res.ok) throw new Error(data.error || 'Generation failed');
+        
+        setFaqs((data.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
+        setFaqsOpen(true);
+        setFaqSuccess(true);
+        setTimeout(() => setFaqSuccess(false), 2500);
+        lastError = null;
+        break; // Success
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error('FAQ generation failed');
+        // Do not retry on explicit API errors
+        if (err instanceof Error && err.message !== 'AI service returned an unexpected response. Please try again.') {
+          break;
+        }
       }
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
-      setFaqs((data.faqs || []).map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
-      setFaqsOpen(true);
-      setFaqSuccess(true);
-      setTimeout(() => setFaqSuccess(false), 2500);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'FAQ generation failed');
-    } finally {
-      setGeneratingFaqs(false);
     }
+    
+    if (lastError) {
+      setSaveError(lastError.message);
+    }
+    setGeneratingFaqs(false);
   };
 
   const save = async () => {
