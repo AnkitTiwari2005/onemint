@@ -57,6 +57,17 @@ function isMaintenanceMode(): boolean {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const host = req.headers.get('host') ?? '';
+
+  // ── Canonical domain guard ────────────────────────────────────────────────
+  // Redirect any *.vercel.app request to the real production domain.
+  // This prevents Vercel preview/deployment URLs from being indexed by Google
+  // as duplicate content. 308 = permanent redirect (preserves HTTP method).
+  if (host.endsWith('.vercel.app')) {
+    const prodUrl = new URL(req.nextUrl.pathname + req.nextUrl.search, 'https://www.onemint.in');
+    return NextResponse.redirect(prodUrl, { status: 308 });
+  }
+
 
   // Always allow: login page and auth endpoints
   if (pathname === '/admin/login') return NextResponse.next();
