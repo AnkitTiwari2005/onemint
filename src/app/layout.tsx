@@ -188,6 +188,11 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9948709371742259"
           crossOrigin="anonymous"
         />
+        {/* Adsterra — ad serving */}
+        <script
+          async
+          src="https://pl29660685.effectivecpmnetwork.com/08/96/bc/0896bc81b9706933162111dc0a6a40fb.js"
+        />
       </head>
       <body className={`${fontVars} min-h-screen flex flex-col`} suppressHydrationWarning>
         <a href="#main-content" className="skip-to-content">
