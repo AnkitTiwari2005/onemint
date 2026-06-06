@@ -16,8 +16,11 @@ export const runtime = 'edge';
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-const NVIDIA_MODEL    = 'meta/llama-3.1-70b-instruct';
+// 8B model: ~4× faster than 70B — plenty of quality for 4 short FAQ entries.
+// Switch back to llama-3.1-70b-instruct if quality matters more than speed.
+const NVIDIA_MODEL    = 'meta/llama-3.1-8b-instruct';
 const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
+
 
 /** Sleep for `ms` ms — works in Edge runtime. */
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -27,8 +30,12 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  * Returns raw Response — caller handles status codes.
  */
 async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
+  // 15 s abort — comfortably under Vercel Edge's 25 s wall-clock limit.
+  // This ensures we always return a JSON error instead of Vercel returning
+  // an HTML timeout page (which the client can't parse).
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 25000);
+  const timer = setTimeout(() => controller.abort(), 15000);
+
   try {
     return await fetch(NVIDIA_ENDPOINT, {
       method:  'POST',
@@ -41,8 +48,11 @@ async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
         model:       NVIDIA_MODEL,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
-        max_tokens:  1024,
+        // 400 tokens = enough for 4 Q&A pairs (~300 tokens actual).
+        // Keeping this low is the single biggest factor in response speed.
+        max_tokens:  400,
         stream:      false,
+
       }),
     });
   } finally {
