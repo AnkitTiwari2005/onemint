@@ -30,11 +30,11 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  * Returns raw Response — caller handles status codes.
  */
 async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
-  // 15 s abort — comfortably under Vercel Edge's 25 s wall-clock limit.
-  // This ensures we always return a JSON error instead of Vercel returning
-  // an HTML timeout page (which the client can't parse).
+  // 22 s abort — Llama 4 Maverick at 800 tokens needs ~15-20 s on free tier.
+  // 22 s gives it room while staying under Vercel Edge's 25 s hard limit,
+  // so we always return JSON instead of Vercel returning an HTML timeout page.
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  const timer = setTimeout(() => controller.abort(), 22000);
 
   try {
     return await fetch(NVIDIA_ENDPOINT, {

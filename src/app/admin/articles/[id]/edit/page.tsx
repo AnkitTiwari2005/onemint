@@ -120,15 +120,20 @@ export default function EditArticlePage() {
           coldStartFailure = true;
         }
 
-        if (coldStartFailure) {
+        // Retry silently on cold-start (HTML response) or server timeout (504)
+        // — both are transient and usually resolve on the second attempt.
+        const isRetryable = coldStartFailure || res.status === 504;
+        if (isRetryable) {
           if (attempt === 1) {
-            // Silent retry — wait briefly for the Edge function to warm up
-            console.warn('[AI FAQ] Non-JSON response on attempt 1 (likely cold-start). Retrying in 1.5 s…');
-            await new Promise(r => setTimeout(r, 1500));
+            const reason = coldStartFailure ? 'cold-start (non-JSON)' : 'server timeout (504)';
+            console.warn(`[AI FAQ] ${reason} on attempt 1. Retrying in 2 s…`);
+            await new Promise(r => setTimeout(r, 2000));
             continue;
           }
           // Both attempts failed — surface a clear message
-          throw new Error('AI service is warming up. Please try again in a moment.');
+          throw new Error(coldStartFailure
+            ? 'AI service is warming up. Please try again in a moment.'
+            : 'AI request timed out twice. Try again — it usually works on a fresh attempt.');
         }
 
         // From here data is guaranteed to be assigned
