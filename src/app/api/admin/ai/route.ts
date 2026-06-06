@@ -16,9 +16,9 @@ export const runtime = 'edge';
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-// 8B model: ~4× faster than 70B — plenty of quality for 4 short FAQ entries.
-// Switch back to llama-3.1-70b-instruct if quality matters more than speed.
-const NVIDIA_MODEL    = 'meta/llama-3.1-8b-instruct';
+// Llama 4 Maverick: MoE architecture — 17B active params but ~70B quality.
+// Much faster than dense 70B, better instruction following than 8B.
+const NVIDIA_MODEL    = 'meta/llama-4-maverick-17b-128e-instruct';
 const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 
@@ -47,10 +47,12 @@ async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
       body: JSON.stringify({
         model:       NVIDIA_MODEL,
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        // 400 tokens = enough for 4 Q&A pairs (~300 tokens actual).
-        // Keeping this low is the single biggest factor in response speed.
-        max_tokens:  400,
+        temperature: 0.2,       // Low = reliable JSON; high temp risks malformed output
+        top_p:       1.0,
+        // 800 tokens: enough for 4 rich Q&A pairs with headroom to spare
+        max_tokens:  800,
+        frequency_penalty: 0.0,
+        presence_penalty:  0.0,
         stream:      false,
 
       }),
