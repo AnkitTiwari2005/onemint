@@ -215,7 +215,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="flex items-center gap-3">
               {(author as unknown as Record<string,string>)?.avatar && (
                 <Link href={`/author/${author!.slug}`}>
-                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author!.name} width={48} height={48} className="rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors" />
+                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author!.name} width={48} height={48} className="rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors" unoptimized />
                 </Link>
               )}
               <div>
@@ -270,7 +270,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         {article!.cover_image && (
           <figure className="mb-12 relative group">
             <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--color-surface-alt)]">
-              <Image src={article!.cover_image} alt={article!.title} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.02]" priority data-no-dim />
+              <Image src={article!.cover_image} alt={article!.title} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.02]" priority unoptimized data-no-dim />
             </div>
           </figure>
         )}
@@ -359,7 +359,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                 {(author as unknown as Record<string,string>).avatar && (
-                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" />
+                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" unoptimized />
                 )}
                 <div>
                   <h3 className="font-[family-name:var(--font-heading)] font-bold text-2xl text-[var(--color-ink)] mb-1">{author.name}</h3>
@@ -383,7 +383,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             return (
               <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
                 <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                  <Image src={a.avatar} alt={a.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" />
+                  <Image src={a.avatar} alt={a.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" unoptimized />
                   <div>
                     <h3 className="font-[family-name:var(--font-heading)] font-bold text-2xl text-[var(--color-ink)] mb-1">{a.name}</h3>
                     <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-3 font-[family-name:var(--font-ui)]">{a.role}</p>

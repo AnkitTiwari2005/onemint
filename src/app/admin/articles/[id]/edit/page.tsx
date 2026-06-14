@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, Eye, X, Loader2, Search, Sparkles } from 'lucide-react';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface DbAuthor { id: string; name: string; }
 interface DbCategory { id: string; name: string; }
@@ -255,20 +256,7 @@ export default function EditArticlePage() {
           </div>
           {/* Featured Image */}
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 16 }}>
-            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, color: 'var(--color-ink-tertiary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Featured Image</label>
-            <input
-              type="url"
-              value={coverImage}
-              onChange={e => setCoverImage(e.target.value)}
-              placeholder="https://… or paste URL"
-              style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
-            />
-            {coverImage && (
-              <div style={{ position: 'relative', marginTop: 8 }}>
-                <img src={coverImage} alt="Cover preview" style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 6 }} onError={e => (e.currentTarget.style.display = 'none')} />
-                <button onClick={() => setCoverImage('')} title="Remove image" style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12 }}>✕</button>
-              </div>
-            )}
+            <ImageUpload value={coverImage} onChange={setCoverImage} label="Featured Image" />
           </div>
           {/* SEO Meta */}
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>

@@ -53,7 +53,7 @@ export function ImageUpload({ value, onChange, label = 'Featured Image' }: Image
             alt="Featured"
             fill
             style={{ objectFit: 'cover' }}
-            unoptimized={value.startsWith('http') && !value.includes('r2.dev')}
+            unoptimized={value.startsWith('http')}
           />
           <button
             type="button"
