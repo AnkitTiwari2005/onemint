@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Eye, X, Loader2, Search, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Eye, X, Loader2, Search, Sparkles, Bell, CheckCircle2 } from 'lucide-react';
 import { ImageUpload } from '@/components/ImageUpload';
 
 interface DbAuthor { id: string; name: string; }
@@ -44,6 +44,11 @@ export default function EditArticlePage() {
   const [faqSuccess, setFaqSuccess] = useState(false);
   const [confirmFaqRegen, setConfirmFaqRegen] = useState(false);
 
+  // Notification
+  const [publishedAt, setPublishedAt] = useState('');
+  // 'idle' | 'loading' | 'done' | 'error'
+  const [notifyState, setNotifyState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+
   // Load article + authors + categories from API
   useEffect(() => {
     fetch(`/api/admin/articles/${id}`)
@@ -64,6 +69,7 @@ export default function EditArticlePage() {
         setTags(data.tags || []);
         setMetaTitle(data.meta_title || '');
         setMetaDesc(data.meta_description || '');
+        setPublishedAt(data.published_at || '');
         // Load existing FAQs if present — attach stable ids for React diffing
         if (Array.isArray(data.faqs) && data.faqs.length > 0) {
           setFaqs(data.faqs.map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
@@ -151,6 +157,39 @@ export default function EditArticlePage() {
     } finally {
       // Guaranteed cleanup — spinner always stops
       setGeneratingFaqs(false);
+    }
+  };
+
+  const sendNotification = async () => {
+    if (notifyState === 'loading' || notifyState === 'done') return;
+    setNotifyState('loading');
+    try {
+      const readTime = Math.max(1, Math.ceil(body.trim().split(/\s+/).filter(Boolean).length / 200));
+      const authorName  = dbAuthors.find(a => a.id === author)?.name;
+      const categoryName = dbCategories.find(c => c.id === category)?.name;
+      const res = await fetch('/api/admin/notify-article', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          slug,
+          deck:         deck   || undefined,
+          coverImage:   coverImage || undefined,
+          authorName:   authorName || undefined,
+          categoryName: categoryName || undefined,
+          tags:         tags.length > 0 ? tags : undefined,
+          readTime,
+          publishedAt:  publishedAt || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Send failed');
+      setNotifyState('done');
+    } catch (err) {
+      console.error('[notify]', err);
+      setNotifyState('error');
+      // Auto-reset error after 4 s so admin can retry
+      setTimeout(() => setNotifyState('idle'), 4000);
     }
   };
 
@@ -396,11 +435,61 @@ export default function EditArticlePage() {
       </div>
 
       {/* Sticky bar */}
-      <div style={{ position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px', display: 'flex', gap: 12, zIndex: 50 }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 240, right: 0, background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', padding: '12px 32px', display: 'flex', alignItems: 'center', gap: 12, zIndex: 50 }}>
+        {/* Save */}
         <button onClick={save} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink)', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save Changes
         </button>
-        {slug && status === 'published' && <Link href={`/articles/${slug}`} target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, textDecoration: 'none' }}><Eye size={14} /> View Live</Link>}
+
+        {/* View Live */}
+        {slug && status === 'published' && (
+          <Link href={`/articles/${slug}`} target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 13, textDecoration: 'none' }}>
+            <Eye size={14} /> View Live
+          </Link>
+        )}
+
+        {/* Separator + Notify — only for published articles */}
+        {status === 'published' && (
+          <>
+            <div style={{ width: 1, height: 24, background: 'var(--color-border)', marginLeft: 4 }} />
+            <button
+              onClick={sendNotification}
+              disabled={notifyState === 'loading' || notifyState === 'done'}
+              title={notifyState === 'done' ? 'Notification sent!' : 'Send email notification about this article'}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                fontFamily: 'var(--font-ui)', cursor: (notifyState === 'loading' || notifyState === 'done') ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                border: notifyState === 'done'
+                  ? '1px solid #86efac'
+                  : notifyState === 'error'
+                  ? '1px solid #fca5a5'
+                  : '1px solid var(--color-border)',
+                background: notifyState === 'done'
+                  ? '#f0fdf4'
+                  : notifyState === 'error'
+                  ? '#fff1f2'
+                  : 'transparent',
+                color: notifyState === 'done'
+                  ? '#16a34a'
+                  : notifyState === 'error'
+                  ? '#dc2626'
+                  : 'var(--color-ink-secondary)',
+                opacity: notifyState === 'loading' ? 0.7 : 1,
+              }}
+            >
+              {notifyState === 'loading' && <Loader2 size={14} className="animate-spin" />}
+              {notifyState === 'done'    && <CheckCircle2 size={14} />}
+              {notifyState === 'error'   && <Bell size={14} />}
+              {notifyState === 'idle'    && <Bell size={14} />}
+              {notifyState === 'loading' ? 'Sending…'
+                : notifyState === 'done'  ? 'Notified ✓'
+                : notifyState === 'error' ? 'Failed — Retry?'
+                : 'Notify'}
+            </button>
+          </>
+        )}
       </div>
       <div style={{ height: 70 }} />
       <style>{`@media(max-width:768px){[style*="grid-template-columns: 1fr 300px"]{grid-template-columns:1fr!important;}[style*="left: 240px"]{left:0!important;}}`}</style>
