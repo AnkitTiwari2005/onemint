@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/newsletter?series=monday",
+      "schedule": "30 2 * * 1"
+    },
+    {
+      "path": "/api/cron/newsletter?series=wednesday",
+      "schedule": "30 2 * * 3"
+    },
+    {
+      "path": "/api/cron/newsletter?series=sunday",
+      "schedule": "30 3 * * 0"
+    }
+  ]
+}
