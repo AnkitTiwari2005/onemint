@@ -98,8 +98,12 @@ export function NewsletterScrollCTA() {
           animate={variants.animate}
           exit={variants.exit}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          // Mobile: full-width bottom bar   |   Desktop: fixed-width right panel
-          className="fixed z-50 bottom-0 left-0 right-0 sm:bottom-6 sm:right-6 sm:left-auto sm:w-[340px]"
+          // Mobile: sit ABOVE MobileBottomNav (56px fixed at bottom-0, z-9990).
+          // We use bottom:56px so the banner floats just above it, fully visible.
+          // z-[9995] ensures it renders on top of everything except modals.
+          // Desktop: right-side panel unchanged.
+          className="fixed z-[9995] left-0 right-0 sm:left-auto sm:right-6 sm:w-[340px]"
+          style={{ bottom: isMobile ? '56px' : '24px' }}
           role="complementary"
           aria-label="Newsletter signup"
         >
