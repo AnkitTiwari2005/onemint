@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/tags` },
 };
 
-export const dynamic = 'force-dynamic';
+// ISR: tag counts update as articles are published — refresh every 60 seconds.
+export const revalidate = 60;
 
 function slugifyTag(tag: string): string {
   return tag.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');

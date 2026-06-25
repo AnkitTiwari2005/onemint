@@ -5,9 +5,11 @@ import { SeriesDetailClient } from '@/components/SeriesDetailClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-// ⚠️ Do NOT use generateStaticParams here — series can now be created from
-// the admin panel and stored in the DB, so we must support dynamic slugs.
-export const dynamic = 'force-dynamic';
+// ISR: series can be created from the admin panel at any time.
+// dynamicParams=true renders new slugs on first request then caches them.
+// 5-minute revalidation keeps content fresh without per-request DB calls.
+export const revalidate = 300;
+export const dynamicParams = true;
 
 interface Props {
   params: Promise<{ slug: string }>;

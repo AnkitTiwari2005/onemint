@@ -28,6 +28,57 @@ const nextConfig = {
       },
     ];
   },
+
+  // ── Static asset caching ──────────────────────────────────────────────────
+  // Next.js content-hashes all JS/CSS chunks — safe to cache for 1 year.
+  // Fonts and images are also immutable once deployed.
+  // This tells Vercel's edge CDN + browser cache to hold these assets
+  // and serve them instantly without re-fetching on every page load.
+  async headers() {
+    return [
+      {
+        // JS & CSS bundles — content-hashed filenames, safe to cache forever
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Public folder: images, fonts, og-image.png, robots.txt, etc.
+        source: '/:path((?!api/).*)',
+        headers: [
+          {
+            key: 'Vary',
+            value: 'Accept-Encoding',
+          },
+        ],
+      },
+      {
+        // Fonts specifically — immutable, cache aggressively
+        source: '/fonts/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Static images in /public — long cache, but not immutable (could be replaced)
+        source: '/:path*.{jpg,jpeg,png,gif,svg,webp,avif,ico}',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=604800',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
+

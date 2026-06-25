@@ -12,7 +12,8 @@ export const metadata = {
   alternates: { canonical: `${SITE_URL}/series` },
 };
 
-export const dynamic = 'force-dynamic';
+// ISR: series list changes rarely — cache for 1 hour.
+export const revalidate = 3600;
 
 interface Series {
   id: string;

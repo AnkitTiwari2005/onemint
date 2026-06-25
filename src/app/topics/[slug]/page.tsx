@@ -13,7 +13,11 @@ import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-export const dynamic = 'force-dynamic';
+// ISR: category pages rebuild every 60 seconds in the background.
+// generateStaticParams (below) pre-builds all known categories at deploy time.
+// dynamicParams=true allows new categories added after deploy to render on-demand.
+export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   return categories.map((cat) => ({ slug: cat.slug }));

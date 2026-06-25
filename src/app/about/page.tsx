@@ -6,7 +6,8 @@ import { Target, Handshake, Brain } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildAboutPage, buildBreadcrumbs } from '@/lib/jsonld';
 
-export const dynamic = 'force-dynamic';
+// ISR: author team data changes rarely — cache for 1 hour.
+export const revalidate = 3600;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 

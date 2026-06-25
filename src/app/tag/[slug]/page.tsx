@@ -7,7 +7,10 @@ import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-export const dynamic = 'force-dynamic';
+// ISR: tag pages rebuild every 60s. dynamicParams=true allows new tags to
+// render on first request without a redeploy.
+export const revalidate = 60;
+export const dynamicParams = true;
 
 interface Props {
   params: Promise<{ slug: string }>;

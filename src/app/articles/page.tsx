@@ -1,7 +1,8 @@
 import { fetchPublishedArticles } from '@/lib/articles';
 import ArticlesClientShell from './ArticlesClientShell';
 
-export const dynamic = 'force-dynamic';
+// ISR: cache the articles list for 60 seconds — new articles appear within 1 minute.
+export const revalidate = 60;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 

@@ -12,7 +12,9 @@ import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { articles as staticArticles } from '@/data/articles';
 import { HomePageClient } from '@/components/HomePageClient';
 
-export const dynamic = 'force-dynamic';
+// ISR: serve from cache, rebuild in background every 60 seconds.
+// New articles appear within 1 minute — zero per-request DB calls.
+export const revalidate = 60;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 

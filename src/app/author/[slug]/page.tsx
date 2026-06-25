@@ -12,7 +12,9 @@ import { buildPerson, buildBreadcrumbs } from '@/lib/jsonld';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-export const dynamic = 'force-dynamic';
+// ISR: author profiles rarely change — cache for 1 hour.
+// generateStaticParams (below) pre-builds known author slugs at deploy time.
+export const revalidate = 3600;
 
 interface DbAuthor {
   id: string;

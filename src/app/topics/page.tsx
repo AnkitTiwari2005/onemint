@@ -22,7 +22,8 @@ export const metadata = {
   },
 };
 
-export const dynamic = 'force-dynamic';
+// ISR: topic article counts refresh every 60 seconds in the background.
+export const revalidate = 60;
 
 interface TopicArticle { title: string; slug: string; }
 interface TopicData { count: number; topArticles: TopicArticle[]; }

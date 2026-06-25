@@ -7,7 +7,8 @@ import GlossaryClient from './GlossaryClient';
 import { JsonLd } from '@/components/JsonLd';
 import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 
-export const dynamic = 'force-dynamic';
+// ISR: glossary terms change infrequently — cache for 1 hour.
+export const revalidate = 3600;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
