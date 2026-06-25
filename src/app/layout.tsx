@@ -147,7 +147,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en-IN" suppressHydrationWarning>
       <head>
         {/* Sync theme init — MUST be before body to prevent FOUC */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

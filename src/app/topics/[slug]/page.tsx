@@ -8,6 +8,8 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { formatDate } from '@/lib/utils';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { Clock, ArrowLeft } from 'lucide-react';
+import { JsonLd } from '@/components/JsonLd';
+import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
@@ -25,6 +27,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${category.name} — OneMint`,
     description: category.description,
     alternates: { canonical: `${SITE_URL}/topics/${slug}` },
+    openGraph: {
+      type: 'website' as const,
+      url: `${SITE_URL}/topics/${slug}`,
+      title: `${category.name} | OneMint`,
+      description: category.description,
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${category.name} — OneMint` }],
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: `${category.name} | OneMint`,
+      description: category.description,
+    },
   };
 }
 
@@ -33,7 +47,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const category = getCategoryBySlug(slug);
   if (!category) notFound();
 
-  // Fetch all published articles (DB-backed, static fallback only if DB is down)
   const { articles: allArticles } = await fetchPublishedArticles();
 
   // Filter to this category using the slug (works for both DB and static fallback)
@@ -44,8 +57,21 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const featured = catArticles[0];
   const rest = catArticles.slice(1);
 
+  const collectionSchema = buildCollectionPage(
+    category!.name,
+    category!.description,
+    `${SITE_URL}/topics/${slug}`
+  );
+  const breadcrumbSchema = buildBreadcrumbs([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Topics', url: `${SITE_URL}/topics` },
+    { name: category!.name, url: `${SITE_URL}/topics/${slug}` },
+  ]);
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
+      <JsonLd data={collectionSchema} />
+      <JsonLd data={breadcrumbSchema} />
 
       {/* ── Category Header ───────────────────────────────── */}
       <header className="border-b border-[var(--color-border)]" style={{ backgroundColor: category!.lightColor }}>

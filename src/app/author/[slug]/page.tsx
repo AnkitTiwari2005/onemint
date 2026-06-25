@@ -7,6 +7,8 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { ExternalLink, Globe } from 'lucide-react';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { supabaseAdmin } from '@/lib/supabase';
+import { JsonLd } from '@/components/JsonLd';
+import { buildPerson, buildBreadcrumbs } from '@/lib/jsonld';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
@@ -50,9 +52,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   if (!name) return { title: 'Author Not Found' };
   return {
-    title: `${name} — OneMint`,
-    description: bio.slice(0, 155),
+    title: `${name} — Author at OneMint`,
+    description: bio
+      ? bio.slice(0, 155)
+      : `Read all articles by ${name} on OneMint — India's most trusted knowledge platform.`,
     alternates: { canonical: `${SITE_URL}/author/${slug}` },
+    openGraph: {
+      type: 'profile' as const,
+      url: `${SITE_URL}/author/${slug}`,
+      title: `${name} — OneMint Author`,
+      description: bio
+        ? bio.slice(0, 155)
+        : `Read all articles by ${name} on OneMint.`,
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${name} — OneMint` }],
+    },
+    twitter: {
+      card: 'summary' as const,
+      title: `${name} — OneMint Author`,
+      description: bio ? bio.slice(0, 155) : `Read all articles by ${name} on OneMint.`,
+    },
   };
 }
 
@@ -97,8 +115,24 @@ export default async function AuthorPage({ params }: Props) {
     .sort((a, b) => (b.published_at ?? '').localeCompare(a.published_at ?? ''))
     .map((a, i) => toArticle(a, i));
 
+  const personSchema = buildPerson({
+    name: authorName,
+    url: `${SITE_URL}/author/${slug}`,
+    bio: authorBio || undefined,
+    avatar: authorAvatar || undefined,
+    jobTitle: authorRole || undefined,
+    twitter: authorTwitter || undefined,
+    linkedin: authorLinkedin || undefined,
+  });
+  const breadcrumbSchema = buildBreadcrumbs([
+    { name: 'Home', url: SITE_URL },
+    { name: authorName, url: `${SITE_URL}/author/${slug}` },
+  ]);
+
   return (
     <div className="pt-16 lg:pt-[72px]">
+      <JsonLd data={personSchema} />
+      <JsonLd data={breadcrumbSchema} />
     <div style={{ maxWidth: 1060, margin: '0 auto', padding: '24px 24px 80px' }}>
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 40, display: 'flex', gap: 8 }}>

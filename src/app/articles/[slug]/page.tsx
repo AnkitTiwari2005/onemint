@@ -14,6 +14,7 @@ import { TableOfContents } from '@/components/TableOfContents';
 import { FontSizeControl } from '@/components/FontSizeControl';
 import { GlossaryTooltip } from '@/components/GlossaryTooltip';
 import { GiscusComments } from '@/components/GiscusComments';
+import { NewsletterScrollCTA } from '@/components/NewsletterScrollCTA';
 import { Clock, BookOpen } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildArticle, buildBreadcrumbs, buildFAQ } from '@/lib/jsonld';
@@ -157,7 +158,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     url: articleUrl,
     imageUrl: article!.cover_image,
     datePublished: article!.published_at ?? new Date().toISOString(),
-    dateModified: article!.published_at ?? new Date().toISOString(),
+    // Use updated_at for freshness signal — Google boosts recently-updated articles
+    dateModified: (article as unknown as Record<string, string>).updated_at ?? article!.published_at ?? new Date().toISOString(),
     authorName: author?.name ?? 'OneMint Editorial',
     authorUrl: author ? `${SITE_URL}/author/${author.slug}` : SITE_URL,
     articleSection: category?.name,
@@ -173,6 +175,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
       {faqSchema && <JsonLd data={faqSchema} />}
+      {/* Scroll-triggered newsletter CTA — appears after 60% scroll depth */}
+      <NewsletterScrollCTA />
       <article className="max-w-[var(--article-max)] mx-auto px-4 sm:px-6 py-8 lg:py-12">
 
         {/* Breadcrumb */}

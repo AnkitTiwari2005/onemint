@@ -247,3 +247,73 @@ export function buildFAQ(faqs: FaqItem[]) {
     })),
   };
 }
+
+// ── Person ────────────────────────────────────────────────────────────────────
+export interface PersonSchemaInput {
+  name: string;
+  url: string;
+  bio?: string;
+  avatar?: string;
+  jobTitle?: string;
+  twitter?: string;
+  linkedin?: string;
+}
+
+/**
+ * Person schema for author profile pages.
+ * sameAs links to social profiles build a verifiable entity that
+ * Google uses for E-E-A-T scoring on YMYL (finance/health) content.
+ */
+export function buildPerson(author: PersonSchemaInput) {
+  const sameAs: string[] = [];
+  if (author.twitter) {
+    sameAs.push(author.twitter.startsWith('http') ? author.twitter : `https://twitter.com/${author.twitter}`);
+  }
+  if (author.linkedin) {
+    sameAs.push(author.linkedin.startsWith('http') ? author.linkedin : `https://linkedin.com/in/${author.linkedin}`);
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: author.name,
+    url: author.url,
+    ...(author.bio ? { description: author.bio } : {}),
+    ...(author.avatar
+      ? { image: { '@type': 'ImageObject', url: author.avatar, width: 400, height: 400 } }
+      : {}),
+    ...(author.jobTitle ? { jobTitle: author.jobTitle } : {}),
+    ...(sameAs.length > 0 ? { sameAs } : {}),
+    worksFor: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE,
+    },
+  };
+}
+
+// ── AboutPage ─────────────────────────────────────────────────────────────────
+/**
+ * AboutPage schema for the /about page.
+ * Signals to Google that this page describes the publisher's mission,
+ * team and values — a key E-E-A-T trust signal for YMYL domains.
+ */
+export function buildAboutPage() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    '@id': `${SITE}/about`,
+    name: 'About OneMint',
+    description:
+      "India's most trusted knowledge platform for personal finance, technology, health, and career. Expert articles, free tools, zero spam.",
+    url: `${SITE}/about`,
+    inLanguage: 'en-IN',
+    publisher: {
+      '@type': 'Organization',
+      '@id': `${SITE}/#organization`,
+      name: SITE_NAME,
+      url: SITE,
+    },
+    isPartOf: { '@id': `${SITE}/#website` },
+  };
+}

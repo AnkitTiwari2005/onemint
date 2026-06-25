@@ -1,73 +1,39 @@
-'use client';
-import { useState } from 'react';
-import { CalculatorLayout } from '@/components/CalculatorLayout';
-import { SliderInput } from '@/components/SliderInput';
-import { formatIndianNumber } from '@/lib/utils';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { ArrowDownUp, Calculator, Building, Activity, Car, Briefcase, GraduationCap, TrendingUp } from 'lucide-react';
+import type { Metadata } from 'next';
+import { JsonLd } from '@/components/JsonLd';
+import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
+import ToolClient from './ToolClient';
 
-const COLORS = ['var(--color-accent)', 'var(--color-accent-warm)', '#cbd5e1'];
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-export default function StepUpSipPage() {
+export const metadata: Metadata = {
+  title: 'Step-Up SIP Calculator — Annual SIP Increase & Corpus Growth',
+  description: 'Free Step-Up SIP Calculator India. See how increasing your SIP by 10% every year dramatically grows your wealth. Calculate corpus with annual top-up SIP investments.',
+  alternates: { canonical: `${SITE_URL}/tools/step-up-sip` },
+  openGraph: {
+    type: 'website',
+    url: `${SITE_URL}/tools/step-up-sip`,
+    title: 'Step-Up SIP Calculator — Annual SIP Increase & Corpus Growth',
+    description: 'Free Step-Up SIP Calculator India. See how increasing your SIP by 10% every year dramatically grows your wealth. Calculate corpus with annual top-up SIP investments.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Step-Up SIP Calculator | OneMint' }],
+  },
+};
 
-      const [monthlyInvestment, setMonthlyInvestment] = useState(10000);
-      const [annualStepUp, setAnnualStepUp] = useState(10);
-      const [returnRate, setReturnRate] = useState(12);
-      const [years, setYears] = useState(10);
-      
-      let totalInvested = 0; let futureValue = 0; let currentSip = monthlyInvestment;
-      const monthlyRate = returnRate / 12 / 100;
-      for (let y = 1; y <= years; y++) {
-        for (let m = 1; m <= 12; m++) { totalInvested += currentSip; futureValue = (futureValue + currentSip) * (1 + monthlyRate); }
-        currentSip += currentSip * (annualStepUp / 100);
-      }
-      const totalReturns = futureValue - totalInvested;
-      const chartDataObj = [{ name: 'Invested', value: totalInvested }, { name: 'Returns', value: totalReturns }];
-      
-      const inputs = (
-        <div className="space-y-6">
-          <SliderInput label="Monthly Investment" value={monthlyInvestment} min={500} max={100000} step={500} prefix="₹" onChange={setMonthlyInvestment} />
-          <SliderInput label="Annual Step-up" value={annualStepUp} min={1} max={50} step={1} suffix="%" onChange={setAnnualStepUp} />
-          <SliderInput label="Expected Return Rate" value={returnRate} min={1} max={30} step={0.5} suffix="%" onChange={setReturnRate} />
-          <SliderInput label="Time Period" value={years} min={1} max={40} step={1} suffix=" Yr" onChange={setYears} />
-        </div>
-      );
-      const results = (
-        <div className="space-y-6 text-center">
-          <div><p className="text-sm text-[var(--color-ink-secondary)]">Invested Amount</p><p className="text-xl font-bold">₹{formatIndianNumber(Math.round(totalInvested))}</p></div>
-          <div><p className="text-sm text-[var(--color-ink-secondary)]">Estimated Returns</p><p className="text-xl font-bold text-green-600">₹{formatIndianNumber(Math.round(totalReturns))}</p></div>
-          <div className="pt-4 border-t border-[var(--color-border)]"><p className="text-sm text-[var(--color-ink-secondary)] mb-1">Total Value</p><p className="text-3xl font-bold text-[var(--color-accent)]">₹{formatIndianNumber(Math.round(futureValue))}</p></div>
-        </div>
-      );
-    
-
-  const IconComponent = TrendingUp;
-  const chart = chartDataObj && chartDataObj.length > 0 ? (
-    <div className="h-[250px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie data={chartDataObj} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-            {chartDataObj.map((entry, index) => (
-              <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <RechartsTooltip formatter={(val: any) => '₹' + formatIndianNumber(Math.round(val as number))} />
-          <Legend verticalAlign="bottom" height={36} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  ) : null;
-
+export default function StepUpSipPageWrapper() {
+  const toolSchema = buildWebApplication({
+    name: 'Step-Up SIP Calculator',
+    description: 'Free Step-Up SIP Calculator India. See how increasing your SIP by 10% every year dramatically grows your wealth. Calculate corpus with annual top-up SIP investments.',
+    url: `${SITE_URL}/tools/step-up-sip`,
+  });
+  const breadcrumbSchema = buildBreadcrumbs([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Tools & Calculators', url: `${SITE_URL}/tools` },
+    { name: 'Step-Up SIP Calculator', url: `${SITE_URL}/tools/step-up-sip` },
+  ]);
   return (
-    <CalculatorLayout
-      title="Step-up SIP Calculator"
-      description="See how increasing your SIP amount every year can boost your final corpus."
-      icon={<IconComponent size={32} />}
-      theme="finance"
-      results={results}
-      chart={chart}
-    >
-      {inputs}
-    </CalculatorLayout>
+    <>
+      <JsonLd data={toolSchema} />
+      <JsonLd data={breadcrumbSchema} />
+      <ToolClient />
+    </>
   );
 }

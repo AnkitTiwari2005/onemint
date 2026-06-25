@@ -3,15 +3,29 @@ import Image from 'next/image';
 import { authors as staticAuthors } from '@/data/authors';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Target, Handshake, Brain } from 'lucide-react';
+import { JsonLd } from '@/components/JsonLd';
+import { buildAboutPage, buildBreadcrumbs } from '@/lib/jsonld';
 
 export const dynamic = 'force-dynamic';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata = {
-  title: 'About OneMint',
-  description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters.",
+  title: 'About OneMint — India\'s Most Trusted Knowledge Platform',
+  description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters. Trusted by 5,00,000+ readers.",
   alternates: { canonical: `${SITE_URL}/about` },
+  openGraph: {
+    type: 'website' as const,
+    url: `${SITE_URL}/about`,
+    title: 'About OneMint — India\'s Most Trusted Knowledge Platform',
+    description: "India's most trusted knowledge platform for personal finance, technology, health, and career. Expert articles by domain experts, free tools, zero spam.",
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'About OneMint' }],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'About OneMint',
+    description: "India's most trusted knowledge platform for personal finance, technology, health, and career.",
+  },
 };
 
 interface DbAuthor {
@@ -54,9 +68,16 @@ async function getAuthors(): Promise<DbAuthor[]> {
 
 export default async function AboutPage() {
   const teamAuthors = await getAuthors();
+  const aboutSchema = buildAboutPage();
+  const breadcrumbSchema = buildBreadcrumbs([
+    { name: 'Home', url: SITE_URL },
+    { name: 'About OneMint', url: `${SITE_URL}/about` },
+  ]);
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
+      <JsonLd data={aboutSchema} />
+      <JsonLd data={breadcrumbSchema} />
       {/* Hero */}
       <section className="bg-gradient-to-br from-[var(--color-accent-light)] via-[var(--color-surface)] to-[var(--color-surface)]">
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center">
