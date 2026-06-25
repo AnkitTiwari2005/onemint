@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Brotli/Gzip compression — compresses HTML/JSON/CSS before sending over the wire.
+  // 357KB homepage HTML → ~45-60KB on the wire. Browser decompresses instantly.
+  compress: true,
   // Enforce no-trailing-slash across all URLs to prevent canonical conflicts.
   // https://www.onemint.in  →  canonical (matches layout.tsx + sitemap)
   // https://www.onemint.in/ →  301 redirect to above (eliminates GSC duplicate)
