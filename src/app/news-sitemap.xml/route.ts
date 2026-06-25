@@ -13,11 +13,16 @@
  *   and refuses to fetch sitemaps under that path. Placing the sitemap at
  *   the root level avoids the conflict entirely.
  *
- * Rules enforced:
- *  - Only articles published within the last 48 hours are included
- *    (Google ignores older entries in the news sitemap)
+ * Fetch strategy (never returns empty — prevents GSC "Missing XML tag" error):
+ *  1. Try articles published in the last 48 h (ideal for Google News)
+ *  2. If empty → expand to last 7 days
+ *  3. If still empty → take the 10 most-recent articles regardless of date
+ *     Google ignores articles older than 2 days for News ranking, but the
+ *     sitemap XML itself must contain at least one <url> to pass validation.
+ *
+ * Other rules:
  *  - Max 1,000 URLs per sitemap (Google limit)
- *  - Publication name must match your Google News registration name
+ *  - Publication name must match your Google News registration name exactly
  *  - Language is en (ISO 639-1)
  *  - Cache-Control: 5 minutes — fresh enough for breaking news without
  *    hammering the DB on every bot visit
@@ -34,8 +39,10 @@ const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').repl
 // Must match the exact publication name registered in Google Publisher Center
 const PUBLICATION_NAME = 'OneMint';
 const PUBLICATION_LANGUAGE = 'en';
-// Google News only indexes articles from the last 48 hours
-const NEWS_WINDOW_MS = 48 * 60 * 60 * 1000;
+
+const H48  = 48 * 60 * 60 * 1000;   // 48 hours in ms
+const D7   = 7  * 24 * 60 * 60 * 1000; // 7 days in ms
+const FALLBACK_COUNT = 10; // min articles to always show
 
 interface NewsArticleRow {
   slug: string;
@@ -61,39 +68,89 @@ function toW3CDate(dateStr: string): string {
   return d.toISOString();
 }
 
+/**
+ * Query DB with a time-based cutoff.
+ * Returns null if DB unavailable, empty array if no results.
+ */
+async function queryDb(cutoff: string): Promise<NewsArticleRow[] | null> {
+  if (!supabaseAdmin) return null;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('articles')
+      .select('slug, title, published_at, categories(name)')
+      .eq('status', 'published')
+      .is('deleted_at', null)
+      .gte('published_at', cutoff)
+      .order('published_at', { ascending: false })
+      .limit(1000);
+    if (error) {
+      console.error('[news-sitemap.xml] DB error:', error.message);
+      return null;
+    }
+    return (data ?? []) as unknown as NewsArticleRow[];
+  } catch (err) {
+    console.error('[news-sitemap.xml] Unexpected DB error:', err);
+    return null;
+  }
+}
+
+/** Last-resort DB fetch — most recent N articles with no date filter */
+async function queryDbRecent(limit: number): Promise<NewsArticleRow[] | null> {
+  if (!supabaseAdmin) return null;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('articles')
+      .select('slug, title, published_at, categories(name)')
+      .eq('status', 'published')
+      .is('deleted_at', null)
+      .order('published_at', { ascending: false })
+      .limit(limit);
+    if (error) return null;
+    return (data ?? []) as unknown as NewsArticleRow[];
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
   const now = Date.now();
-  const cutoff = new Date(now - NEWS_WINDOW_MS).toISOString();
 
   let newsArticles: NewsArticleRow[] = [];
+  const dbAvailable = !!supabaseAdmin;
 
-  // ── Fetch from DB ──────────────────────────────────────────────────────────
-  if (supabaseAdmin) {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('articles')
-        .select('slug, title, published_at, categories(name)')
-        .eq('status', 'published')
-        .is('deleted_at', null)
-        .gte('published_at', cutoff)
-        .order('published_at', { ascending: false })
-        .limit(1000); // Google News sitemap max
+  // ── Step 1: last 48 hours ─────────────────────────────────────────────────
+  const cutoff48 = new Date(now - H48).toISOString();
+  const result48 = await queryDb(cutoff48);
+  if (result48 && result48.length > 0) {
+    newsArticles = result48;
+  }
 
-      if (!error && data && data.length > 0) {
-        newsArticles = data as unknown as NewsArticleRow[];
-      }
-    } catch (err) {
-      console.error('[news-sitemap.xml] DB error:', err);
+  // ── Step 2: last 7 days (if step 1 was empty) ─────────────────────────────
+  if (newsArticles.length === 0 && dbAvailable) {
+    const cutoff7d = new Date(now - D7).toISOString();
+    const result7d = await queryDb(cutoff7d);
+    if (result7d && result7d.length > 0) {
+      newsArticles = result7d;
     }
   }
 
-  // ── Static fallback (only when DB is unreachable) ─────────────────────────
+  // ── Step 3: most-recent N articles regardless of date ─────────────────────
+  if (newsArticles.length === 0 && dbAvailable) {
+    const recent = await queryDbRecent(FALLBACK_COUNT);
+    if (recent && recent.length > 0) {
+      newsArticles = recent;
+    }
+  }
+
+  // ── Step 4: static fallback (DB totally unreachable) ─────────────────────
   if (newsArticles.length === 0) {
-    newsArticles = staticArticles
-      .filter((a) => {
-        const pub = new Date(a.publishedAt).getTime();
-        return pub >= now - NEWS_WINDOW_MS;
-      })
+    // Try 48h window in static data first
+    const static48 = staticArticles.filter(
+      (a) => new Date(a.publishedAt).getTime() >= now - H48
+    );
+    // Widen to all static articles if the 48h window is empty
+    const staticPool = static48.length > 0 ? static48 : staticArticles;
+    newsArticles = staticPool
       .slice(0, 1000)
       .map((a) => ({
         slug: a.slug,
