@@ -127,6 +127,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                 sizes="(max-width: 1024px) 100vw, 58vw"
                 priority
+                unoptimized
                 data-no-dim
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
@@ -197,7 +198,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                 return (
                   <Link key={article.id} href={`/articles/${article.slug}`} className="group shrink-0 w-[200px] bg-[var(--color-surface)] rounded-xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-all shadow-[var(--shadow-card)]">
                     <div className="relative h-28 w-full overflow-hidden">
-                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-[1.05] transition-transform duration-500" sizes="200px" />
+                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-[1.05] transition-transform duration-500" sizes="200px" unoptimized />
                     </div>
                     <div className="p-3">
                       {cat && <span className="text-[9px] font-bold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
@@ -225,7 +226,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                 return (
                   <Link key={article.id} href={`/articles/${article.slug}`} className="group flex gap-4 p-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors">
                     <div className="relative w-24 h-20 shrink-0 rounded-lg overflow-hidden bg-[var(--color-surface-alt)]">
-                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-[1.05] transition-transform duration-500" sizes="96px" />
+                      <Image src={article.featuredImage} alt={article.title} fill className="object-cover group-hover:scale-[1.05] transition-transform duration-500" sizes="96px" unoptimized />
                     </div>
                     <div className="flex-1 min-w-0">
                       {cat && <span className="text-[10px] font-semibold uppercase tracking-wider font-[family-name:var(--font-ui)]" style={{ color: cat.accentColor }}>{cat.name}</span>}
