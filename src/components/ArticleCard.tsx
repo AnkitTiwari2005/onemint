@@ -58,6 +58,7 @@ export function ArticleCard({ article, variant = 'standard', index = 0, priority
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
             priority={priority}
+            unoptimized
           />
         </motion.div>
 
@@ -127,6 +128,7 @@ function HeroCard({
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           sizes="(max-width: 1024px) 100vw, 58vw"
           priority={priority}
+          unoptimized
         />
       </motion.div>
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
