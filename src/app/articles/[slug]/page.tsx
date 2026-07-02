@@ -11,7 +11,7 @@ import { ArticleFeedback } from '@/components/ArticleFeedback';
 import { RelatedArticles } from '@/components/RelatedArticles';
 import { TableOfContents } from '@/components/TableOfContents';
 import { FontSizeControl } from '@/components/FontSizeControl';
-import { GiscusComments } from '@/components/GiscusComments';
+import { ArticleComments } from '@/components/ArticleComments';
 import { NewsletterScrollCTA } from '@/components/NewsletterScrollCTA';
 import { SeriesBanner } from '@/components/SeriesBanner';
 import type { SeriesBannerData } from '@/components/SeriesBanner';
@@ -406,13 +406,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           )}
 
           {/* Comments */}
-          <div className="comments-section mt-12 mb-16 border border-[var(--color-border)] rounded-3xl overflow-hidden">
-            <div className="bg-[var(--color-surface-alt)] px-6 py-4 border-b border-[var(--color-border)] flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Discussion</h2>
-              <span className="ml-auto text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">Powered by Giscus</span>
-            </div>
-            <div className="p-4"><GiscusComments /></div>
-          </div>
+          <ArticleComments slug={slug} />
 
           {/* Related Articles — reads from live Supabase articles */}
           <RelatedArticles
