@@ -2,15 +2,22 @@
 
 import Link from 'next/link';
 import { BookOpen, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { getSeriesForArticle } from '@/data/series';
 import { useEffect, useState } from 'react';
+
+export interface SeriesBannerData {
+  id: string;
+  slug: string;
+  name: string;
+  articleSlugs: string[];
+}
 
 interface SeriesBannerProps {
   articleSlug: string;
+  /** Series data passed from the server page (DB lookup). Null if not part of any series. */
+  series: SeriesBannerData | null;
 }
 
-export function SeriesBanner({ articleSlug }: SeriesBannerProps) {
-  const series = getSeriesForArticle(articleSlug);
+export function SeriesBanner({ articleSlug, series }: SeriesBannerProps) {
   const [completedCount, setCompletedCount] = useState(0);
 
   useEffect(() => {

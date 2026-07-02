@@ -1,5 +1,4 @@
 import Fuse, { FuseResultMatch } from 'fuse.js';
-import { articles, Article } from '@/data/articles';
 import { categories, Category } from '@/data/categories';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -49,17 +48,8 @@ const tools: Tool[] = [
 ];
 
 // ─── Fuse.js Indexes ──────────────────────────────────────────────────────────
-export const articleFuse = new Fuse<Article>(articles, {
-  keys: [
-    { name: 'title', weight: 0.6 },
-    { name: 'excerpt', weight: 0.25 },
-    { name: 'tags', weight: 0.15 },
-  ],
-  threshold: 0.35,
-  includeMatches: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true,
-});
+// Note: Article search is handled by the live /api/search route (Typesense/Supabase).
+// Only tools and categories are indexed here (static data — fast and safe).
 
 export const toolFuse = new Fuse<Tool>(tools, {
   keys: [
@@ -84,26 +74,11 @@ export const categoryFuse = new Fuse<Category>(categories, {
 // ─── Main Search Function ─────────────────────────────────────────────────────
 export function searchAll(
   query: string,
-  limits = { articles: 5, tools: 3, categories: 2 }
+  limits = { tools: 3, categories: 2 }
 ): SearchResult[] {
   if (!query || query.trim().length < 2) return [];
 
   const results: SearchResult[] = [];
-
-  // Articles
-  const articleResults = articleFuse.search(query, { limit: limits.articles });
-  for (const r of articleResults) {
-    results.push({
-      type: 'article',
-      title: r.item.title,
-      href: `/articles/${r.item.slug}`,
-      category: r.item.categoryId,
-      excerpt: r.item.excerpt,
-      date: r.item.publishedAt,
-      readTime: r.item.readTimeMinutes,
-      matches: r.matches,
-    });
-  }
 
   // Tools
   const toolResults = toolFuse.search(query, { limit: limits.tools });

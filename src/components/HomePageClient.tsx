@@ -17,7 +17,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Flame, TrendingUp, Star, CheckCircle2, Loader2, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { categories as staticCategories } from '@/data/categories';
 import { getCategoryById } from '@/data/categories';
-import { getAuthorById } from '@/data/authors';
+
 import { ArticleCard } from '@/components/ArticleCard';
 import { MarketTicker } from '@/components/MarketTicker';
 import { AnimatedSection, StaggerContainer } from '@/components/AnimatedSection';
@@ -50,10 +50,12 @@ export function HomePageClient({ articles }: HomePageClientProps) {
           lightColor: 'var(--color-surface-alt)',
           description: '',
           icon: '',
-          articleCount: 0,
         }
       : null);
-  const featuredAuthor = getAuthorById(featured?.authorId ?? '');
+  // Use embedded author data from DB join — no static lookup needed
+  const featuredAuthor = featured?.authorName
+    ? { name: featured.authorName, avatar: featured.authorAvatar ?? '' }
+    : null;
   const secondary = articles.filter((a) => !a.featured && a.id !== featured?.id).slice(0, 3);
   const trending = articles.slice(0, 8);
   const mostRead = articles.slice(0, 5);
@@ -222,7 +224,6 @@ export function HomePageClient({ articles }: HomePageClientProps) {
             <div className="hidden lg:flex flex-col gap-5">
               {secondary.map((article) => {
                 const cat = getCategoryById(article.categoryId);
-                const auth = getAuthorById(article.authorId);
                 return (
                   <Link key={article.id} href={`/articles/${article.slug}`} className="group flex gap-4 p-3 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors">
                     <div className="relative w-24 h-20 shrink-0 rounded-lg overflow-hidden bg-[var(--color-surface-alt)]">
@@ -234,7 +235,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                         {article.title}
                       </h2>
                       <div className="flex items-center gap-2 text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-                        {auth && <span>{auth.name}</span>}
+                        {article.authorName && <span>{article.authorName}</span>}
                         <span>·</span>
                         <Clock size={10} />
                         <span>{article.readTimeMinutes} min</span>
@@ -324,7 +325,7 @@ export function HomePageClient({ articles }: HomePageClientProps) {
                 <h2 className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--color-ink)]">Stay Informed</h2>
               </div>
               <p className="text-sm text-[var(--color-ink-secondary)] mb-5 font-[family-name:var(--font-ui)] leading-relaxed">
-                Join 500,000+ readers. Get our best articles delivered to your inbox — weekly, curated, zero spam.
+                Get our best articles on personal finance, health, and careers — weekly, curated, zero spam.
               </p>
               {nlState === 'success' ? (
                 <div className="flex items-center gap-2 py-4 text-[var(--color-cat-finance)] font-semibold font-[family-name:var(--font-ui)]">

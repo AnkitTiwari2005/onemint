@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { authors as staticAuthors } from '@/data/authors';
 import { supabaseAdmin } from '@/lib/supabase';
-import { Target, Handshake, Brain } from 'lucide-react';
+import { Target, Handshake, Brain, FileText } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildAboutPage, buildBreadcrumbs } from '@/lib/jsonld';
+
 
 // ISR: author team data changes rarely — cache for 1 hour.
 export const revalidate = 3600;
@@ -13,7 +13,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata = {
   title: 'About OneMint — India\'s Most Trusted Knowledge Platform',
-  description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters. Trusted by 5,00,000+ readers.",
+  description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters. Free to read. Zero spam.",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
     type: 'website' as const,
@@ -41,7 +41,7 @@ interface DbAuthor {
 }
 
 async function getAuthors(): Promise<DbAuthor[]> {
-  // Try DB first
+  // Fetch from DB only — real authors, no fake fallback
   if (supabaseAdmin) {
     const { data, error } = await supabaseAdmin
       .from('authors')
@@ -49,23 +49,13 @@ async function getAuthors(): Promise<DbAuthor[]> {
       .eq('status', 'active')
       .order('name', { ascending: true });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data;
     }
   }
-
-  // Static fallback
-  return staticAuthors.map((a) => ({
-    id: a.id,
-    name: a.name,
-    slug: a.slug,
-    role: a.role,
-    bio: a.bio,
-    avatar: a.avatar,
-    article_count: a.articleCount,
-    status: 'active',
-  }));
+  return [];
 }
+
 
 export default async function AboutPage() {
   const teamAuthors = await getAuthors();
@@ -149,7 +139,8 @@ export default async function AboutPage() {
         <p className="text-[var(--color-ink-secondary)] text-center mb-12 max-w-xl mx-auto font-[family-name:var(--font-body)]">
           Domain experts and storytellers who turn complex topics into clear, actionable knowledge.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {teamAuthors.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {teamAuthors.map((author) => (
             <Link
               key={author.id}
@@ -185,7 +176,12 @@ export default async function AboutPage() {
               )}
             </Link>
           ))}
-        </div>
+          </div>
+        ) : (
+          <p className="text-center text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] py-8">
+            Author profiles are being set up. Check back soon.
+          </p>
+        )}
       </section>
 
       {/* CTA */}
@@ -197,9 +193,14 @@ export default async function AboutPage() {
           <p className="text-[var(--color-ink-secondary)] max-w-lg mx-auto mb-8 font-[family-name:var(--font-body)]">
             We&apos;re always looking for domain experts who can explain complex topics simply.
           </p>
-          <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[var(--color-accent)] text-white font-semibold hover:opacity-90 transition-opacity text-sm font-[family-name:var(--font-ui)]">
-            Apply to Contribute →
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[var(--color-accent)] text-white font-semibold hover:opacity-90 transition-opacity text-sm font-[family-name:var(--font-ui)]">
+              Apply to Contribute →
+            </Link>
+            <Link href="/editorial-policy" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-ink)] font-semibold hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-all text-sm font-[family-name:var(--font-ui)]">
+              <FileText size={15} /> Editorial Policy
+            </Link>
+          </div>
         </div>
       </section>
     </div>

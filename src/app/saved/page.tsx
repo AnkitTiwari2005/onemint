@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bookmark, Trash2, BookOpen } from 'lucide-react';
-import { articles as staticArticles, Article } from '@/data/articles';
+import type { Article } from '@/data/articles';
 import { ArticleCard } from '@/components/ArticleCard';
+
 
 const PREFS_KEY = 'onemint-prefs';
 
@@ -51,7 +52,8 @@ function clearBookmarks() {
 
 export default function SavedPage() {
   const [slugs, setSlugs] = useState<string[]>([]);
-  const [allArticles, setAllArticles] = useState<Article[]>(staticArticles);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+
   const [confirmClear, setConfirmClear] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -76,6 +78,10 @@ export default function SavedPage() {
           excerpt: String(a.excerpt ?? ''),
           categoryId: (a.categories as Record<string, string>)?.slug ?? String(a.category_id ?? ''),
           authorId: (a.authors as Record<string, string>)?.slug ?? '',
+          // Embed author display data so ArticleCard doesn't need static lookup
+          authorName: (a.authors as Record<string, string>)?.name ?? undefined,
+          authorAvatar: (a.authors as Record<string, string>)?.avatar ?? undefined,
+          authorRole: (a.authors as Record<string, string>)?.role ?? undefined,
           tags: Array.isArray(a.tags) ? a.tags as string[] : [],
           featuredImage: String(
             a.cover_image ??
@@ -87,10 +93,7 @@ export default function SavedPage() {
           contentLevel: 'beginner' as const,
           featured: false,
         }));
-        // Merge: DB articles first, then static articles not already in DB
-        const dbSlugs = new Set(mapped.map(a => a.slug));
-        const combined = [...mapped, ...staticArticles.filter(a => !dbSlugs.has(a.slug))];
-        setAllArticles(combined);
+        setAllArticles(mapped);
       })
       .catch(() => { /* keep static fallback */ });
   }, []);

@@ -32,6 +32,7 @@ const LEGAL_LINKS = [
   ['Terms of Service', '/terms'],
   ['Cookie Policy', '/cookies'],
   ['Disclaimer', '/disclaimer'],
+  ['Editorial Policy', '/editorial-policy'],
 ];
 
 const TOOL_LINKS = [

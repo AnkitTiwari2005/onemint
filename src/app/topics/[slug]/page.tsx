@@ -3,13 +3,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getCategoryBySlug, categories } from '@/data/categories';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { getAuthorById } from '@/data/authors';
 import { ArticleCard } from '@/components/ArticleCard';
 import { formatDate } from '@/lib/utils';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { Clock, ArrowLeft } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
+
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
@@ -188,9 +188,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                       {featured.excerpt}
                     </p>
                     <div className="flex items-center gap-3 text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-                      {getAuthorById(featured.authorId) && (
+                      {featured.authorName && (
                         <>
-                          <span>{getAuthorById(featured.authorId)!.name}</span>
+                          <span>{featured.authorName}</span>
                           <span>·</span>
                         </>
                       )}

@@ -9,7 +9,6 @@
 
 import type { Metadata } from 'next';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
-import { articles as staticArticles } from '@/data/articles';
 import { HomePageClient } from '@/components/HomePageClient';
 
 // ISR: serve from cache, rebuild in background every 60 seconds.
@@ -42,10 +41,8 @@ export default async function HomePage() {
   // Fetch articles server-side — Google crawls real titles/links in initial HTML
   const { articles: raw } = await fetchPublishedArticles();
 
-  // Map to the Article shape expected by all components
-  const articles = raw.length > 0
-    ? raw.map((a, i) => toArticle(a, i))
-    : staticArticles; // ultimate fallback if DB is completely unreachable
+  // Map to the Article shape expected by all components (includes embedded author data)
+  const articles = raw.map((a, i) => toArticle(a, i));
 
   return <HomePageClient articles={articles} />;
 }

@@ -6,7 +6,6 @@ export interface Category {
   icon: string;
   accentColor: string;
   lightColor: string;
-  articleCount: number;
 }
 
 export const categories: Category[] = [
@@ -18,7 +17,6 @@ export const categories: Category[] = [
     icon: '💰',
     accentColor: 'var(--color-cat-finance)',
     lightColor: 'var(--color-cat-finance-light)',
-    articleCount: 2450,
   },
   {
     id: 'technology',
@@ -28,7 +26,6 @@ export const categories: Category[] = [
     icon: '💻',
     accentColor: 'var(--color-cat-technology)',
     lightColor: 'var(--color-cat-technology-light)',
-    articleCount: 1890,
   },
   {
     id: 'health',
@@ -38,7 +35,6 @@ export const categories: Category[] = [
     icon: '🏥',
     accentColor: 'var(--color-cat-health)',
     lightColor: 'var(--color-cat-health-light)',
-    articleCount: 1640,
   },
   {
     id: 'career',
@@ -48,7 +44,6 @@ export const categories: Category[] = [
     icon: '💼',
     accentColor: 'var(--color-cat-career)',
     lightColor: 'var(--color-cat-career-light)',
-    articleCount: 1220,
   },
   {
     id: 'science',
@@ -58,7 +53,6 @@ export const categories: Category[] = [
     icon: '🔬',
     accentColor: 'var(--color-cat-science)',
     lightColor: 'var(--color-cat-science-light)',
-    articleCount: 980,
   },
   {
     id: 'world',
@@ -68,7 +62,6 @@ export const categories: Category[] = [
     icon: '🌏',
     accentColor: 'var(--color-cat-world)',
     lightColor: 'var(--color-cat-world-light)',
-    articleCount: 1100,
   },
   {
     id: 'education',
@@ -78,7 +71,6 @@ export const categories: Category[] = [
     icon: '🎓',
     accentColor: 'var(--color-cat-education)',
     lightColor: 'var(--color-cat-education-light)',
-    articleCount: 870,
   },
   {
     id: 'food',
@@ -88,7 +80,6 @@ export const categories: Category[] = [
     icon: '🥗',
     accentColor: 'var(--color-cat-food)',
     lightColor: 'var(--color-cat-food-light)',
-    articleCount: 760,
   },
   {
     id: 'lifestyle',
@@ -98,7 +89,6 @@ export const categories: Category[] = [
     icon: '🏡',
     accentColor: 'var(--color-cat-lifestyle)',
     lightColor: 'var(--color-cat-lifestyle-light)',
-    articleCount: 650,
   },
   {
     id: 'sports',
@@ -108,7 +98,6 @@ export const categories: Category[] = [
     icon: '⚽',
     accentColor: 'var(--color-cat-sports)',
     lightColor: 'var(--color-cat-sports-light)',
-    articleCount: 540,
   },
   {
     id: 'entertainment',
@@ -118,7 +107,6 @@ export const categories: Category[] = [
     icon: '🎬',
     accentColor: 'var(--color-cat-entertainment)',
     lightColor: 'var(--color-cat-entertainment-light)',
-    articleCount: 480,
   },
   {
     id: 'travel',
@@ -128,7 +116,6 @@ export const categories: Category[] = [
     icon: '✈️',
     accentColor: 'var(--color-cat-travel)',
     lightColor: 'var(--color-cat-travel-light)',
-    articleCount: 420,
   },
 ];
 

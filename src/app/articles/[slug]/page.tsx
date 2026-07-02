@@ -3,18 +3,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { articles as staticArticles } from '@/data/articles';
-import { getAuthorById } from '@/data/authors';
 import { fetchPublishedArticleBySlug, fetchPublishedArticles } from '@/lib/articles';
+import { supabaseAdmin } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
 import { ShareBar } from '@/components/ShareBar';
 import { ArticleFeedback } from '@/components/ArticleFeedback';
 import { RelatedArticles } from '@/components/RelatedArticles';
 import { TableOfContents } from '@/components/TableOfContents';
 import { FontSizeControl } from '@/components/FontSizeControl';
-import { GlossaryTooltip } from '@/components/GlossaryTooltip';
 import { GiscusComments } from '@/components/GiscusComments';
 import { NewsletterScrollCTA } from '@/components/NewsletterScrollCTA';
+import { SeriesBanner } from '@/components/SeriesBanner';
+import type { SeriesBannerData } from '@/components/SeriesBanner';
 import { Clock, BookOpen } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildArticle, buildBreadcrumbs, buildFAQ } from '@/lib/jsonld';
@@ -66,6 +66,30 @@ const mdComponents = {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
+/**
+ * Fetch the series that contains this article slug (if any).
+ * Tries DB first; returns null if article is not part of any series.
+ */
+async function fetchSeriesForArticle(slug: string): Promise<SeriesBannerData | null> {
+  if (!supabaseAdmin) return null;
+  try {
+    const { data } = await supabaseAdmin
+      .from('series')
+      .select('id, slug, name, article_slugs')
+      .contains('article_slugs', [slug])
+      .maybeSingle();
+    if (!data) return null;
+    return {
+      id: String(data.id),
+      slug: data.slug,
+      name: data.name,
+      articleSlugs: Array.isArray(data.article_slugs) ? data.article_slugs : [],
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const { article } = await fetchPublishedArticleBySlug(slug);
@@ -106,46 +130,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-function StaticFallbackBody() {
-  return (
-    <div className="article-body flex-1 min-w-0">
-      <p>Your 30s are arguably the most important decade for your financial life. You&apos;re likely earning more than you did in your 20s, but you also have more responsibilities. How you manage your money now will determine your lifestyle in your 50s and beyond.</p>
-      <h2 id="why-your-30s-matter">Why Your 30s Matter</h2>
-      <p>The power of <GlossaryTooltip term="CAGR">compounding</GlossaryTooltip> is strongest when given time.</p>
-      <h2 id="emergency-fund-first">Emergency Fund First</h2>
-      <p>Before any equity investment, ensure you have an emergency fund covering 6–9 months of expenses.</p>
-      <h2 id="understanding-sip-investing">Understanding SIP Investing</h2>
-      <p><GlossaryTooltip term="SIP">Systematic Investment Plans</GlossaryTooltip> in mutual funds remain the most efficient wealth creation tool for salaried professionals.</p>
-    </div>
-  );
-}
-
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { article, source } = await fetchPublishedArticleBySlug(slug);
+  const { article } = await fetchPublishedArticleBySlug(slug);
 
   if (!article) notFound();
 
   const category = article!.categories;
   const author = article!.authors;
 
-  const { articles: allArticles } = await fetchPublishedArticles();
+  // Fetch in parallel: all articles (for related section) + series membership
+  const [{ articles: allArticles }, seriesData] = await Promise.all([
+    fetchPublishedArticles(),
+    fetchSeriesForArticle(slug),
+  ]);
 
-  const hasDbContent = source === 'db' && !!(article!.content?.trim());
+  const hasDbContent = !!(article!.content?.trim());
 
-  // Find matching static article for fallback author bio (used when DB has no author)
-  const staticMatch = staticArticles.find((a) => a.slug === slug);
+  // Parse TOC from actual markdown content
+  const tocItems = hasDbContent ? extractToc(article!.content!) : [];
 
-  // Parse TOC from actual markdown content (DB) or use static fallback headings
-  const tocItems = hasDbContent
-    ? extractToc(article!.content!)
-    : [
-        { id: 'why-your-30s-matter', text: 'Why Your 30s Matter', level: 2 },
-        { id: 'emergency-fund-first', text: 'Emergency Fund First', level: 2 },
-        { id: 'understanding-sip-investing', text: 'Understanding SIP Investing', level: 2 },
-      ];
-
-  // ── Structured data ────────────────────────────────────────────────────
+  // ── Structured data ────────────────────────────────────────────────
   const articleUrl = `${SITE_URL}/articles/${slug}`;
   const breadcrumbItems = [
     { name: 'Home', url: SITE_URL },
@@ -291,15 +296,19 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           )}
 
           {/* Article Body */}
-          {hasDbContent ? (
-            <div className="article-body flex-1 min-w-0 prose prose-slate max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                {article!.content!}
-              </ReactMarkdown>
-            </div>
-          ) : (
-            <StaticFallbackBody />
-          )}
+          <div className="article-body flex-1 min-w-0">
+            {hasDbContent ? (
+              <div className="prose prose-slate max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                  {article!.content!}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <div className="py-12 text-center text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">
+                <p className="text-base">Content is being prepared. Check back soon.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}
@@ -353,12 +362,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             </div>
           )}
 
+          {/* Series Banner — shows if this article is part of a DB series */}
+          <SeriesBanner articleSlug={slug} series={seriesData} />
+
           {/* Feedback — pass slug so likes are article-specific */}
           <div className="max-w-xl mx-auto mb-16">
             <ArticleFeedback slug={article!.slug} />
           </div>
 
-          {/* Author Bio — DB author */}
+          {/* Author Bio — DB author only */}
           {author && (
             <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
@@ -380,26 +392,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
           )}
-
-          {/* Static author bio fallback */}
-          {!author && staticMatch && getAuthorById(staticMatch.authorId) && (() => {
-            const a = getAuthorById(staticMatch.authorId)!;
-            return (
-              <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
-                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                  <Image src={a.avatar} alt={a.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" unoptimized />
-                  <div>
-                    <h3 className="font-[family-name:var(--font-heading)] font-bold text-2xl text-[var(--color-ink)] mb-1">{a.name}</h3>
-                    <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-accent)] mb-3 font-[family-name:var(--font-ui)]">{a.role}</p>
-                    <p className="text-[var(--color-ink-secondary)] mb-4 leading-relaxed font-[family-name:var(--font-body)] max-w-2xl">{a.bio}</p>
-                    <Link href={`/author/${a.slug}`} className="text-sm font-semibold text-[var(--color-ink)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)] flex items-center gap-1 group">
-                      View all articles <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
 
           {/* Comments */}
           <div className="comments-section mt-12 mb-16 border border-[var(--color-border)] rounded-3xl overflow-hidden">

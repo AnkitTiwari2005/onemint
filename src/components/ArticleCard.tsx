@@ -4,11 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCategoryById } from '@/data/categories';
-import { getAuthorById } from '@/data/authors';
 import { formatDate } from '@/lib/utils';
 import { cn } from '@/lib/cn';
 import { easeOut } from '@/lib/motion';
 import type { Article } from '@/data/articles';
+
 
 interface ArticleCardProps {
   article: Article;
@@ -29,7 +29,10 @@ const cardVariants = {
 export function ArticleCard({ article, variant = 'standard', index = 0, priority = false }: ArticleCardProps) {
   const prefersReduced = useReducedMotion();
   const category = getCategoryById(article.categoryId);
-  const author = getAuthorById(article.authorId);
+  // Use embedded author data from DB join (no static lookup needed)
+  const author = article.authorName
+    ? { name: article.authorName, avatar: article.authorAvatar ?? '', role: article.authorRole ?? '' }
+    : undefined;
 
   if (variant === 'hero') return <HeroCard article={article} category={category} author={author} priority={priority} />;
   if (variant === 'compact') return <CompactCard article={article} category={category} index={index} />;
@@ -107,7 +110,7 @@ function HeroCard({
 }: {
   article: Article;
   category: ReturnType<typeof getCategoryById>;
-  author: ReturnType<typeof getAuthorById>;
+  author: { name: string; avatar: string; role: string } | undefined;
   priority: boolean;
 }) {
   return (

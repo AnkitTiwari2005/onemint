@@ -7,7 +7,7 @@ import { supabaseAdmin } from './supabase';
 import { articles as staticArticles } from '@/data/articles';
 import type { Article } from '@/data/articles';
 import { getCategoryById } from '@/data/categories';
-import { getAuthorById } from '@/data/authors';
+
 
 export interface PublicArticle {
   id: string;
@@ -43,7 +43,6 @@ export interface PublicArticle {
 /** Map a static article to the shared PublicArticle shape */
 function staticToPublic(a: typeof staticArticles[number]): PublicArticle {
   const cat = getCategoryById(a.categoryId);
-  const auth = getAuthorById(a.authorId);
   return {
     id: a.id,
     title: a.title,
@@ -61,9 +60,7 @@ function staticToPublic(a: typeof staticArticles[number]): PublicArticle {
     categories: cat
       ? { id: cat.id, name: cat.name, slug: cat.slug, accent_color: cat.accentColor, light_color: cat.lightColor }
       : null,
-    authors: auth
-      ? { id: auth.id, name: auth.name, slug: auth.slug, bio: auth.bio, avatar: auth.avatar, role: auth.role }
-      : null,
+    authors: null,
   };
 }
 
@@ -162,6 +159,9 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
  *
  * Key mapping: categoryId = categories.slug so getCategoryById() finds
  * the right static category metadata (colours, name, icon).
+ *
+ * Author data is now embedded directly in the Article so client components
+ * don't need to call getAuthorById() from the (now empty) static authors array.
  */
 export function toArticle(a: PublicArticle, index = 0): Article {
   return {
@@ -172,8 +172,12 @@ export function toArticle(a: PublicArticle, index = 0): Article {
     excerpt: a.excerpt ?? '',
     // Use the category SLUG so getCategoryById() matches static metadata
     categoryId: a.categories?.slug ?? a.category_id ?? '',
-    // Use the author SLUG so getAuthorById() can match static author profiles
+    // Author slug kept for backwards compat
     authorId: a.authors?.slug ?? '',
+    // Embed author display data directly from DB join — no static lookup needed
+    authorName: a.authors?.name ?? undefined,
+    authorAvatar: a.authors?.avatar ?? undefined,
+    authorRole: a.authors?.role ?? undefined,
     tags: a.tags ?? [],
     featuredImage:
       a.cover_image ??
