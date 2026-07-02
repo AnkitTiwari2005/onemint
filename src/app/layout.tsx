@@ -75,11 +75,10 @@ export const metadata: Metadata = {
     template: "%s | OneMint",
   },
   description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
-  keywords: [
-    "personal finance India", "investing", "SIP calculator", "tax planning",
-    "technology news", "health advice", "career tips", "Indian knowledge platform",
-  ],
-  authors: [{ name: "OneMint", url: SITE_URL }],
+  // NOTE: keywords and authors are intentionally NOT set at the root level.
+  // Each page (especially articles) sets its own relevant keywords and the
+  // correct author name. Inheriting generic site-level keywords on every page
+  // is a quality signal issue for search engines.
   alternates: {
     canonical: SITE_URL,
   },

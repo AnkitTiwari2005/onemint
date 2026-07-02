@@ -100,14 +100,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const seoTitle = article.meta_title?.trim() || article.title;
   const seoDesc  = article.meta_description?.trim() || article.excerpt || '';
 
-  const author = article.authors as { slug?: string } | null | undefined;
+  const author = article.authors as { slug?: string; name?: string } | null | undefined;
+  const authorName = author?.name ?? 'OneMint Editorial';
   const authorProfileUrl = author?.slug
     ? `${SITE_URL}/author/${author.slug}`
     : SITE_URL;
 
+  // Build article-specific keywords from its tags.
+  // Falls back to undefined so no keywords tag is emitted if the article has
+  // no tags — far better than inheriting wrong site-wide keywords.
+  const articleKeywords = (article.tags ?? []).length > 0
+    ? (article.tags as string[])
+    : undefined;
+
   return {
     title: seoTitle,
     description: seoDesc,
+    // Real author name from DB — overrides the root "OneMint" fallback
+    authors: [{ name: authorName, url: authorProfileUrl }],
+    // Article-specific keywords (from tags) — never the generic site keywords
+    keywords: articleKeywords,
     alternates: { canonical: url },
     openGraph: {
       type: 'article',
