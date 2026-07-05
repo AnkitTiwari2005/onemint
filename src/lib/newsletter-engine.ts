@@ -88,7 +88,7 @@ async function fetchTopSlugsFromGA4(limit = 20): Promise<string[]> {
           orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
           limit,
         }),
-        signal: AbortSignal.timeout(6_000),
+        signal: AbortSignal.timeout(3_000),
       }
     );
 
@@ -222,7 +222,7 @@ Return ONLY the 2 sentences — nothing else.`;
         max_tokens:  130,
         stream:      false,
       }),
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(2_000),
     });
 
     if (!res.ok) return FALLBACK_INTROS[series];
@@ -266,13 +266,9 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
       }),
     }).catch(() => null); // don't crash on individual failures
 
-  // Send in concurrent batches of 20 to maximise throughput within Vercel timeout
-  const BATCH = 20;
-  for (let i = 0; i < subs.length; i += BATCH) {
-    await Promise.allSettled(
-      subs.slice(i, i + BATCH).map(s => send(s.email as string, s.name as string | null))
-    );
-  }
+  // Send all subscribers concurrently in one shot — faster than sequential batches
+  // and fits within Vercel Hobby's 10-second limit for ~50 subscribers
+  await Promise.allSettled(subs.map(s => send(s.email as string, s.name as string | null)));
 
   return subs.length;
 }

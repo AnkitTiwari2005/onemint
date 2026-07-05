@@ -22,8 +22,8 @@ import type { Series } from '@/lib/newsletter-templates';
 // Use Node.js runtime (not Edge) — requires Supabase + full Node APIs
 export const runtime = 'nodejs';
 
-// Allow up to 60s for Pro plan cron functions
-export const maxDuration = 60;
+// Allow up to 10s — Vercel Hobby plan limit
+export const maxDuration = 10;
 
 const VALID_SERIES: Series[] = ['monday', 'wednesday', 'sunday'];
 
