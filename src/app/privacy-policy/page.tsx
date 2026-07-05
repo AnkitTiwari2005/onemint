@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { TableOfContents } from '@/components/TableOfContents';
+
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 

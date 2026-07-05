@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { getCategoryById } from '@/data/categories';
 import { formatDate } from '@/lib/utils';
-import { cn } from '@/lib/cn';
 import { easeOut } from '@/lib/motion';
 import type { Article } from '@/data/articles';
 

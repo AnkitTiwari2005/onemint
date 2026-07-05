@@ -4,7 +4,7 @@ import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { ArrowDownUp, Calculator, Building, Activity, Car, Briefcase, GraduationCap, TrendingUp } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 const COLORS = ['var(--color-accent)', 'var(--color-accent-warm)', '#cbd5e1'];
 
@@ -16,7 +16,7 @@ export default function BmiPage() {
       const heightInMeters = height / 100; const bmi = weight / (heightInMeters * heightInMeters);
       let category = ''; let color = '';
       if (bmi < 18.5) { category = 'Underweight'; color = 'text-blue-500'; } else if (bmi < 25) { category = 'Normal Weight'; color = 'text-green-500'; } else if (bmi < 30) { category = 'Overweight'; color = 'text-yellow-500'; } else { category = 'Obese'; color = 'text-red-500'; }
-      const chartDataObj: any[] = [];
+      const chartDataObj: { name: string; value: number }[] = [];
       
       const inputs = (
         <div className="space-y-6">
@@ -41,7 +41,8 @@ export default function BmiPage() {
               <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <RechartsTooltip formatter={(val: any) => '₹' + formatIndianNumber(Math.round(val as number))} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <RechartsTooltip formatter={(val: any) => '₹' + formatIndianNumber(Math.round(Number(val)))} />
           <Legend verticalAlign="bottom" height={36} />
         </PieChart>
       </ResponsiveContainer>

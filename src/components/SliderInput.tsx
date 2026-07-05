@@ -1,7 +1,6 @@
 'use client';
 
 import { useId, useCallback, useRef, useState } from 'react';
-import { cn } from '@/lib/cn';
 
 interface SliderInputProps {
   label: string;

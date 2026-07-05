@@ -1,5 +1,4 @@
-import { Search, BookA } from 'lucide-react';
-import Link from 'next/link';
+
 import { supabaseAdmin } from '@/lib/supabase';
 import { glossaryTerms as staticTerms } from '@/data/glossary';
 import type { Metadata } from 'next';

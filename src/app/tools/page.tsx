@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calculator, HeartPulse, Briefcase, IndianRupee, Home, GraduationCap, TrendingUp, Sparkles, Lock, MapPin } from 'lucide-react';
+import { Calculator, HeartPulse, Briefcase, IndianRupee, Home, TrendingUp, Sparkles, Lock, MapPin } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildItemList, buildBreadcrumbs } from '@/lib/jsonld';
 

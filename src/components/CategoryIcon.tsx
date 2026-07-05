@@ -3,11 +3,7 @@
 import {
   Wallet, Cpu, HeartPulse, Briefcase, Telescope,
   Globe2, GraduationCap, Salad, Home, Dumbbell,
-  Clapperboard, Plane,
-  TrendingUp, Building, IndianRupee, Activity,
-  Calculator, Droplets, ShieldCheck, Users,
-  BookOpen, Zap, Star, ArrowRight, Lightbulb,
-  BarChart3, PiggyBank, Receipt, Landmark
+  Clapperboard, Plane
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 

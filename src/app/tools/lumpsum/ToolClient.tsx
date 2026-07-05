@@ -4,7 +4,7 @@ import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { ArrowDownUp, Calculator, Building, Activity, Car, Briefcase, GraduationCap, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 const COLORS = ['var(--color-accent)', 'var(--color-accent-warm)', '#cbd5e1'];
 
@@ -40,7 +40,8 @@ export default function LumpsumPage() {
               <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <RechartsTooltip formatter={(val: any) => '₹' + formatIndianNumber(Math.round(val as number))} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <RechartsTooltip formatter={(val: any) => '₹' + formatIndianNumber(Math.round(Number(val)))} />
           <Legend verticalAlign="bottom" height={36} />
         </PieChart>
       </ResponsiveContainer>

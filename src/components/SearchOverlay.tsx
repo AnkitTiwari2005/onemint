@@ -76,12 +76,11 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
   }, [isOpen]);
 
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
 
   // Debounced search: try Typesense API first, fall back to Fuse.js
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
-    setSearching(true);
+
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
@@ -105,7 +104,6 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
       } catch {
         setResults(searchAll(query));
       } finally {
-        setSearching(false);
       }
     }, 300);
     return () => clearTimeout(timer);
@@ -134,7 +132,7 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
     }
   };
 
-  const handleResultClick = (result: SearchResult) => {
+  const handleResultClick = (_result: SearchResult) => {
     saveRecent(query);
     onClose();
   };

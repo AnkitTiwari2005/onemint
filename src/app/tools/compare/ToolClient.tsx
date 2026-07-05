@@ -6,7 +6,7 @@ import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
-import { TrendingUp, Scale } from 'lucide-react';
+import { Scale } from 'lucide-react';
 
 const COMPARISONS = [
   { id: 'sip-vs-lumpsum', label: 'SIP vs Lumpsum' },

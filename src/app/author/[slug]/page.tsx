@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { authors, getAuthorBySlug } from '@/data/authors';
 import { ArticleCard } from '@/components/ArticleCard';
-import { ExternalLink, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { supabaseAdmin } from '@/lib/supabase';
 import { JsonLd } from '@/components/JsonLd';

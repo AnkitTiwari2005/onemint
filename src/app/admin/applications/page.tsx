@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, XCircle, Clock, Mail, ExternalLink, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, Clock, Mail, ExternalLink } from 'lucide-react';
 
 
 interface Application {

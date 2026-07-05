@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { categories } from '@/data/categories';
-import { Clock, BookOpen, ArrowRight } from 'lucide-react';
+import { BookOpen, ArrowRight } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
 import SeriesProgressClient from '@/components/SeriesProgressClient';
 

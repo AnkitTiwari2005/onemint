@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { categories } from '@/data/categories';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { supabaseAdmin } from '@/lib/supabase';
-import { articles as staticArticles, getArticlesByCategory } from '@/data/articles';
+import { getArticlesByCategory } from '@/data/articles';
 import { JsonLd } from '@/components/JsonLd';
 import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 

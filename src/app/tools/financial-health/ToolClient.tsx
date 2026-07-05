@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ChevronRight, RotateCcw, Share2, CheckCircle2, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Heart, ChevronRight, RotateCcw, Share2, CheckCircle2, TrendingUp } from 'lucide-react';
 
 const QUESTIONS = [
   { id: 'emergency', text: 'Do you have an emergency fund covering at least 6 months of expenses?', options: [{ label: 'Yes, fully funded', score: 10 }, { label: 'Partially (1–3 months)', score: 5 }, { label: 'No', score: 0 }], category: 'Emergency Fund' },

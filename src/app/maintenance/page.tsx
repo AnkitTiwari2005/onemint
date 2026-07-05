@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Wrench } from 'lucide-react';
 
 // Maintenance pages must never be indexed — the content is temporary

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
+import { formatIndianNumber } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { IndianRupee, Info, ArrowLeft, ScrollText, Sparkles, Lightbulb, CheckCircle2 } from 'lucide-react';
 

@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { fadeUpVariants } from '@/lib/motion';
 import { cn } from '@/lib/cn';
 
 interface AnimatedSectionProps {

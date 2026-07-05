@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Tag, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, Save, X, Loader2 } from 'lucide-react';
 
 import { categories as staticCategories } from '@/data/categories';
 

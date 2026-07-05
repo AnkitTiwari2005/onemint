@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Circle, CheckCircle2, Trash2, Loader2 } from 'lucide-react';
+import { Mail, Circle, CheckCircle2, Trash2 } from 'lucide-react';
 
 
 interface Message {
