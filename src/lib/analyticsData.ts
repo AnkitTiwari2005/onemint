@@ -151,12 +151,16 @@ async function fetchFromSupabaseViewCount(limit: number): Promise<string[] | nul
 async function fetchTrendingFromSupabase(limit: number): Promise<string[] | null> {
   if (!supabaseAdmin) return null;
   try {
+    // Only consider articles published within the last 21 days
+    const cutoffDate = new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString();
+
     // Fetch articles with view_count
     const { data: articles, error: artErr } = await supabaseAdmin
       .from('articles')
-      .select('slug, view_count')
+      .select('slug, view_count, published_at')
       .eq('status', 'published')
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .gte('published_at', cutoffDate);
     if (artErr || !articles || articles.length === 0) return null;
 
     // Fetch like counts per article
