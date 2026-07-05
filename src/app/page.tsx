@@ -9,6 +9,7 @@
 
 import type { Metadata } from 'next';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
+import { getMostReadWeekly, getTrendingDaily } from '@/lib/analyticsData';
 import { HomePageClient } from '@/components/HomePageClient';
 
 // ISR: serve from cache, rebuild in background every 60 seconds.
@@ -44,5 +45,17 @@ export default async function HomePage() {
   // Map to the Article shape expected by all components (includes embedded author data)
   const articles = raw.map((a, i) => toArticle(a, i));
 
-  return <HomePageClient articles={articles} />;
+  // Fetch real trending & most-read slugs from analytics cache (lazy-refreshed)
+  const [trendingSlugs, mostReadSlugs] = await Promise.all([
+    getTrendingDaily(),
+    getMostReadWeekly(),
+  ]);
+
+  return (
+    <HomePageClient
+      articles={articles}
+      trendingSlugs={trendingSlugs}
+      mostReadSlugs={mostReadSlugs}
+    />
+  );
 }

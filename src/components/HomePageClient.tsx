@@ -32,9 +32,13 @@ type NewsletterState = 'idle' | 'loading' | 'success' | 'error';
 interface HomePageClientProps {
   /** Pre-fetched articles from the server — passed as props to avoid client-side fetch */
   articles: Article[];
+  /** Real trending article slugs from analytics (engagement score), refreshed every 24h */
+  trendingSlugs?: string[];
+  /** Real most-read article slugs from GA4/Supabase, refreshed every Monday 1 AM IST */
+  mostReadSlugs?: string[];
 }
 
-export function HomePageClient({ articles }: HomePageClientProps) {
+export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [] }: HomePageClientProps) {
   const prefersReduced = useReducedMotion();
 
   // ── Derived lists (same logic as before, now from props not state) ───────
@@ -57,8 +61,17 @@ export function HomePageClient({ articles }: HomePageClientProps) {
     ? { name: featured.authorName, avatar: featured.authorAvatar ?? '' }
     : null;
   const secondary = articles.filter((a) => !a.featured && a.id !== featured?.id).slice(0, 3);
-  const trending = articles.slice(0, 8);
-  const mostRead = articles.slice(0, 5);
+  // Real analytics-driven trending & most-read — falls back to recent articles when empty
+  const trending = trendingSlugs.length > 0
+    ? trendingSlugs
+        .map((slug) => articles.find((a) => a.slug === slug))
+        .filter((a): a is Article => a !== undefined)
+    : articles.slice(0, 8);
+  const mostRead = mostReadSlugs.length > 0
+    ? mostReadSlugs
+        .map((slug) => articles.find((a) => a.slug === slug))
+        .filter((a): a is Article => a !== undefined)
+    : articles.slice(0, 5);
 
   // ── Newsletter form state ─────────────────────────────────────────────────
   const [nlEmail, setNlEmail] = useState('');
