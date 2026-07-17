@@ -16,9 +16,12 @@ export const runtime = 'edge';
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-// Llama 4 Maverick: MoE architecture — 17B active params but ~70B quality.
-// Much faster than dense 70B, better instruction following than 8B.
-const NVIDIA_MODEL    = 'meta/llama-4-maverick-17b-128e-instruct';
+// Primary: Llama 3.3 70B — most stable and reliable on NVIDIA NIM free tier.
+// Fallback: Llama 4 Maverick (being deprecated July 27, 2026).
+const NVIDIA_MODELS   = [
+  'meta/llama-3.3-70b-instruct',
+  'meta/llama-4-maverick-17b-128e-instruct',
+];
 const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 
@@ -26,13 +29,11 @@ const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
- * Single call to NVIDIA NIM.
+ * Single call to NVIDIA NIM with a specific model.
  * Returns raw Response — caller handles status codes.
  */
-async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
-  // 22 s abort — Llama 4 Maverick at 800 tokens needs ~15-20 s on free tier.
-  // 22 s gives it room while staying under Vercel Edge's 25 s hard limit,
-  // so we always return JSON instead of Vercel returning an HTML timeout page.
+async function callNvidia(apiKey: string, model: string, prompt: string): Promise<Response> {
+  // 22 s abort — stays under Vercel Edge's 25 s hard limit.
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 22000);
 
@@ -45,16 +46,14 @@ async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model:       NVIDIA_MODEL,
+        model,
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,       // Low = reliable JSON; high temp risks malformed output
+        temperature: 0.2,
         top_p:       1.0,
-        // 800 tokens: enough for 4 rich Q&A pairs with headroom to spare
         max_tokens:  800,
         frequency_penalty: 0.0,
         presence_penalty:  0.0,
         stream:      false,
-
       }),
     });
   } finally {
@@ -63,43 +62,51 @@ async function callNvidia(apiKey: string, prompt: string): Promise<Response> {
 }
 
 /**
- * Call NVIDIA NIM with retry on 429 (rate limit).
- * Attempts: immediately, +5 s, +10 s (3 total).
+ * Call NVIDIA NIM with model fallback + retry on 429.
+ * Tries each model in NVIDIA_MODELS. If a model returns 404 or 422,
+ * moves to the next model. Retries on 429 (rate limit) up to 3 times.
  */
 async function callNvidiaWithRetry(
   apiKey: string,
   prompt: string,
 ): Promise<{ response: Response; lastErrText: string }> {
-  const maxAttempts = 3;
+  for (const model of NVIDIA_MODELS) {
+    console.log(`[AI FAQ] Trying model: ${model}`);
+    const maxAttempts = 3;
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    let response: Response;
-    try {
-      response = await callNvidia(apiKey, prompt);
-    } catch (fetchErr) {
-      const isTimeout = fetchErr instanceof Error && fetchErr.name === 'AbortError';
-      throw Object.assign(
-        new Error(isTimeout ? 'timeout' : 'network'),
-        { kind: isTimeout ? 'timeout' : 'network' },
-      );
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      let response: Response;
+      try {
+        response = await callNvidia(apiKey, model, prompt);
+      } catch (fetchErr) {
+        const isTimeout = fetchErr instanceof Error && fetchErr.name === 'AbortError';
+        // On timeout/network error, try next model instead of failing immediately
+        console.error(`[AI FAQ] ${model} — ${isTimeout ? 'timeout' : 'network error'} on attempt ${attempt + 1}`);
+        break; // break inner loop, try next model
+      }
+
+      // 404 or 422 = model unavailable/invalid — try next model
+      if (response.status === 404 || response.status === 422) {
+        console.warn(`[AI FAQ] ${model} returned ${response.status} — trying next model`);
+        break; // break inner loop, try next model
+      }
+
+      // Success or non-retryable error
+      if (response.status !== 429) return { response, lastErrText: '' };
+
+      // 429 = rate limited — retry with backoff
+      const errText = await response.text();
+      if (attempt === maxAttempts - 1) return { response, lastErrText: errText };
+
+      const retryAfterSec = Number(response.headers.get('retry-after') ?? 0);
+      const waitMs = retryAfterSec > 0 ? retryAfterSec * 1000 : (attempt + 1) * 5000;
+      console.log(`[AI FAQ] ${model} 429 — waiting ${waitMs / 1000}s before retry ${attempt + 2}/${maxAttempts}`);
+      await sleep(waitMs);
     }
-
-    if (response.status !== 429) return { response, lastErrText: '' };
-
-    const errText = await response.text();
-
-    // Last attempt — return so caller surfaces the error
-    if (attempt === maxAttempts - 1) return { response, lastErrText: errText };
-
-    // Use Retry-After header if present, else 5 s / 10 s backoff
-    const retryAfterSec = Number(response.headers.get('retry-after') ?? 0);
-    const waitMs = retryAfterSec > 0 ? retryAfterSec * 1000 : (attempt + 1) * 5000;
-
-    console.log(`[AI FAQ] NVIDIA 429 — waiting ${waitMs / 1000}s before retry ${attempt + 2}/${maxAttempts}`);
-    await sleep(waitMs);
   }
 
-  throw new Error('retry loop exhausted');
+  // All models failed — return a synthetic error
+  throw Object.assign(new Error('all models failed'), { kind: 'network' });
 }
 
 export async function POST(req: NextRequest) {
