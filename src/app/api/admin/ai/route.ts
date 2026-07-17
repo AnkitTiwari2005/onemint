@@ -29,9 +29,6 @@ const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 /** Sleep for `ms` ms — works in Edge runtime. */
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-/**
- * Single call to NVIDIA NIM with a specific model.
- */
 async function callNvidia(apiKey: string, model: string, prompt: string, globalSignal: AbortSignal): Promise<Response> {
   return await fetch(NVIDIA_ENDPOINT, {
     method:  'POST',
@@ -49,6 +46,7 @@ async function callNvidia(apiKey: string, model: string, prompt: string, globalS
       frequency_penalty: 0.0,
       presence_penalty:  0.0,
       stream:      false,
+      response_format: { type: 'json_object' },
     }),
   });
 }
@@ -157,8 +155,8 @@ Rules:
 Article details:
 Title: "${title.trim()}"${meta ? '\n' + meta : ''}${intro ? '\n\nArticle intro:\n' + intro : ''}
 
-Return ONLY a valid JSON array — no explanation, no markdown fences:
-[{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."},{"question":"...","answer":"..."}]`;
+Return ONLY a valid JSON object with a "faqs" array — no explanation:
+{"faqs": [{"question":"...","answer":"..."},{"question":"...","answer":"..."}]}`;
 
     // ── Call NVIDIA NIM (auto-retries on 429 up to 3 attempts) ─────────────
     let response: Response;
@@ -207,24 +205,17 @@ Return ONLY a valid JSON array — no explanation, no markdown fences:
     }
 
     // Strip markdown fences if the model adds them despite instructions
-    // Then extract just the [...] array from wherever it appears —
-    // Llama sometimes adds preamble text like "Here are 4 FAQs:\n\n[...]"
     const cleaned = (() => {
-      // Remove all markdown code fences first
-      const stripped = raw
-        .replace(/```(?:json)?/gi, '')
-        .replace(/```/g, '');
-      // Find the outermost JSON array
-      const start = stripped.indexOf('[');
-      const end   = stripped.lastIndexOf(']');
+      const stripped = raw.replace(/```(?:json)?/gi, '').replace(/```/g, '');
+      const start = stripped.indexOf('{');
+      const end   = stripped.lastIndexOf('}');
       if (start !== -1 && end > start) return stripped.slice(start, end + 1);
-      // Fallback: return stripped text as-is and let JSON.parse report the error
       return stripped.trim();
     })();
 
-    let faqs: { question: string; answer: string }[];
+    let parsedResult: { faqs?: { question: string; answer: string }[] };
     try {
-      faqs = JSON.parse(cleaned);
+      parsedResult = JSON.parse(cleaned);
     } catch {
       console.error('[AI FAQ] JSON parse failed. Raw output:', raw.slice(0, 400));
       return NextResponse.json(
@@ -233,6 +224,7 @@ Return ONLY a valid JSON array — no explanation, no markdown fences:
       );
     }
 
+    const faqs = parsedResult.faqs;
     if (!Array.isArray(faqs) || faqs.length === 0) {
       return NextResponse.json(
         { error: 'AI returned empty FAQ list. Try regenerating.' },
