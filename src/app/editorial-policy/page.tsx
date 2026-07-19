@@ -53,15 +53,15 @@ Our coverage spans personal finance, technology, health & wellness, career devel
     id: 'authorship',
     icon: <Users size={22} className="text-[var(--color-accent)]" />,
     title: 'Who Writes for OneMint',
-    content: `We maintain high authorship standards to ensure E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness):
-
-**Domain experts.** Personal finance articles are written by qualified financial professionals (CFPs, CAs, MBAs in Finance). Health articles are reviewed by registered medical practitioners or licensed nutritionists. Technology pieces are authored by practising engineers and researchers.
-
-**Professional journalists.** Staff writers and contributing editors hold journalism qualifications or have relevant domain experience. All writers undergo a rigorous editorial onboarding.
+    content: `OneMint articles are written and reviewed by our editorial team. We maintain clear standards for accuracy, sourcing, and transparency.
 
 **Every author is identified.** We display the author's name, role, and bio on every article. We do not publish anonymously attributed content.
 
-**Disclosure of conflicts.** Authors disclose any financial interest, past or present employment, or personal relationship with subjects covered in their articles.`,
+**Primary sources.** Our writers research from official primary sources — RBI, SEBI, government notifications, peer-reviewed studies, and official statistics. Secondary sources are used only to cross-reference.
+
+**Domain review.** Personal finance content is cross-checked against SEBI/RBI guidelines. Health content is verified against ICMR/WHO guidelines. Technology content is verified against official documentation and peer-reviewed sources.
+
+**Disclosure of conflicts.** Authors and editors disclose any financial interest, past or present employment, or personal relationship with subjects covered in their articles.`,
   },
   {
     id: 'research',
@@ -180,7 +180,7 @@ export default function EditorialPolicyPage() {
             Our editorial standards exist to ensure that every article on OneMint is accurate, independent, and genuinely useful — not just well-ranked. This page explains exactly how we work.
           </p>
           <p className="mt-4 text-sm text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-            Last reviewed: July 2025 · Questions? <a href="mailto:editorial@onemint.in" className="text-[var(--color-accent)] hover:underline">editorial@onemint.in</a>
+            Last reviewed: July 2026 · Questions? <a href="mailto:editorial@onemint.in" className="text-[var(--color-accent)] hover:underline">editorial@onemint.in</a>
           </p>
         </div>
       </header>

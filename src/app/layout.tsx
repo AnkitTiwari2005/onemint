@@ -71,7 +71,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "OneMint — India's Most Trusted Knowledge Platform",
+    default: "OneMint — Personal Finance, Technology & Health for India",
     template: "%s | OneMint",
   },
   description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: SITE_URL,
     siteName: "OneMint",
-    title: "OneMint — India's Most Trusted Knowledge Platform",
+    title: "OneMint — Personal Finance, Technology & Health for India",
     description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
     images: [
       {

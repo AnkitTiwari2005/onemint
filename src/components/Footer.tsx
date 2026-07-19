@@ -96,7 +96,7 @@ export function Footer() {
               </div>
             </Link>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-ink-secondary)', marginBottom: 20, lineHeight: 1.7 }}>
-              Trusted by 5,00,000+ readers across India. Expert knowledge on finance, technology, health, and everything that matters.
+              A knowledge platform for India&apos;s curious minds — covering finance, technology, health, and everything that matters.
             </p>
             <div className="flex gap-3 mb-6">
               {[

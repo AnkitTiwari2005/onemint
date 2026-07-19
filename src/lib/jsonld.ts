@@ -65,7 +65,7 @@ export function buildOrganization() {
     foundingDate: '2024',
     areaServed: 'IN',
     description:
-      "India's trusted knowledge platform for personal finance, technology, health, and career.",
+      "A knowledge platform covering personal finance, technology, health, and career for Indian readers.",
   };
 }
 
@@ -305,7 +305,7 @@ export function buildAboutPage() {
     '@id': `${SITE}/about`,
     name: 'About OneMint',
     description:
-      "India's most trusted knowledge platform for personal finance, technology, health, and career. Expert articles, free tools, zero spam.",
+      "A knowledge platform covering personal finance, technology, health, and career. Expert-reviewed articles, free tools, zero spam.",
     url: `${SITE}/about`,
     inLanguage: 'en-IN',
     publisher: {

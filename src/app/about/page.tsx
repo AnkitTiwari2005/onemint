@@ -12,20 +12,20 @@ export const revalidate = 3600;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata = {
-  title: 'About OneMint — India\'s Most Trusted Knowledge Platform',
-  description: "OneMint is India's most trusted knowledge platform — expert articles on finance, technology, health, career, and everything that matters. Free to read. Zero spam.",
+  title: 'About OneMint — Knowledge Platform for Personal Finance, Tech & Health',
+  description: "OneMint is a knowledge platform covering personal finance, technology, health, and careers. Expert-reviewed articles, free tools, and zero spam.",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
     type: 'website' as const,
     url: `${SITE_URL}/about`,
-    title: 'About OneMint — India\'s Most Trusted Knowledge Platform',
-    description: "India's most trusted knowledge platform for personal finance, technology, health, and career. Expert articles by domain experts, free tools, zero spam.",
+    title: 'About OneMint',
+    description: "A knowledge platform for personal finance, technology, health, and career. Expert-reviewed articles, free tools, zero spam.",
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'About OneMint' }],
   },
   twitter: {
     card: 'summary_large_image' as const,
     title: 'About OneMint',
-    description: "India's most trusted knowledge platform for personal finance, technology, health, and career.",
+    description: "A knowledge platform for personal finance, technology, health, and career.",
   },
 };
 
@@ -73,10 +73,10 @@ export default async function AboutPage() {
       <section className="bg-gradient-to-br from-[var(--color-accent-light)] via-[var(--color-surface)] to-[var(--color-surface)]">
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center">
           <h1 className="font-[family-name:var(--font-display)] text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--color-ink)] mb-6 leading-tight">
-            India&apos;s Most Trusted<br />Knowledge Platform
+            Knowledge That Helps<br />Real People Decide Better
           </h1>
           <p className="text-lg lg:text-xl text-[var(--color-ink-secondary)] max-w-2xl mx-auto font-[family-name:var(--font-body)] leading-relaxed">
-            We believe everyone deserves access to expert-level knowledge — explained simply, without jargon, without clickbait. Just truth, depth, and clarity.
+            OneMint covers personal finance, technology, health, and careers — explained clearly, without jargon, without hidden agendas. Free to read, always.
           </p>
         </div>
       </section>
@@ -105,10 +105,10 @@ export default async function AboutPage() {
         <div className="max-w-3xl mx-auto">
           <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-6">Our Mission</h2>
           <div className="article-body">
-            <p>OneMint exists because India needs better information. Not more content — better content. Every article we publish goes through a rigorous editorial process: researched by domain experts, fact-checked against primary sources, and written to be understood by anyone.</p>
-            <p>We cover the topics that matter most: personal finance, technology, health, careers, real estate, education, and more. We don&apos;t chase clicks. We chase clarity.</p>
+            <p>OneMint exists because India needs better information. Not more content — better content. We cover personal finance, technology, health, careers, real estate, and education — the topics that shape people&apos;s everyday decisions.</p>
+            <p>Our content is researched from primary sources (RBI, SEBI, government notifications, peer-reviewed studies) and reviewed by our editorial team before publication. We don&apos;t chase clicks. We chase clarity.</p>
             <blockquote>&ldquo;Like a brilliant friend who happens to know everything.&rdquo;</blockquote>
-            <p>Whether you&apos;re figuring out your first SIP, understanding the new tax regime, or wondering if that health supplement actually works — OneMint has your answer. No ads disguised as articles. No affiliate links hidden in recommendations. Just honest, expert knowledge.</p>
+            <p>Whether you&apos;re figuring out your first SIP, understanding the new tax regime, or wondering if that health supplement actually works — OneMint gives you clear, sourced, honest answers. Our finance and health content is for educational purposes only and does not constitute professional advice.</p>
           </div>
         </div>
       </section>
