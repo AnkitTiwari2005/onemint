@@ -19,6 +19,7 @@ import { buildArticle, buildBreadcrumbs, buildFAQ } from '@/lib/jsonld';
 import type { FaqItem } from '@/lib/jsonld';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ArticleBodyClient } from './ArticleBodyClient';
+import { TrendingWidget } from '@/components/TrendingWidget';
 
 // ISR: cache each article page for up to 1 hour.
 // On the next request after expiry, Next.js re-fetches from Supabase in the background.
@@ -173,6 +174,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const faqItems: FaqItem[] = Array.isArray(article.faqs) ? (article.faqs as FaqItem[]) : [];
   const faqSchema = faqItems.length > 0 ? buildFAQ(faqItems) : null;
 
+  // Next article in the same category (chronologically next after current)
+  const nextArticle = allArticles
+    .filter(a =>
+      a.slug !== slug &&
+      (a.categories?.slug ?? a.category_id) === (article!.categories?.slug ?? article!.category_id) &&
+      (a.published_at ?? '') > (article!.published_at ?? '')
+    )
+    .sort((a, b) => (a.published_at ?? '').localeCompare(b.published_at ?? ''))[0] ?? null;
+
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
       {/* JSON-LD structured data */}
@@ -287,18 +297,19 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         {article!.cover_image && (
           <figure className="mb-12 relative group">
             <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--color-surface-alt)]">
-              <Image src={article!.cover_image} alt={article!.title} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.02]" priority unoptimized data-no-dim />
+              <Image src={article!.cover_image} alt={article!.title} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.02]" priority data-no-dim />
             </div>
           </figure>
         )}
 
         {/* Article Layout */}
         <div className="relative flex flex-col lg:flex-row gap-16">
-          {/* TOC Sidebar — only shown when there are real headings */}
+          {/* TOC + Trending Sidebar */}
           {tocItems.length > 0 && (
             <aside className="hidden lg:block w-[220px] shrink-0 toc-sidebar">
-              <div className="sticky top-28">
+              <div className="sticky top-28 flex flex-col gap-6">
                 <TableOfContents items={tocItems} />
+                <TrendingWidget currentSlug={slug} />
               </div>
             </aside>
           )}
@@ -406,13 +417,43 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <ArticleComments slug={slug} />
           </ErrorBoundary>
 
-          {/* Related Articles — reads from live Supabase articles */}
+          {/* Related Articles */}
           <RelatedArticles
             currentSlug={article!.slug}
             currentCategoryId={article!.categories?.slug ?? article!.category_id}
             currentTags={article!.tags ?? []}
             allArticles={allArticles}
           />
+
+          {/* Next Article — read on */}
+          {nextArticle && (
+            <div className="mt-12 pt-8 border-t border-[var(--color-border)]">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink-tertiary)] mb-4 font-[family-name:var(--font-ui)]">
+                Read next
+              </p>
+              <Link
+                href={`/articles/${nextArticle.slug}`}
+                className="group flex gap-5 items-center p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)] hover:shadow-[var(--shadow-card-hover)] transition-all duration-300"
+              >
+                {nextArticle.cover_image && (
+                  <div className="relative w-24 h-20 shrink-0 rounded-xl overflow-hidden">
+                    <Image src={nextArticle.cover_image} alt={nextArticle.title} fill sizes="96px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[var(--color-ink)] line-clamp-2 group-hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-heading)] leading-snug mb-1">
+                    {nextArticle.title}
+                  </p>
+                  <p className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
+                    {nextArticle.read_time_minutes ?? 5} min read
+                  </p>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--color-ink-tertiary)] group-hover:text-[var(--color-accent)] transition-colors shrink-0 group-hover:translate-x-1 duration-200">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </Link>
+            </div>
+          )}
         </footer>
       </article>
     </div>
