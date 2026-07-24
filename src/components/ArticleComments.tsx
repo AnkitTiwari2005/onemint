@@ -376,22 +376,29 @@ export function ArticleComments({ slug }: { slug: string }) {
   // ── Reactions ──────────────────────────────────────────────────────────────
 
   const handleReact = useCallback(async (commentId: string, emoji: string) => {
-    const key       = `${commentId}:${emoji}`;
-    const wasActive = !!loadMyReactions()[key];
-    const delta     = wasActive ? -1 : 1;
+    const current = loadMyReactions();
 
-    const next = { ...loadMyReactions() };
-    wasActive ? delete next[key] : (next[key] = true);
+    // Find any currently active emoji on this comment (single reaction rule)
+    const activeEmoji = EMOJIS.find(e => current[`${commentId}:${e}`]) ?? null;
+    const isSame      = activeEmoji === emoji; // toggling off if same
+
+    // Build next state — clear all reactions for this comment, add new if not toggling off
+    const next: MyReactions = {};
+    for (const [k, v] of Object.entries(current)) {
+      if (!k.startsWith(`${commentId}:`)) next[k] = v;
+    }
+    if (!isSame) next[`${commentId}:${emoji}`] = true;
+
     setMyReactions(next);
     saveMyReactions(next);
 
-    setReactions(prev => ({
-      ...prev,
-      [commentId]: {
-        ...(prev[commentId] ?? {}),
-        [emoji]: Math.max(0, (prev[commentId]?.[emoji] ?? 0) + delta),
-      },
-    }));
+    // Optimistic count update
+    setReactions(prev => {
+      const updated = { ...prev, [commentId]: { ...(prev[commentId] ?? {}) } };
+      if (activeEmoji) updated[commentId][activeEmoji] = Math.max(0, (updated[commentId][activeEmoji] ?? 0) - 1);
+      if (!isSame)     updated[commentId][emoji]       = (updated[commentId][emoji] ?? 0) + 1;
+      return updated;
+    });
 
     try {
       await fetch('/api/comments/react', {
@@ -400,7 +407,6 @@ export function ArticleComments({ slug }: { slug: string }) {
         body: JSON.stringify({ comment_id: commentId, emoji }),
       });
     } catch {
-      // Revert on network error
       setMyReactions(loadMyReactions());
     }
   }, []);
@@ -480,8 +486,13 @@ export function ArticleComments({ slug }: { slug: string }) {
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const topLevel   = comments.filter(c => !c.parent_id);
-  const getReplies = (pid: string) => comments.filter(c => c.parent_id === pid);
+  const COMMENTS_PER_PAGE = 5;
+  const [visibleCount, setVisibleCount] = useState(COMMENTS_PER_PAGE);
+
+  const topLevel        = comments.filter(c => !c.parent_id);
+  const visibleTopLevel = topLevel.slice(0, visibleCount);
+  const hasMore         = topLevel.length > visibleCount;
+  const getReplies      = (pid: string) => comments.filter(c => c.parent_id === pid);
 
   if (enabled === false) return null;
 
@@ -514,8 +525,8 @@ export function ArticleComments({ slug }: { slug: string }) {
 
       {/* Thread list */}
       {!loading && topLevel.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, marginBottom: 40 }}>
-          {topLevel.map(comment => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, marginBottom: hasMore ? 20 : 40 }}>
+          {visibleTopLevel.map(comment => {
             const replies = getReplies(comment.id);
             return (
               <div key={comment.id}>
@@ -573,6 +584,30 @@ export function ArticleComments({ slug }: { slug: string }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Load more */}
+      {!loading && hasMore && (
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <button
+            onClick={() => setVisibleCount(v => v + COMMENTS_PER_PAGE)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '10px 24px', borderRadius: 20,
+              border: '1.5px solid var(--color-border)',
+              background: 'var(--color-surface)',
+              cursor: 'pointer', fontFamily: 'var(--font-ui)',
+              fontSize: 13, fontWeight: 600,
+              color: 'var(--color-ink-secondary)',
+              transition: 'all 0.15s',
+            }}
+          >
+            Load {Math.min(COMMENTS_PER_PAGE, topLevel.length - visibleCount)} more comment{Math.min(COMMENTS_PER_PAGE, topLevel.length - visibleCount) !== 1 ? 's' : ''}
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
+              ({topLevel.length - visibleCount} remaining)
+            </span>
+          </button>
         </div>
       )}
 
