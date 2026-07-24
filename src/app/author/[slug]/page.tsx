@@ -29,6 +29,7 @@ interface DbAuthor {
   whatsapp?: string;
   phone?: string;
   joined_date?: string;
+  expertise_tags?: string[] | null;
 }
 
 interface Props {
@@ -84,7 +85,7 @@ export default async function AuthorPage({ params }: Props) {
   if (supabaseAdmin) {
     const { data } = await supabaseAdmin
       .from('authors')
-      .select('id, name, slug, role, bio, avatar, email, twitter, linkedin, whatsapp, phone, joined_date')
+      .select('id, name, slug, role, bio, avatar, email, twitter, linkedin, whatsapp, phone, joined_date, expertise_tags')
       .eq('slug', slug)
       .maybeSingle();
     dbAuthor = data ?? null;
@@ -109,6 +110,7 @@ export default async function AuthorPage({ params }: Props) {
     : staticAuthor?.joinedDate
     ? new Date(staticAuthor.joinedDate).getFullYear()
     : null;
+  const expertiseTags: string[] = dbAuthor?.expertise_tags ?? [];
 
   // 4. Fetch articles (DB-backed)
   const { articles: allArticles } = await fetchPublishedArticles();
@@ -154,6 +156,18 @@ export default async function AuthorPage({ params }: Props) {
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 6 }}>{authorName}</h1>
           {authorRole && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 15, color: 'var(--color-accent)', fontWeight: 600, marginBottom: 12 }}>{authorRole}</p>}
           {authorBio && <p style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.7, marginBottom: 16, maxWidth: 640 }}>{authorBio}</p>}
+
+          {/* Expertise tags */}
+          {expertiseTags.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+              {expertiseTags.map(tag => (
+                <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 20, background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, color: 'var(--color-ink-secondary)' }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Stats */}
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>

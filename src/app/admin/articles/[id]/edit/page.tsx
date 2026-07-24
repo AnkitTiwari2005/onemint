@@ -44,6 +44,12 @@ export default function EditArticlePage() {
   const [faqSuccess, setFaqSuccess] = useState(false);
   const [confirmFaqRegen, setConfirmFaqRegen] = useState(false);
 
+  // Publishing Options
+  const [isSponsored, setIsSponsored] = useState(false);
+  const [sponsorName, setSponsorName] = useState('');
+  const [correctionNote, setCorrectionNote] = useState('');
+  const [pubOpen, setPubOpen] = useState(false);
+
   // Notification
   const [publishedAt, setPublishedAt] = useState('');
   // 'idle' | 'loading' | 'done' | 'error'
@@ -74,6 +80,13 @@ export default function EditArticlePage() {
         if (Array.isArray(data.faqs) && data.faqs.length > 0) {
           setFaqs(data.faqs.map((f: { question: string; answer: string }) => ({ ...f, id: crypto.randomUUID() })));
           setFaqsOpen(true);
+        }
+        // Load sponsored/correction fields
+        setIsSponsored(!!data.is_sponsored);
+        setSponsorName(data.sponsor_name || '');
+        if (data.correction_note) {
+          setCorrectionNote(data.correction_note);
+          setPubOpen(true);
         }
       })
       .catch(() => setNotFound(true))
@@ -216,6 +229,9 @@ export default function EditArticlePage() {
           meta_title: metaTitle,
           meta_description: metaDesc,
           faqs: faqs.length > 0 ? faqs.filter(f => f.question.trim() && f.answer.trim()).map(({ id: _id, ...rest }) => rest) : null,
+          is_sponsored: isSponsored || null,
+          sponsor_name: sponsorName.trim() || null,
+          correction_note: correctionNote.trim() || null,
         }),
       });
       const data = await res.json();
@@ -428,6 +444,45 @@ export default function EditArticlePage() {
                   onClick={() => setFaqs([...faqs, { id: crypto.randomUUID(), question: '', answer: '' }])}
                   style={{ padding: '7px 12px', borderRadius: 7, border: '1px dashed var(--color-border)', background: 'transparent', color: 'var(--color-ink-tertiary)', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, cursor: 'pointer', width: '100%' }}
                 >+ Add FAQ manually</button>
+              </div>
+            )}
+          </div>
+
+          {/* Publishing Options: Sponsored + Correction */}
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, overflow: 'hidden' }}>
+            <button type="button" onClick={() => setPubOpen(!pubOpen)} style={{ width: '100%', padding: '13px 18px', background: 'transparent', border: 'none', borderBottom: pubOpen ? '1px solid var(--color-border)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', outline: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Publishing Options</span>
+                {(isSponsored || correctionNote.trim()) && <span style={{ background: '#D97706', color: '#fff', borderRadius: 20, fontSize: 10, fontWeight: 700, padding: '1px 7px', fontFamily: 'var(--font-ui)' }}>!</span>}
+              </div>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, fontWeight: 700, color: 'var(--color-ink-tertiary)' }}>{pubOpen ? '▲' : '▼'}</span>
+            </button>
+            {pubOpen && (
+              <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <label style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)' }}>Sponsored Content</label>
+                    <button type="button" onClick={() => setIsSponsored(v => !v)}
+                      style={{ width: 40, height: 22, borderRadius: 11, border: 'none', background: isSponsored ? '#D97706' : 'var(--color-border)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}
+                      aria-label="Toggle sponsored">
+                      <span style={{ position: 'absolute', top: 3, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', ...(isSponsored ? { left: 21 } : { left: 3 }) }} />
+                    </button>
+                  </div>
+                  {isSponsored && (
+                    <input value={sponsorName} onChange={e => setSponsorName(e.target.value)} placeholder="Sponsor name (optional)"
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #D97706', borderRadius: 6, background: '#FFFBEB', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }} />
+                  )}
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--color-ink-tertiary)', margin: '4px 0 0' }}>Shows a disclosure banner above the article.</p>
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', display: 'block', marginBottom: 6 }}>Correction Note</label>
+                  <textarea value={correctionNote} onChange={e => setCorrectionNote(e.target.value)}
+                    placeholder="Describe what was corrected and when…"
+                    rows={3}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 6, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6 }} />
+                  <p style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--color-ink-tertiary)', margin: '4px 0 0' }}>Shown as an amber correction banner at the end of the article.</p>
+                </div>
               </div>
             )}
           </div>
