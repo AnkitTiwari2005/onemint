@@ -287,6 +287,27 @@ export async function POST(req: NextRequest) {
       }),
     }).catch(err => console.warn('[notify-article] Push send failed (non-critical):', err));
 
+    // WhatsApp admin alert via Twilio (fire-and-forget)
+    const waTo   = process.env.TWILIO_WHATSAPP_TO;
+    const waFrom = process.env.TWILIO_WHATSAPP_FROM;
+    const twilioSid   = process.env.TWILIO_ACCOUNT_SID;
+    const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+    if (waTo && waFrom && twilioSid && twilioToken) {
+      const waMsg = `✅ *New article published on OneMint*\n\n*${title.trim()}*\n\n${articleUrl}`;
+      fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Basic ${Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64')}`,
+        },
+        body: new URLSearchParams({
+          From: `whatsapp:${waFrom}`,
+          To:   `whatsapp:${waTo}`,
+          Body: waMsg,
+        }).toString(),
+      }).catch(err => console.warn('[notify-article] WhatsApp send failed:', err));
+    }
+
     return NextResponse.json({ success: true });
 
   } catch (err) {

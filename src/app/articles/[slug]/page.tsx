@@ -21,6 +21,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ArticleBodyClient } from './ArticleBodyClient';
 import { TrendingWidget } from '@/components/TrendingWidget';
 import { PushNotificationButton } from '@/components/PushNotificationButton';
+import { ArticleViewTracker } from '@/components/ArticleViewTracker';
 
 // ISR: cache each article page for up to 1 hour.
 // On the next request after expiry, Next.js re-fetches from Supabase in the background.
@@ -278,6 +279,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <span className="opacity-50">•</span>
                   <BookOpen size={10} />
                   <span className="font-semibold text-[var(--color-ink-secondary)]">{article!.read_time_minutes ?? 5} min read</span>
+                  <span className="opacity-50">•</span>
+                  <ArticleViewTracker slug={slug} showCount={true} />
                 </div>
                 {/* Author social links from DB */}
                 {author && (() => {
