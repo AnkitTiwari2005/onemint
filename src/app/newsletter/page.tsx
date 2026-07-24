@@ -14,14 +14,14 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 export const metadata: Metadata = {
   title: 'Newsletter',
   description:
-    'Join 500,000+ Indian readers. One email, 3× a week — money, tech, health and career. Curated, zero spam, free forever.',
+    'One email, 3× a week — money, tech, health and career. No jargon, no sponsored fluff, zero spam. Free forever.',
   alternates: { canonical: `${SITE_URL}/newsletter` },
   openGraph: {
     type: 'website',
     url: `${SITE_URL}/newsletter`,
     title: 'OneMint Newsletter — The Smartest Newsletter in India',
     description:
-      'Join 500,000+ Indian readers. One email, 3× a week — money, tech, health and career. Curated, zero spam, free forever.',
+      'One email, 3× a week — money, tech, health and career. No jargon, no sponsored fluff, zero spam. Free forever.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Newsletter' }],
   },
 };

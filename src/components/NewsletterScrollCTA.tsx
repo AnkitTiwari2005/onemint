@@ -170,7 +170,7 @@ export function NewsletterScrollCTA() {
                         className="text-xs"
                         style={{ fontFamily: 'var(--font-ui)', color: 'var(--color-ink-tertiary)' }}
                       >
-                        5,00,000+ readers &middot; Zero spam
+                        Free &middot; No jargon &middot; Zero spam
                       </p>
                     </div>
                     <button
@@ -294,9 +294,8 @@ export function NewsletterScrollCTA() {
                       className="text-xs mb-3"
                       style={{ fontFamily: 'var(--font-body)', color: 'var(--color-ink-secondary)' }}
                     >
-                      Join{' '}
-                      <strong style={{ color: 'var(--color-ink)' }}>5,00,000+</strong>{' '}
-                      Indian readers. Zero spam, unsubscribe anytime.
+                      India&rsquo;s most practical finance &amp; investing newsletter.
+                      No jargon, zero spam, unsubscribe anytime.
                     </p>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
                       <input

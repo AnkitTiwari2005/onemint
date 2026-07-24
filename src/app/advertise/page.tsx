@@ -4,7 +4,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata: Metadata = {
   title: 'Advertise with OneMint',
-  description: 'Reach 5,00,000+ engaged Indian readers across 12 content categories. Advertising and sponsorship opportunities on OneMint.',
+  description: 'Reach engaged Indian readers across 12 content categories — personal finance, investing, tech, health and more. Advertising and sponsorship opportunities on OneMint.',
   alternates: { canonical: `${SITE_URL}/advertise` },
 };
 
