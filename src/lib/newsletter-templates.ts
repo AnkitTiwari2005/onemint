@@ -198,6 +198,26 @@ export function buildNewsletterHtml(
     <o:PixelsPerInch>96</o:PixelsPerInch>
   </o:OfficeDocumentSettings></xml></noscript>
   <![endif]-->
+  <style>
+    /* Dark mode: Gmail mobile, Apple Mail, Samsung Mail */
+    @media (prefers-color-scheme: dark) {
+      body, .om-body { background-color: #1a1a18 !important; }
+      .om-outer { background-color: #1a1a18 !important; }
+      .om-card { background-color: #242420 !important; border-color: #3a3a36 !important; }
+      .om-title a, .om-title { color: #f5f0e8 !important; }
+      .om-deck { color: #b0a898 !important; }
+      .om-meta { color: #7a7068 !important; }
+      .om-footer-text { color: #7a7068 !important; }
+    }
+    /* Gmail app dark mode override (uses [data-ogsc] attribute) */
+    [data-ogsc] body, [data-ogsc] .om-body { background-color: #1a1a18 !important; }
+    [data-ogsc] .om-outer { background-color: #1a1a18 !important; }
+    [data-ogsc] .om-card { background-color: #242420 !important; border-color: #3a3a36 !important; }
+    [data-ogsc] .om-title a, [data-ogsc] .om-title { color: #f5f0e8 !important; }
+    [data-ogsc] .om-deck { color: #b0a898 !important; }
+    [data-ogsc] .om-meta { color: #7a7068 !important; }
+    [data-ogsc] .om-footer-text { color: #7a7068 !important; }
+  </style>
 </head>
 <body style="margin:0;padding:0;background-color:#f0ede8;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,Helvetica,sans-serif;">
 

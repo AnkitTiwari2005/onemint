@@ -123,12 +123,20 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
     if (e.key === 'Escape') { onClose(); return; }
     if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, results.length - 1)); }
     if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, -1)); }
-    if (e.key === 'Enter' && activeIdx >= 0 && results[activeIdx]) {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      const r = results[activeIdx];
-      saveRecent(query);
-      onClose();
-      router.push(r.href);
+      if (activeIdx >= 0 && results[activeIdx]) {
+        // Navigate to highlighted result
+        const r = results[activeIdx];
+        saveRecent(query);
+        onClose();
+        router.push(r.href);
+      } else if (query.trim()) {
+        // Navigate to shareable search results page
+        saveRecent(query);
+        onClose();
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      }
     }
   };
 

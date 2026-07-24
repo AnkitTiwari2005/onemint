@@ -2,13 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, ChevronDown } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
+
+const DISLIKE_REASONS = [
+  'Information is inaccurate',
+  'Too basic / not detailed enough',
+  'Too advanced / hard to follow',
+  'Outdated information',
+  'Not relevant to me',
+  'Poor writing quality',
+  'Other',
+] as const;
+
+type DislikeReason = typeof DISLIKE_REASONS[number];
 
 export function ArticleFeedback({ slug }: { slug?: string }) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [showReasons, setShowReasons] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<DislikeReason | null>(null);
+  const [reasonSubmitted, setReasonSubmitted] = useState(false);
 
   // Load like status from server on mount
   useEffect(() => {
@@ -31,11 +46,33 @@ export function ArticleFeedback({ slug }: { slug?: string }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ slug, vote: type }),
         });
-        // Refresh count after either vote
         const res = await fetch(`/api/likes?slug=${encodeURIComponent(slug)}`);
         const data = await res.json();
         setLiked(!!data.liked);
         setLikeCount(data.count ?? 0);
+      } catch { /* silent */ }
+    }
+
+    // Show reason selector for downvotes after a short delay
+    if (type === 'down') {
+      setTimeout(() => setShowReasons(true), 400);
+    }
+  };
+
+  const submitReason = async (reason: DislikeReason) => {
+    setSelectedReason(reason);
+    setReasonSubmitted(true);
+    setShowReasons(false);
+    trackEvent('Article Dislike Reason', { slug: slug || 'unknown', reason });
+
+    // Store reason in DB via the feedback API
+    if (slug) {
+      try {
+        await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, reason }),
+        });
       } catch { /* silent */ }
     }
   };
@@ -80,15 +117,55 @@ export function ArticleFeedback({ slug }: { slug?: string }) {
           <ThumbsDown size={20} className={feedback === 'down' ? 'fill-current' : ''} />
         </motion.button>
       </div>
-      <AnimatePresence>
-        {feedback && (
+
+      <AnimatePresence mode="wait">
+        {/* Dislike reason selector */}
+        {showReasons && (
+          <motion.div
+            key="reasons"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mt-4 overflow-hidden"
+          >
+            <p className="text-xs font-semibold text-[var(--color-ink-secondary)] mb-3 font-[family-name:var(--font-ui)]">
+              What can we improve? <span className="text-[var(--color-ink-tertiary)] font-normal">(optional)</span>
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {DISLIKE_REASONS.map(reason => (
+                <button
+                  key={reason}
+                  onClick={() => submitReason(reason)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
+                >
+                  {reason}
+                </button>
+              ))}
+              <button
+                onClick={() => { setShowReasons(false); setReasonSubmitted(true); }}
+                className="text-xs px-3 py-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] transition-colors font-[family-name:var(--font-ui)]"
+              >
+                Skip
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Thank you message */}
+        {feedback && !showReasons && (
           <motion.p
+            key="thanks"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0 }}
             className="text-xs text-[var(--color-ink-tertiary)] mt-3 font-[family-name:var(--font-ui)]"
           >
-            {feedback === 'up' ? 'Thanks for the feedback!' : "Thanks — we'll work on improving this."}
+            {feedback === 'up'
+              ? 'Thanks for the feedback! Glad it helped. 🎉'
+              : reasonSubmitted && selectedReason
+              ? `Thanks — we'll work on ${selectedReason.toLowerCase()}.`
+              : "Thanks — we'll work on improving this."}
           </motion.p>
         )}
       </AnimatePresence>
