@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { fetchPublishedArticleBySlug, fetchPublishedArticles } from '@/lib/articles';
 import { supabaseAdmin } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
@@ -19,6 +17,8 @@ import { Clock, BookOpen } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';
 import { buildArticle, buildBreadcrumbs, buildFAQ } from '@/lib/jsonld';
 import type { FaqItem } from '@/lib/jsonld';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ArticleBodyClient } from './ArticleBodyClient';
 
 // ISR: cache each article page for up to 1 hour.
 // On the next request after expiry, Next.js re-fetches from Supabase in the background.
@@ -28,29 +28,14 @@ export const revalidate = 3600;
 // Allow on-demand slug rendering (new articles don't need a redeploy)
 export const dynamicParams = true;
 
-/** Slugify a heading text into an HTML-safe id */
-function headingId(text: string): string {
+/** Slugify a heading text into an HTML-safe id — also used by ArticleBodyClient */
+export function headingId(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .trim();
-}
-
-/**
- * Recursively extract plain text from ReactMarkdown children.
- * When a heading contains bold/italic/code, children is an array of React nodes.
- * String([reactNode]) → "[object Object]", so we walk the tree instead.
- */
-function extractText(children: React.ReactNode): string {
-  if (typeof children === 'string' || typeof children === 'number') return String(children);
-  if (Array.isArray(children)) return children.map(extractText).join('');
-  if (children && typeof children === 'object' && 'props' in (children as object)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return extractText((children as any).props?.children);
-  }
-  return '';
 }
 
 /** Extract TOC items from markdown by parsing ## / ### headings */
@@ -65,20 +50,6 @@ function extractToc(markdown: string) {
   }
   return items;
 }
-
-/** Custom ReactMarkdown heading renderers that inject matching `id` attributes */
-const mdComponents = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  h2: ({ children, ...props }: any) => {
-    const id = headingId(extractText(children));
-    return <h2 id={id} {...props}>{children}</h2>;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  h3: ({ children, ...props }: any) => {
-    const id = headingId(extractText(children));
-    return <h3 id={id} {...props}>{children}</h3>;
-  },
-};
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
@@ -335,11 +306,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {/* Article Body */}
           <div className="article-body flex-1 min-w-0">
             {hasDbContent ? (
-              <div className="prose prose-slate max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                  {article!.content!}
-                </ReactMarkdown>
-              </div>
+              <ErrorBoundary componentName="ArticleBody">
+                <ArticleBodyClient content={article!.content!} />
+              </ErrorBoundary>
             ) : (
               <div className="py-12 text-center text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">
                 <p className="text-base">Content is being prepared. Check back soon.</p>
@@ -402,9 +371,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {/* Series Banner — shows if this article is part of a DB series */}
           <SeriesBanner articleSlug={slug} series={seriesData} />
 
-          {/* Feedback — pass slug so likes are article-specific */}
+          {/* Feedback */}
           <div className="max-w-xl mx-auto mb-16">
-            <ArticleFeedback slug={article!.slug} />
+            <ErrorBoundary componentName="ArticleFeedback">
+              <ArticleFeedback slug={article!.slug} />
+            </ErrorBoundary>
           </div>
 
           {/* Author Bio — DB author only */}
@@ -431,7 +402,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           )}
 
           {/* Comments */}
-          <ArticleComments slug={slug} />
+          <ErrorBoundary componentName="ArticleComments">
+            <ArticleComments slug={slug} />
+          </ErrorBoundary>
 
           {/* Related Articles — reads from live Supabase articles */}
           <RelatedArticles

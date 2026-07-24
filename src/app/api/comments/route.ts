@@ -49,7 +49,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ comments: commentList, reactions });
+    const res = NextResponse.json({ comments: commentList, reactions });
+    // Cache for 30s — fresh enough for users, eliminates repeated DB hits
+    res.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+    return res;
   } catch {
     return NextResponse.json({ comments: [], reactions: {} });
   }

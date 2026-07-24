@@ -20,6 +20,7 @@ const ALL = 'all';
 export default function ArticlesClientShell({ articles, totalCount, degraded }: Props) {
   const [activeCategory, setActiveCategory] = useState(ALL);
   const [query, setQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(12);
 
   // Derive unique categories from articles for the filter tabs
   const categories = Array.from(
@@ -39,6 +40,13 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
       (a.tags ?? []).some((t) => t.toLowerCase().includes(q));
     return matchCat && matchQ;
   });
+
+  // Reset visible count whenever filter/search changes
+  const handleCategory = (id: string) => { setActiveCategory(id); setVisibleCount(12); };
+  const handleSearch = (q: string) => { setQuery(q); setVisibleCount(12); };
+
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-28 md:pb-12">
@@ -67,7 +75,7 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
               id="articles-search"
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               placeholder="Search articles…"
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] outline-none focus:border-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
             />
@@ -80,7 +88,7 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap mb-8">
           <button
             id="filter-all"
-            onClick={() => setActiveCategory(ALL)}
+            onClick={() => handleCategory(ALL)}
             className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all border font-[family-name:var(--font-ui)] ${
               activeCategory === ALL
                 ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]'
@@ -97,7 +105,7 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
               <button
                 key={cat.id}
                 id={`filter-${cat.slug}`}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => handleCategory(cat.id)}
                 className="shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all border font-[family-name:var(--font-ui)]"
                 style={{
                   background: active ? (cat.accent_color ?? 'var(--color-accent)') : 'var(--color-surface)',
@@ -125,7 +133,7 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {filtered.map((article, i) => (
+            {visible.map((article, i) => (
               <motion.div
                 key={article.id}
                 initial={{ opacity: 0, y: 16 }}
@@ -145,7 +153,6 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
                         className="object-cover group-hover:scale-[1.04] transition-transform duration-500"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         priority={i < 3}
-                        unoptimized
                       />
                     </div>
                   )}
@@ -185,8 +192,20 @@ export default function ArticlesClientShell({ articles, totalCount, degraded }: 
           </div>
         )}
 
-        {/* Bottom CTA */}
-        {filtered.length > 0 && (
+        {/* Load More */}
+        {hasMore && (
+          <div className="mt-10 flex justify-center">
+            <button
+              onClick={() => setVisibleCount(c => c + 12)}
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-sm font-semibold text-[var(--color-ink-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors font-[family-name:var(--font-ui)]"
+            >
+              Load more · {filtered.length - visibleCount} remaining
+            </button>
+          </div>
+        )}
+
+        {/* Bottom CTA — only when all articles are shown */}
+        {!hasMore && filtered.length > 0 && (
           <div className="mt-12 text-center">
             <Link
               href="/topics"

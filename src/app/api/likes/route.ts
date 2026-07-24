@@ -40,7 +40,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ liked: false, count: 0 });
     }
 
-    return NextResponse.json({ liked: !!likeRes.data, count: countRes.count ?? 0 });
+    const res = NextResponse.json({ liked: !!likeRes.data, count: countRes.count ?? 0 });
+    res.headers.set('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
+    return res;
   } catch (err) {
     console.error('[Likes GET]', err);
     return NextResponse.json({ liked: false, count: 0 });
