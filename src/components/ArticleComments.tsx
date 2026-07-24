@@ -1,24 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MessageSquare, Send, Loader2, CheckCircle2, AlertCircle, User } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  MessageSquare, Send, Loader2, CheckCircle2,
+  AlertCircle, User, CornerDownRight, X,
+} from 'lucide-react';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Comment {
   id: string;
   name: string;
   body: string;
   created_at: string;
+  parent_id: string | null;
 }
+
+type ReactionMap = Record<string, Record<string, number>>;  // commentId → emoji → count
+type MyReactions = Record<string, boolean>;                  // `${commentId}:${emoji}` → true
+type FormState   = { name: string; email: string; body: string };
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const EMOJIS    = ['👍', '❤️', '🔥', '💡', '😂'] as const;
+const EMPTY     : FormState = { name: '', email: '', body: '' };
+const LS_KEY    = 'onemint-reactions';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1)   return 'just now';
+  if (mins < 60)  return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24)   return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30)  return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -29,224 +47,521 @@ function avatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-export function ArticleComments({ slug }: { slug: string }) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [enabled, setEnabled] = useState<boolean | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', body: '' });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+function loadMyReactions(): MyReactions {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+}
 
-  // Check commentsEnabled setting
+function saveMyReactions(r: MyReactions) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(r)); } catch {}
+}
+
+function validate(f: FormState): Record<string, string> {
+  const e: Record<string, string> = {};
+  if (!f.name.trim())                                  e.name = 'Name is required';
+  else if (f.name.trim().length > 80)                  e.name = 'Name too long';
+  if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) e.email = 'Enter a valid email';
+  if (!f.body.trim())                                  e.body = 'Comment cannot be empty';
+  else if (f.body.trim().length < 3)                   e.body = 'Too short';
+  else if (f.body.trim().length > 2000)                e.body = `${f.body.trim().length}/2000 — too long`;
+  return e;
+}
+
+// ── Shared style tokens ───────────────────────────────────────────────────────
+
+const inputSt: React.CSSProperties = {
+  width: '100%', padding: '10px 14px', borderRadius: 10,
+  border: '1.5px solid var(--color-border)',
+  background: 'var(--color-surface)', color: 'var(--color-ink)',
+  fontFamily: 'var(--font-ui)', fontSize: 14, outline: 'none',
+  transition: 'border-color 0.15s', boxSizing: 'border-box',
+};
+const labelSt: React.CSSProperties = {
+  display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12,
+  fontWeight: 600, color: 'var(--color-ink-secondary)',
+  marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em',
+};
+const errSt: React.CSSProperties = {
+  fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626', marginTop: 4,
+};
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export function ArticleComments({ slug }: { slug: string }) {
+  const [comments,    setComments]    = useState<Comment[]>([]);
+  const [reactions,   setReactions]   = useState<ReactionMap>({});
+  const [myReactions, setMyReactions] = useState<MyReactions>({});
+  const [loading,     setLoading]     = useState(true);
+  const [enabled,     setEnabled]     = useState<boolean | null>(null);
+
+  // Main comment form
+  const [form,        setForm]        = useState<FormState>(EMPTY);
+  const [formErr,     setFormErr]     = useState<Record<string,string>>({});
+  const [submitting,  setSubmitting]  = useState(false);
+  const [submitted,   setSubmitted]   = useState(false);
+  const [submitErr,   setSubmitErr]   = useState('');
+
+  // Reply state
+  const [replyingTo,  setReplyingTo]  = useState<string | null>(null);
+  const [replyForm,   setReplyForm]   = useState<FormState>(EMPTY);
+  const [replyErr,    setReplyErr]    = useState<Record<string,string>>({});
+  const [replying,    setReplying]    = useState(false);
+  const [replyDone,   setReplyDone]   = useState<string | null>(null); // parent id
+  const [replyApiErr, setReplyApiErr] = useState('');
+
+  // ── Load ───────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     fetch('/api/admin/settings')
-      .then(r => r.json())
-      .then(d => setEnabled(d?.commentsEnabled !== false))
+      .then(r => r.json()).then(d => setEnabled(d?.commentsEnabled !== false))
       .catch(() => setEnabled(true));
+    setMyReactions(loadMyReactions());
   }, []);
 
-  // Fetch approved comments
-  useEffect(() => {
+  const fetchComments = useCallback(() => {
     if (!slug) return;
     fetch(`/api/comments?slug=${encodeURIComponent(slug)}`)
       .then(r => r.json())
-      .then(data => { setComments(Array.isArray(data) ? data : []); setLoading(false); })
+      .then(data => {
+        setComments(Array.isArray(data.comments) ? data.comments : []);
+        setReactions(data.reactions ?? {});
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, [slug]);
 
-  function validate() {
-    const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = 'Name is required';
-    else if (form.name.trim().length > 80) e.name = 'Name too long';
-    if (form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Enter a valid email';
-    if (!form.body.trim()) e.body = 'Comment cannot be empty';
-    else if (form.body.trim().length < 3) e.body = 'Too short';
-    else if (form.body.trim().length > 2000) e.body = `${form.body.trim().length}/2000 — too long`;
-    return e;
-  }
+  useEffect(() => { fetchComments(); }, [fetchComments]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const errs = validate();
-    setErrors(errs);
-    if (Object.keys(errs).length > 0) return;
-    setSubmitting(true);
-    setSubmitError('');
+  // ── Reactions ──────────────────────────────────────────────────────────────
+
+  const handleReact = async (commentId: string, emoji: string) => {
+    const key      = `${commentId}:${emoji}`;
+    const wasActive = !!myReactions[key];
+    const delta    = wasActive ? -1 : 1;
+
+    // Optimistic
+    const next = { ...myReactions };
+    wasActive ? delete next[key] : (next[key] = true);
+    setMyReactions(next);
+    saveMyReactions(next);
+    setReactions(prev => ({
+      ...prev,
+      [commentId]: {
+        ...(prev[commentId] ?? {}),
+        [emoji]: Math.max(0, (prev[commentId]?.[emoji] ?? 0) + delta),
+      },
+    }));
+
+    // Server sync — revert on failure
     try {
-      const res = await fetch('/api/comments', {
+      await fetch('/api/comments/react', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment_id: commentId, emoji }),
+      });
+    } catch {
+      setMyReactions(loadMyReactions());
+    }
+  };
+
+  // ── Submit main comment ────────────────────────────────────────────────────
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validate(form);
+    setFormErr(errs);
+    if (Object.keys(errs).length) return;
+    setSubmitting(true);
+    setSubmitErr('');
+    try {
+      const res  = await fetch('/api/comments', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ article_slug: slug, ...form }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit');
       setSubmitted(true);
-      setForm({ name: '', email: '', body: '' });
+      setForm(EMPTY);
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
+      setSubmitErr(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally { setSubmitting(false); }
+  };
+
+  // ── Submit reply ───────────────────────────────────────────────────────────
+
+  const handleReplySubmit = async (e: React.FormEvent, parentId: string) => {
+    e.preventDefault();
+    const errs = validate(replyForm);
+    setReplyErr(errs);
+    if (Object.keys(errs).length) return;
+    setReplying(true);
+    setReplyApiErr('');
+    try {
+      const res  = await fetch('/api/comments', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ article_slug: slug, parent_id: parentId, ...replyForm }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit');
+      setReplyDone(parentId);
+      setReplyForm(EMPTY);
+      setReplyingTo(null);
+    } catch (err: unknown) {
+      setReplyApiErr(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally { setReplying(false); }
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  const topLevel  = comments.filter(c => !c.parent_id);
+  const getReplies = (pid: string) => comments.filter(c => c.parent_id === pid);
+
+  // ── Reaction bar ───────────────────────────────────────────────────────────
+
+  const ReactionBar = ({ commentId }: { commentId: string }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10, flexWrap: 'wrap' }}>
+      {EMOJIS.map(emoji => {
+        const count  = reactions[commentId]?.[emoji] ?? 0;
+        const active = !!myReactions[`${commentId}:${emoji}`];
+        return (
+          <button
+            key={emoji}
+            onClick={() => handleReact(commentId, emoji)}
+            title={active ? `Remove ${emoji} reaction` : `React with ${emoji}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '3px 9px', borderRadius: 20,
+              border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border)'}`,
+              background: active ? 'rgba(22,163,74,0.10)' : 'transparent',
+              cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-ui)',
+              color: active ? 'var(--color-accent)' : 'var(--color-ink-secondary)',
+              fontWeight: active ? 700 : 400,
+              transition: 'all 0.15s ease',
+              transform: active ? 'scale(1.05)' : 'scale(1)',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>{emoji}</span>
+            {count > 0 && <span style={{ fontSize: 12 }}>{count}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // ── Inline reply form ──────────────────────────────────────────────────────
+
+  const InlineReplyForm = ({ parentId }: { parentId: string }) => (
+    <div style={{
+      marginTop: 12, padding: '16px 18px', borderRadius: 12,
+      background: 'var(--color-surface)', border: '1.5px solid var(--color-accent)',
+      boxShadow: '0 0 0 3px rgba(22,163,74,0.08)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>
+          ↩ Write a reply
+        </span>
+        <button
+          onClick={() => { setReplyingTo(null); setReplyForm(EMPTY); setReplyErr({}); setReplyApiErr(''); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-tertiary)', padding: 2 }}
+          aria-label="Cancel reply"
+        >
+          <X size={15} />
+        </button>
+      </div>
+
+      <form onSubmit={e => handleReplySubmit(e, parentId)} noValidate>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div>
+            <label style={labelSt}>Name <span style={{ color: '#DC2626' }}>*</span></label>
+            <input
+              type="text" placeholder="Your name" value={replyForm.name} maxLength={80}
+              onChange={e => { setReplyForm(f => ({ ...f, name: e.target.value })); setReplyErr(r => ({ ...r, name: '' })); }}
+              style={{ ...inputSt, fontSize: 13, borderColor: replyErr.name ? '#DC2626' : undefined }}
+              autoComplete="name"
+            />
+            {replyErr.name && <p style={errSt}>{replyErr.name}</p>}
+          </div>
+          <div>
+            <label style={labelSt}>Email <span style={{ fontWeight: 400, color: 'var(--color-ink-tertiary)', textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+            <input
+              type="email" placeholder="you@example.com" value={replyForm.email}
+              onChange={e => { setReplyForm(f => ({ ...f, email: e.target.value })); setReplyErr(r => ({ ...r, email: '' })); }}
+              style={{ ...inputSt, fontSize: 13, borderColor: replyErr.email ? '#DC2626' : undefined }}
+              autoComplete="email"
+            />
+            {replyErr.email && <p style={errSt}>{replyErr.email}</p>}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label style={labelSt}>Reply <span style={{ color: '#DC2626' }}>*</span></label>
+          <textarea
+            placeholder="Write your reply…" value={replyForm.body} rows={3} maxLength={2000}
+            onChange={e => { setReplyForm(f => ({ ...f, body: e.target.value })); setReplyErr(r => ({ ...r, body: '' })); }}
+            style={{ ...inputSt, resize: 'vertical', minHeight: 80, fontSize: 13, borderColor: replyErr.body ? '#DC2626' : undefined }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+            {replyErr.body ? <p style={{ ...errSt, margin: 0 }}>{replyErr.body}</p> : <span />}
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)' }}>{replyForm.body.length}/2000</span>
+          </div>
+        </div>
+
+        {replyApiErr && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: '#FEF2F2', border: '1px solid #FECACA', marginBottom: 10 }}>
+            <AlertCircle size={14} color="#DC2626" />
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#DC2626' }}>{replyApiErr}</span>
+          </div>
+        )}
+
+        <button
+          type="submit" disabled={replying}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 20px',
+            background: replying ? 'var(--color-ink-tertiary)' : 'var(--color-accent)',
+            color: 'white', border: 'none', borderRadius: 9,
+            fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600,
+            cursor: replying ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          {replying ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Posting…</> : <><Send size={13} /> Post Reply</>}
+        </button>
+      </form>
+    </div>
+  );
+
+  // ── Comment card ───────────────────────────────────────────────────────────
+
+  const CommentCard = ({
+    comment, isReply = false,
+  }: { comment: Comment; isReply?: boolean }) => (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      {/* Avatar */}
+      <div style={{
+        width: isReply ? 32 : 38, height: isReply ? 32 : 38,
+        borderRadius: '50%', background: avatarColor(comment.name),
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'var(--font-ui)', fontSize: isReply ? 13 : 15, fontWeight: 700,
+        color: 'white', flexShrink: 0,
+      }}>
+        {comment.name[0].toUpperCase()}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Bubble */}
+        <div style={{
+          background: 'var(--color-surface-alt)', borderRadius: isReply ? 12 : 14,
+          padding: isReply ? '12px 16px' : '14px 18px',
+          border: '1px solid var(--color-border)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>
+              {comment.name}
+            </span>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>·</span>
+            <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
+              {timeAgo(comment.created_at)}
+            </span>
+          </div>
+          <p style={{
+            fontFamily: 'var(--font-body)', fontSize: isReply ? 14 : 15,
+            color: 'var(--color-ink-secondary)', lineHeight: 1.7,
+            margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+          }}>
+            {comment.body}
+          </p>
+        </div>
+
+        {/* Reaction bar + reply button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, paddingLeft: 2 }}>
+          <ReactionBar commentId={comment.id} />
+
+          {!isReply && (
+            <button
+              onClick={() => {
+                setReplyingTo(prev => prev === comment.id ? null : comment.id);
+                setReplyForm(EMPTY);
+                setReplyErr({});
+                setReplyApiErr('');
+              }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                marginTop: 10, padding: '3px 10px', borderRadius: 20,
+                border: '1.5px solid var(--color-border)', background: 'transparent',
+                cursor: 'pointer', fontFamily: 'var(--font-ui)', fontSize: 12,
+                fontWeight: 600, color: 'var(--color-ink-secondary)',
+                transition: 'all 0.15s',
+              }}
+            >
+              <CornerDownRight size={12} />
+              Reply
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   if (enabled === false) return null;
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '10px 14px',
-    borderRadius: 10,
-    border: '1.5px solid var(--color-border)',
-    background: 'var(--color-surface)',
-    color: 'var(--color-ink)',
-    fontFamily: 'var(--font-ui)',
-    fontSize: 14,
-    outline: 'none',
-    transition: 'border-color 0.15s ease',
-    boxSizing: 'border-box' as const,
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontFamily: 'var(--font-ui)',
-    fontSize: 12,
-    fontWeight: 600,
-    color: 'var(--color-ink-secondary)',
-    marginBottom: 6,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-  };
-
-  const errorStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-ui)',
-    fontSize: 12,
-    color: '#DC2626',
-    marginTop: 4,
-  };
+  const totalCount = comments.length;
 
   return (
     <div style={{ marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--color-border)' }}>
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: 'var(--color-accent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
           <MessageSquare size={18} color="white" />
         </div>
         <div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>Discussion</h2>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', margin: 0 }}>
+            Discussion
+          </h2>
           <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
-            {loading ? 'Loading…' : comments.length === 0 ? 'No comments yet' : `${comments.length} comment${comments.length !== 1 ? 's' : ''}`}
+            {loading ? 'Loading…' : totalCount === 0 ? 'No comments yet — be the first' : `${totalCount} comment${totalCount !== 1 ? 's' : ''}`}
           </p>
         </div>
       </div>
 
-      {/* Comment List */}
-      {!loading && comments.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 40 }}>
-          {comments.map(c => (
-            <div key={c.id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-              <div style={{ width: 38, height: 38, borderRadius: '50%', background: avatarColor(c.name), display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, color: 'white', flexShrink: 0 }}>
-                {c.name[0].toUpperCase()}
+      {/* Comments thread */}
+      {!loading && topLevel.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, marginBottom: 40 }}>
+          {topLevel.map(comment => {
+            const replies = getReplies(comment.id);
+            return (
+              <div key={comment.id}>
+                <CommentCard comment={comment} />
+
+                {/* Inline reply form */}
+                {replyingTo === comment.id && <InlineReplyForm parentId={comment.id} />}
+
+                {/* Reply submitted banner */}
+                {replyDone === comment.id && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, padding: '10px 14px', borderRadius: 10, background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+                    <CheckCircle2 size={15} color="#16A34A" />
+                    <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: '#15803D' }}>
+                      Reply submitted — it&apos;ll appear after review.
+                    </span>
+                  </div>
+                )}
+
+                {/* Replies */}
+                {replies.length > 0 && (
+                  <div style={{ marginTop: 12, marginLeft: 50, display: 'flex', flexDirection: 'column', gap: 14, paddingLeft: 16, borderLeft: '2px solid var(--color-border)' }}>
+                    {replies.map(reply => (
+                      <CommentCard key={reply.id} comment={reply} isReply />
+                    ))}
+                  </div>
+                )}
               </div>
-              <div style={{ flex: 1, background: 'var(--color-surface-alt)', borderRadius: 14, padding: '14px 18px', border: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{c.name}</span>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>·</span>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)' }}>{timeAgo(c.created_at)}</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{c.body}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Empty state */}
-      {!loading && comments.length === 0 && (
+      {!loading && topLevel.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0 40px', borderRadius: 16, border: '1.5px dashed var(--color-border)', marginBottom: 36 }}>
           <User size={32} style={{ color: 'var(--color-ink-tertiary)', marginBottom: 10 }} />
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-tertiary)', margin: 0 }}>Be the first to share your thoughts</p>
+          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-tertiary)', margin: 0 }}>
+            Be the first to share your thoughts
+          </p>
         </div>
       )}
 
-      {/* Success banner */}
+      {/* Main form success banner */}
       {submitted && (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '16px 20px', borderRadius: 12, background: '#F0FDF4', border: '1px solid #BBF7D0', marginBottom: 28 }}>
           <CheckCircle2 size={18} color="#16A34A" style={{ flexShrink: 0, marginTop: 1 }} />
           <div>
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, color: '#15803D', margin: '0 0 2px' }}>Comment submitted!</p>
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: '#166534', margin: 0 }}>Your comment is awaiting moderation and will appear once approved.</p>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: '#166534', margin: 0 }}>Awaiting moderation — it will appear once approved.</p>
           </div>
         </div>
       )}
 
-      {/* Comment Form */}
+      {/* Main comment form */}
       <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 20, padding: '28px 28px 24px', boxShadow: 'var(--shadow-card)' }}>
-        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 24px' }}>Leave a Comment</h3>
+        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 24px' }}>
+          Leave a Comment
+        </h3>
         <form onSubmit={handleSubmit} noValidate>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div>
-              <label style={labelStyle}>Name <span style={{ color: '#DC2626' }}>*</span></label>
+              <label style={labelSt}>Name <span style={{ color: '#DC2626' }}>*</span></label>
               <input
-                type="text"
-                placeholder="Your name"
-                value={form.name}
-                onChange={e => { setForm(f => ({ ...f, name: e.target.value })); setErrors(er => ({ ...er, name: '' })); }}
-                style={{ ...inputStyle, borderColor: errors.name ? '#DC2626' : undefined }}
-                maxLength={80}
+                type="text" placeholder="Your name" value={form.name} maxLength={80}
+                onChange={e => { setForm(f => ({ ...f, name: e.target.value })); setFormErr(er => ({ ...er, name: '' })); }}
+                style={{ ...inputSt, borderColor: formErr.name ? '#DC2626' : undefined }}
                 autoComplete="name"
               />
-              {errors.name && <p style={errorStyle}>{errors.name}</p>}
+              {formErr.name && <p style={errSt}>{formErr.name}</p>}
             </div>
             <div>
-              <label style={labelStyle}>Email <span style={{ fontWeight: 400, color: 'var(--color-ink-tertiary)', textTransform: 'none', letterSpacing: 0 }}>(optional, never shown)</span></label>
+              <label style={labelSt}>Email <span style={{ fontWeight: 400, color: 'var(--color-ink-tertiary)', textTransform: 'none', letterSpacing: 0 }}>(optional, never shown)</span></label>
               <input
-                type="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setErrors(er => ({ ...er, email: '' })); }}
-                style={{ ...inputStyle, borderColor: errors.email ? '#DC2626' : undefined }}
+                type="email" placeholder="you@example.com" value={form.email}
+                onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setFormErr(er => ({ ...er, email: '' })); }}
+                style={{ ...inputSt, borderColor: formErr.email ? '#DC2626' : undefined }}
                 autoComplete="email"
               />
-              {errors.email && <p style={errorStyle}>{errors.email}</p>}
+              {formErr.email && <p style={errSt}>{formErr.email}</p>}
             </div>
           </div>
+
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Comment <span style={{ color: '#DC2626' }}>*</span></label>
+            <label style={labelSt}>Comment <span style={{ color: '#DC2626' }}>*</span></label>
             <textarea
-              placeholder="Share your thoughts…"
-              value={form.body}
-              onChange={e => { setForm(f => ({ ...f, body: e.target.value })); setErrors(er => ({ ...er, body: '' })); }}
-              rows={5}
-              maxLength={2000}
-              style={{ ...inputStyle, resize: 'vertical', minHeight: 120, borderColor: errors.body ? '#DC2626' : undefined }}
+              placeholder="Share your thoughts…" value={form.body} rows={5} maxLength={2000}
+              onChange={e => { setForm(f => ({ ...f, body: e.target.value })); setFormErr(er => ({ ...er, body: '' })); }}
+              style={{ ...inputSt, resize: 'vertical', minHeight: 120, borderColor: formErr.body ? '#DC2626' : undefined }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-              {errors.body ? <p style={{ ...errorStyle, margin: 0 }}>{errors.body}</p> : <span />}
+              {formErr.body ? <p style={{ ...errSt, margin: 0 }}>{formErr.body}</p> : <span />}
               <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)' }}>{form.body.length}/2000</span>
             </div>
           </div>
-          {submitError && (
+
+          {submitErr && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: '#FEF2F2', border: '1px solid #FECACA', marginBottom: 16 }}>
               <AlertCircle size={16} color="#DC2626" />
-              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: '#DC2626' }}>{submitError}</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: '#DC2626' }}>{submitErr}</span>
             </div>
           )}
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: 0 }}>
               Comments are moderated and appear after review.
             </p>
             <button
-              type="submit"
-              disabled={submitting}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 24px', background: submitting ? 'var(--color-ink-tertiary)' : 'var(--color-accent)', color: 'white', border: 'none', borderRadius: 10, fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease' }}
+              type="submit" disabled={submitting}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 24px',
+                background: submitting ? 'var(--color-ink-tertiary)' : 'var(--color-accent)',
+                color: 'white', border: 'none', borderRadius: 10,
+                fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 600,
+                cursor: submitting ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
+              }}
             >
-              {submitting ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Submitting…</> : <><Send size={15} /> Post Comment</>}
+              {submitting
+                ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Submitting…</>
+                : <><Send size={15} /> Post Comment</>}
             </button>
           </div>
         </form>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @media(max-width:600px){[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important;}}`}</style>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media(max-width:600px){
+          [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important;}
+        }
+      `}</style>
     </div>
   );
 }
