@@ -23,6 +23,10 @@ export interface PublicArticle {
   meta_title: string | null;
   meta_description: string | null;
   faqs: { question: string; answer: string }[] | null;
+  is_sponsored?: boolean | null;
+  sponsor_name?: string | null;
+  correction_note?: string | null;
+  updated_at?: string | null;
   categories: {
     id: string;
     name: string;
@@ -125,6 +129,7 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
           'id, title, slug, excerpt, content, cover_image, ' +
           'category_id, tags, read_time_minutes, published_at, ' +
           'meta_title, meta_description, faqs, ' +
+          'is_sponsored, sponsor_name, correction_note, updated_at, ' +
           'categories(*), ' +
           'authors(*)'
         )

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit } from '@/lib/rateLimit';
 
 // Basic profanity/spam word list
 const SPAM_WORDS = ['casino', 'viagra', 'porn', 'xxx', 'buy now', 'click here', 'free money', 'make money fast'];
@@ -63,6 +64,10 @@ export async function GET(req: NextRequest) {
  * Body: { article_slug, name, email?, body, parent_id? }
  */
 export async function POST(req: NextRequest) {
+  // Rate limit: 5 comment submissions per minute per IP
+  if (rateLimit(req, { max: 5, windowMs: 60_000, prefix: 'comment' })) {
+    return NextResponse.json({ error: 'Too many requests. Please wait a minute.' }, { status: 429 });
+  }
   try {
     if (!supabaseAdmin) return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
 

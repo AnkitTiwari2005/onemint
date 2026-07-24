@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AdvertiseForm } from '@/components/AdvertiseForm';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
@@ -62,21 +63,13 @@ export default function AdvertisePage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 16, padding: 'clamp(24px, 5vw, 48px)', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 12 }}>Ready to get started?</h2>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', marginBottom: 24, maxWidth: 480, margin: '0 auto 24px' }}>
-            Reach out with your brief and we&apos;ll respond with a custom media kit within 2 business days.
+        {/* Contact Form */}
+        <div style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 16, padding: 'clamp(24px, 5vw, 40px)' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 8 }}>Get in touch</h2>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-ink-secondary)', marginBottom: 28, lineHeight: 1.6 }}>
+            Fill in the form and we&apos;ll respond with a custom media kit within 2 business days.
           </p>
-          <a
-            href="mailto:contact@onemint.in"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', borderRadius: 10, background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 700, textDecoration: 'none', wordBreak: 'break-all' }}
-          >
-            contact@onemint.in →
-          </a>
-          <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', marginTop: 16, lineHeight: 1.5 }}>
-            We respond within 2 business days. Please include your campaign objective, target audience, and estimated budget.
-          </p>
+          <AdvertiseForm />
         </div>
 
       </div>
