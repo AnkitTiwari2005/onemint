@@ -252,7 +252,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="flex items-center gap-3">
               {(author as unknown as Record<string,string>)?.avatar && (
                 <Link href={`/author/${author!.slug}`}>
-                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author!.name} width={48} height={48} className="rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors" unoptimized />
+                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author!.name} width={48} height={48} className="rounded-full border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors" />
                 </Link>
               )}
               <div>
@@ -269,6 +269,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 <div className="flex items-center gap-2 text-[11px] text-[var(--color-ink-tertiary)] mt-1 font-[family-name:var(--font-ui)] uppercase tracking-wider">
                   <Clock size={10} />
                   <span>{article!.published_at ? formatDate(article!.published_at) : ''}</span>
+                  {(article as unknown as Record<string,string>).updated_at &&
+                    (article as unknown as Record<string,string>).updated_at !== article!.published_at && (
+                    <>
+                      <span className="opacity-50">·</span>
+                      <span className="text-[var(--color-accent)] font-semibold">
+                        Updated {formatDate((article as unknown as Record<string,string>).updated_at)}
+                      </span>
+                    </>
+                  )}
                   <span className="opacity-50">•</span>
                   <BookOpen size={10} />
                   <span className="font-semibold text-[var(--color-ink-secondary)]">{article!.read_time_minutes ?? 5} min read</span>
@@ -403,7 +412,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div className="bg-[var(--color-surface-alt)] p-8 rounded-3xl mb-4 border border-[var(--color-border)]">
               <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                 {(author as unknown as Record<string,string>).avatar && (
-                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" unoptimized />
+                  <Image src={(author as unknown as Record<string,string>).avatar} alt={author.name} width={96} height={96} className="rounded-full shrink-0 border-4 border-[var(--color-surface)] shadow-sm" />
                 )}
                 <div>
                   <h3 className="font-[family-name:var(--font-heading)] font-bold text-2xl text-[var(--color-ink)] mb-1">{author.name}</h3>

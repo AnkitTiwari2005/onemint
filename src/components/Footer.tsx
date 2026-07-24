@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -47,14 +47,7 @@ const TOOL_LINKS = [
 export function Footer() {
   const [email, setEmail] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
-  const [copyright, setCopyright] = useState(`© ${new Date().getFullYear()} OneMint. All rights reserved. Not SEBI registered. Educational content only.`);
-
-  useEffect(() => {
-    fetch('/api/admin/settings')
-      .then(r => r.json())
-      .then(d => { if (d?.footerCopyright) setCopyright(d.footerCopyright); })
-      .catch(() => {});
-  }, []);
+  const copyright = `© ${new Date().getFullYear()} OneMint. All rights reserved. Not SEBI registered. Educational content only.`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
