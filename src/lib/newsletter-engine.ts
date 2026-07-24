@@ -254,37 +254,38 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
   const senderMail = process.env.BREVO_SENDER_EMAIL ?? 'no-reply@onemint.in';
 
-  // Send in ONE Brevo API call using messageVersions (up to 300 recipients).
-  // This replaces the old approach of N concurrent individual calls which
-  // caused Vercel Hobby's 10-second function timeout with 100+ subscribers.
-  const BATCH_SIZE = 300; // Brevo messageVersions limit per call
-  const batches: typeof subs[] = [];
-  for (let i = 0; i < subs.length; i += BATCH_SIZE) {
-    batches.push(subs.slice(i, i + BATCH_SIZE));
-  }
+  // Send in sequential batches of 25 individual Brevo calls per batch.
+  // Sequential batches keep us well within Vercel Hobby's 10-second limit:
+  //   182 subscribers → 8 batches × ~300ms each ≈ 2.5s total.
+  const BATCH_SIZE = 25;
+  let sent = 0;
 
-  for (const batch of batches) {
-    const messageVersions = batch.map(s => ({
-      to: [{ email: s.email as string, ...(s.name ? { name: s.name as string } : {}) }],
-      subject,
-    }));
-
-    try {
-      await fetch('https://api.brevo.com/v3/smtp/email', {
-        method:  'POST',
-        headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender:          { name: senderName, email: senderMail },
-          messageVersions, // one call → all recipients in this batch
-          htmlContent:     html,
-        }),
-      });
-    } catch (err) {
-      console.error('[Newsletter] Batch send error:', err);
+  const sendOne = async (email: string, name?: string | null) => {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method:  'POST',
+      headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender:      { name: senderName, email: senderMail },
+        to:          [{ email, ...(name ? { name } : {}) }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error(`[Newsletter] Brevo rejected send to ${email}:`, JSON.stringify(body));
     }
+  };
+
+  for (let i = 0; i < subs.length; i += BATCH_SIZE) {
+    const batch = subs.slice(i, i + BATCH_SIZE);
+    await Promise.allSettled(
+      batch.map(s => sendOne(s.email as string, s.name as string | null))
+    );
+    sent += batch.length;
   }
 
-  return subs.length;
+  return sent;
 }
 
 // ── newsletter_log deduplication ─────────────────────────────────────────────
