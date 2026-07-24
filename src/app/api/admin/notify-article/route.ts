@@ -270,6 +270,23 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[notify-article] Email sent to ${NOTIFY_TO_EMAIL} for article: ${slug}`);
+
+    // Also fire a web push notification to browser subscribers (fire-and-forget)
+    const articleUrl = `${SITE_URL}/articles/${slug}`;
+    fetch(`${SITE_URL}/api/push/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-cron-secret': process.env.CRON_SECRET ?? '',
+      },
+      body: JSON.stringify({
+        title: `New: ${title.trim()}`,
+        body: body.deck ?? 'A new article just dropped on OneMint →',
+        url: articleUrl,
+        icon: body.coverImage ?? `${SITE_URL}/logo.png`,
+      }),
+    }).catch(err => console.warn('[notify-article] Push send failed (non-critical):', err));
+
     return NextResponse.json({ success: true });
 
   } catch (err) {

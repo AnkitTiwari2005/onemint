@@ -20,6 +20,7 @@ import type { FaqItem } from '@/lib/jsonld';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ArticleBodyClient } from './ArticleBodyClient';
 import { TrendingWidget } from '@/components/TrendingWidget';
+import { PushNotificationButton } from '@/components/PushNotificationButton';
 
 // ISR: cache each article page for up to 1 hour.
 // On the next request after expiry, Next.js re-fetches from Supabase in the background.
@@ -417,6 +418,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <ErrorBoundary componentName="ArticleFeedback">
               <ArticleFeedback slug={article!.slug} />
             </ErrorBoundary>
+          </div>
+
+          {/* Push notification nudge — shown after feedback, reader is primed */}
+          <div className="max-w-xl mx-auto mb-10 flex flex-col sm:flex-row items-center gap-3 p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+            <div className="flex-1 min-w-0">
+              <p className="font-[family-name:var(--font-ui)] text-sm font-semibold text-[var(--color-ink)] mb-0.5">Never miss a new article</p>
+              <p className="font-[family-name:var(--font-ui)] text-xs text-[var(--color-ink-tertiary)]">Get instant browser alerts — no email required.</p>
+            </div>
+            <PushNotificationButton />
           </div>
 
           {/* Author Bio — DB author only */}
