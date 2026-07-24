@@ -38,13 +38,29 @@ function headingId(text: string): string {
     .trim();
 }
 
+/**
+ * Recursively extract plain text from ReactMarkdown children.
+ * When a heading contains bold/italic/code, children is an array of React nodes.
+ * String([reactNode]) → "[object Object]", so we walk the tree instead.
+ */
+function extractText(children: React.ReactNode): string {
+  if (typeof children === 'string' || typeof children === 'number') return String(children);
+  if (Array.isArray(children)) return children.map(extractText).join('');
+  if (children && typeof children === 'object' && 'props' in (children as object)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return extractText((children as any).props?.children);
+  }
+  return '';
+}
+
 /** Extract TOC items from markdown by parsing ## / ### headings */
 function extractToc(markdown: string) {
   const items: { id: string; text: string; level: number }[] = [];
   const re = /^(#{2,3})\s+(.+)$/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(markdown)) !== null) {
-    const text = m[2].trim();
+    // Strip markdown formatting from the raw heading text for plain display + id
+    const text = m[2].trim().replace(/[*_`~]/g, '');
     items.push({ id: headingId(text), text, level: m[1].length });
   }
   return items;
@@ -54,12 +70,12 @@ function extractToc(markdown: string) {
 const mdComponents = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   h2: ({ children, ...props }: any) => {
-    const id = headingId(String(children ?? ''));
+    const id = headingId(extractText(children));
     return <h2 id={id} {...props}>{children}</h2>;
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   h3: ({ children, ...props }: any) => {
-    const id = headingId(String(children ?? ''));
+    const id = headingId(extractText(children));
     return <h3 id={id} {...props}>{children}</h3>;
   },
 };

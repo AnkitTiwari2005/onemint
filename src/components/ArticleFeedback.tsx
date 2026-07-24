@@ -24,15 +24,18 @@ export function ArticleFeedback({ slug }: { slug?: string }) {
     setFeedback(type);
     trackEvent('Article Feedback', { slug: slug || 'unknown', vote: type });
 
-    if (type === 'up' && slug) {
+    if (slug) {
       try {
-        const res = await fetch('/api/likes', {
+        await fetch('/api/likes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug }),
+          body: JSON.stringify({ slug, vote: type }),
         });
+        // Refresh count after either vote
+        const res = await fetch(`/api/likes?slug=${encodeURIComponent(slug)}`);
         const data = await res.json();
-        if (data.success) { setLiked(data.liked); setLikeCount(data.count); }
+        setLiked(!!data.liked);
+        setLikeCount(data.count ?? 0);
       } catch { /* silent */ }
     }
   };

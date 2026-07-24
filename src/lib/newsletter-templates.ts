@@ -309,6 +309,9 @@ export function buildNewsletterHtml(
                       <a href="${SITE_URL}/topics"
                          style="color:rgba(255,255,255,0.4);text-decoration:underline;"
                          target="_blank">All topics</a>
+                      &nbsp;&middot;&nbsp;
+                      <a href="{{unsubscribe}}"
+                         style="color:rgba(255,255,255,0.4);text-decoration:underline;">Unsubscribe</a>
                     </p>
                   </td>
                   <td align="right" style="vertical-align:bottom;padding-left:16px;">
