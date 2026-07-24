@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, CheckCircle2, Loader2, Star, Users, Zap, Target, IndianRupee, Unlock } from 'lucide-react';
+import { PushNotificationButton } from '@/components/PushNotificationButton';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -63,7 +64,11 @@ export default function NewsletterContent() {
                 >
                   <CheckCircle2 size={48} className="mx-auto mb-4" />
                   <h2 className="text-2xl font-bold mb-2">You&apos;re in!</h2>
-                  <p className="opacity-90">Check your inbox for a welcome email. See you on Monday!</p>
+                  <p className="opacity-90 mb-6">Check your inbox for a welcome email. See you on Monday!</p>
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-xs opacity-70">Also get instant browser alerts for new articles:</p>
+                    <PushNotificationButton />
+                  </div>
                 </motion.div>
               ) : (
                 <motion.form
@@ -94,6 +99,10 @@ export default function NewsletterContent() {
             </AnimatePresence>
 
             <p className="text-xs opacity-60 mt-6">No spam. Unsubscribe anytime. We respect your inbox.</p>
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <span className="text-xs opacity-50">Or get instant browser alerts:</span>
+              <PushNotificationButton />
+            </div>
           </motion.div>
         </div>
       </section>

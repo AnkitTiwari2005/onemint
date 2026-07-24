@@ -15,6 +15,7 @@ export type GA4Events = {
   'Article Feedback': { slug: string; vote: 'up' | 'down' };
   'Article Dislike Reason': { slug: string; reason: string };
   'Affiliate Click': { program: string; href: string };
+  'Push Notification': { action: 'subscribed' | 'unsubscribed' };
 };
 
 /**
