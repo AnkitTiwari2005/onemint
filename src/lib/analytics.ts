@@ -14,6 +14,7 @@ export type GA4Events = {
   'Author Application': { type: 'guest' | 'staff'; category: string };
   'Article Feedback': { slug: string; vote: 'up' | 'down' };
   'Article Dislike Reason': { slug: string; reason: string };
+  'Affiliate Click': { program: string; href: string };
 };
 
 /**

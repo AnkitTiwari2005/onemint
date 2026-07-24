@@ -27,6 +27,7 @@ const NAV = [
       { label: 'Topic Suggestions', href: '/admin/suggestions', icon: Lightbulb },
       { label: 'Author Applications', href: '/admin/applications', icon: Users },
       { label: 'Messages', href: '/admin/messages', icon: MessageSquare },
+      { label: 'Enquiries', href: '/admin/enquiries', icon: Mail },
       { label: 'Comments', href: '/admin/comments', icon: MessageSquare },
     ],
   },
