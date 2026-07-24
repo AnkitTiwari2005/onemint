@@ -53,6 +53,9 @@ export function Header({ onSearchOpen }: HeaderProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        // Don't hijack shortcut when user is typing in a form field
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
         e.preventDefault();
         onSearchOpen();
       }

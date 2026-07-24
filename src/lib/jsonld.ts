@@ -4,7 +4,7 @@
  * <script type="application/ld+json"> by the <JsonLd> component.
  */
 
-const SITE = 'https://www.onemint.in';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 const SITE_NAME = 'OneMint';
 const LOGO_URL = `${SITE}/logo.png`;
 
@@ -62,7 +62,7 @@ export function buildOrganization() {
       areaServed: 'IN',
       availableLanguage: 'English',
     },
-    foundingDate: '2024',
+    foundingDate: '2010',
     areaServed: 'IN',
     description:
       "A knowledge platform covering personal finance, technology, health, and career for Indian readers.",

@@ -41,7 +41,8 @@ export default function PressPage() {
       {/* Quick facts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-7 mb-12">
         {[
-          { label: 'Founded', value: '2010' },
+          { label: 'Est.', value: '2010' },
+          { label: 'Revival', value: '2026' },
           { label: 'Content Categories', value: '12+' },
           { label: 'Financial Tools', value: '25+' },
         ].map((f) => (

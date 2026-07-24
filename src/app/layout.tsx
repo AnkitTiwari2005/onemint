@@ -68,6 +68,8 @@ const jetbrains = localFont({
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
+
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -94,7 +96,7 @@ export const metadata: Metadata = {
         url: 'https://www.onemint.in/og-image.png',
         width: 1200,
         height: 630,
-        alt: "OneMint — India's Most Trusted Knowledge Platform",
+        alt: "OneMint — Personal Finance, Technology & Health for India",
       },
     ],
   },

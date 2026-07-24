@@ -7,10 +7,9 @@ import { series as staticSeries } from '@/data/series';
 
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').replace(/\/$/, '');
 
-// Force dynamic — sitemap re-fetches from DB on every request.
-// This ensures newly added authors/articles appear in the sitemap immediately
-// without waiting for a redeploy. Change to revalidate = 3600 once stable.
-export const revalidate = 0;
+// Revalidate sitemap every hour — prevents DB hammering on every crawler request.
+// New articles/authors appear within 1 hour without a redeploy.
+export const revalidate = 3600;
 
 
 const TOOL_SLUGS = [
