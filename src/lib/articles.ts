@@ -122,21 +122,35 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
   source: 'db' | 'static';
 }> {
   if (supabaseAdmin) {
-    try {
-      const { data, error } = await supabaseAdmin
+    // Base columns that always exist
+    const BASE_SELECT =
+      'id, title, slug, excerpt, content, cover_image, ' +
+      'category_id, tags, read_time_minutes, published_at, ' +
+      'meta_title, meta_description, faqs, updated_at, ' +
+      'categories(*), authors(*)';
+
+    // Extended columns added by migration — may not exist yet
+    const EXTENDED_SELECT = BASE_SELECT + ', is_sponsored, sponsor_name, correction_note';
+
+    const tryQuery = async (selectStr: string) => {
+      return supabaseAdmin!
         .from('articles')
-        .select(
-          'id, title, slug, excerpt, content, cover_image, ' +
-          'category_id, tags, read_time_minutes, published_at, ' +
-          'meta_title, meta_description, faqs, ' +
-          'is_sponsored, sponsor_name, correction_note, updated_at, ' +
-          'categories(*), ' +
-          'authors(*)'
-        )
+        .select(selectStr)
         .eq('slug', slug)
         .eq('status', 'published')
         .is('deleted_at', null)
         .maybeSingle();
+    };
+
+    try {
+      // Try with extended columns first
+      let { data, error } = await tryQuery(EXTENDED_SELECT);
+
+      // If error (e.g. column doesn't exist yet), fall back to base columns
+      if (error) {
+        console.warn('[fetchPublishedArticleBySlug] Extended query failed, trying base columns:', error.message);
+        ({ data, error } = await tryQuery(BASE_SELECT));
+      }
 
       if (!error && data) {
         return { article: data as unknown as PublicArticle, source: 'db' };
@@ -157,6 +171,7 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
 
   return { article: null, source: 'static' };
 }
+
 
 /**
  * Convert a PublicArticle (DB shape) to the Article shape expected by
