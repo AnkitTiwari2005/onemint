@@ -193,7 +193,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       {faqSchema && <JsonLd data={faqSchema} />}
       {/* Scroll-triggered newsletter CTA — appears after 60% scroll depth */}
       <NewsletterScrollCTA />
-      <article className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 lg:py-12">
+      <article className="max-w-[var(--article-max)] mx-auto px-4 sm:px-6 py-8 lg:py-12">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs font-medium text-[var(--color-ink-tertiary)] mb-8 font-[family-name:var(--font-ui)]" aria-label="Breadcrumb">
@@ -321,11 +321,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </figure>
         )}
 
-        {/* Article Layout — sidebar left, body right */}
-        <div className="flex items-start gap-10 lg:gap-14">
+        {/* Article Layout */}
+        <div className="relative flex flex-col lg:flex-row gap-16">
           {/* TOC + Trending Sidebar */}
           {tocItems.length > 0 && (
-            <aside className="hidden lg:block w-56 shrink-0">
+            <aside className="hidden lg:block w-[220px] shrink-0 toc-sidebar">
               <div className="sticky top-28 flex flex-col gap-6">
                 <TableOfContents items={tocItems} />
                 <TrendingWidget currentSlug={slug} />
@@ -334,7 +334,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           )}
 
           {/* Article Body */}
-          <div className="article-body flex-1 min-w-0 overflow-hidden">
+          <div className="article-body flex-1 min-w-0">
             {hasDbContent ? (
               <ErrorBoundary componentName="ArticleBody">
                 <ArticleBodyClient content={article!.content!} />

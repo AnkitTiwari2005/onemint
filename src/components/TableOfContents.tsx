@@ -48,7 +48,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   if (items.length === 0) return null;
 
   return (
-    <nav aria-label="Table of contents">
+    <nav className="sticky top-24" aria-label="Table of contents">
       <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--color-ink-tertiary)] mb-4 font-[family-name:var(--font-ui)]">
         On this page
       </h4>
