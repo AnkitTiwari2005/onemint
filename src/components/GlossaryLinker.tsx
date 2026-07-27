@@ -40,9 +40,36 @@ export function GlossaryLinker({ containerRef }: { containerRef: React.RefObject
 
   useEffect(() => {
     if (done.current) return;
-    const container = containerRef.current;
-    if (!container) return;
 
+    // Defer to idle time so article text renders & is scrollable immediately.
+    // requestIdleCallback (with 2s timeout + setTimeout fallback) ensures
+    // the DOM scan never blocks first paint or interactivity.
+    const run = () => {
+      if (done.current) return;
+      const container = containerRef.current;
+      if (!container) return;
+      scanAndHighlight(container);
+      done.current = true;
+    };
+
+    let handle: number | ReturnType<typeof setTimeout>;
+    if ('requestIdleCallback' in window) {
+      handle = requestIdleCallback(run, { timeout: 2000 });
+    } else {
+      handle = setTimeout(run, 200);
+    }
+    return () => {
+      if ('requestIdleCallback' in window) cancelIdleCallback(handle as number);
+      else clearTimeout(handle as ReturnType<typeof setTimeout>);
+    };
+  }, [containerRef]);
+
+  return null;
+}
+
+// ── Extracted scan logic (runs in idle time) ─────────────────────────────────
+
+function scanAndHighlight(container: HTMLElement) {
     // Walk all text nodes in the article body
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
@@ -108,9 +135,4 @@ export function GlossaryLinker({ containerRef }: { containerRef: React.RefObject
         );
       } catch { /* skip if DOM manipulation fails */ }
     }
-
-    done.current = true;
-  }, [containerRef]);
-
-  return null;
 }

@@ -128,7 +128,7 @@ export function NewsletterScrollCTA() {
                       className="font-bold text-sm leading-tight"
                       style={{ fontFamily: 'var(--font-ui)', color: 'var(--color-ink)' }}
                     >
-                      You&apos;re subscribed! 🎉
+                      You&apos;re subscribed!
                     </p>
                     <p
                       className="text-xs"
@@ -278,7 +278,7 @@ export function NewsletterScrollCTA() {
                         className="font-bold text-sm"
                         style={{ fontFamily: 'var(--font-ui)', color: 'var(--color-ink)' }}
                       >
-                        You&apos;re subscribed! 🎉
+                        You&apos;re subscribed!
                       </p>
                       <p
                         className="text-xs mt-0.5"

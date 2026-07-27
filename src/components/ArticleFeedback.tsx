@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThumbsUp, ThumbsDown, ChevronDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
 const DISLIKE_REASONS = [
@@ -154,19 +154,22 @@ export function ArticleFeedback({ slug }: { slug?: string }) {
 
         {/* Thank you message */}
         {feedback && !showReasons && (
-          <motion.p
+          <motion.div
             key="thanks"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="text-xs text-[var(--color-ink-tertiary)] mt-3 font-[family-name:var(--font-ui)]"
+            className="flex items-center justify-center gap-1.5 mt-3"
           >
-            {feedback === 'up'
-              ? 'Thanks for the feedback! Glad it helped. 🎉'
-              : reasonSubmitted && selectedReason
-              ? `Thanks — we'll work on ${selectedReason.toLowerCase()}.`
-              : "Thanks — we'll work on improving this."}
-          </motion.p>
+            {feedback === 'up' && <CheckCircle2 size={13} className="text-green-500 shrink-0" />}
+            <p className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
+              {feedback === 'up'
+                ? 'Thanks for the feedback! Glad it helped.'
+                : reasonSubmitted && selectedReason
+                ? `Thanks — we'll work on ${selectedReason.toLowerCase()}.`
+                : "Thanks — we'll work on improving this."}
+            </p>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
