@@ -17,15 +17,10 @@ import { buildNewsletterHtml, type Series, type ArticleCard } from '@/lib/newsle
 const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 const NVIDIA_MODEL    = 'meta/llama-4-maverick-17b-128e-instruct';
 
-/** Categories shown on Sundays — lifestyle, curiosity, wellness picks */
-const SUNDAY_CATEGORIES = [
-  'health-wellness',
-  'food-nutrition',
-  'lifestyle-home',
-  'travel-places',
-  'science-space',
-  'entertainment-culture',
-];
+// Sunday uses no category filter — sends top 5 most-read articles
+// across ALL categories (same pool as Monday, different tone & branding).
+// Previously restricted to lifestyle categories which caused zero-article
+// failures on a finance site — fixed here.
 
 /** Wednesday category rotation — deterministic by ISO week number mod 12 */
 const WEDNESDAY_ROTATION = [
@@ -50,7 +45,7 @@ const FALLBACK_INTROS: Record<Series, string> = {
   wednesday:
     "This week we're going deep on one subject — the articles below cover it from every angle worth knowing. Whether you're new to this topic or already following it closely, these reads will take you further.",
   sunday:
-    "Slower reads for a slower morning. This Sunday's picks are the kind of pieces that reward a second cup of chai — thoughtful, well-researched, and chosen for the weekend reader in you.",
+    "It's the weekend — the best time to catch up on everything you meant to read this week. Here are the top picks from OneMint that our readers found most useful, most thought-provoking, and most worth sharing.",
 };
 
 // ── ISO week helper ───────────────────────────────────────────────────────────
@@ -357,11 +352,8 @@ export async function runNewsletter(
     spotlightCat   = WEDNESDAY_ROTATION[weekNo % WEDNESDAY_ROTATION.length];
     categoryFilter = [spotlightCat.slug];
     maxArticles    = 4;
-  } else if (series === 'sunday') {
-    categoryFilter = SUNDAY_CATEGORIES;
-    maxArticles    = 4;
   }
-  // monday: no filter, top 5 from all categories
+  // monday + sunday: no category filter — top 5 most-read from all categories
 
   // ── 3. Fetch top slugs from GA4 ──────────────────────────────────────────
   const topSlugs = await fetchTopSlugsFromGA4(30);
