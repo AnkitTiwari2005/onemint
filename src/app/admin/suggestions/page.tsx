@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, Loader2, ThumbsUp } from 'lucide-react';
 
 interface Suggestion {
   id: string;
@@ -151,8 +151,8 @@ export default function AdminSuggestionsPage() {
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 4px', lineHeight: 1.4 }}>{s.title}</p>
-                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: '0 0 10px' }}>
-                      👍 {s.votes} votes · {s.category}
+                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <ThumbsUp size={12} /> {s.votes} votes · {s.category}
                     </p>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 10, background: st.bg, color: st.color, fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>{st.label}</span>

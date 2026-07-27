@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Mail, CheckCircle2, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -325,11 +325,13 @@ export function NewsletterScrollCTA() {
                         }}
                       >
                         {formState === 'loading' && <Loader2 size={14} className="animate-spin" />}
-                        {formState === 'loading'
-                          ? 'Subscribing…'
-                          : formState === 'error'
-                          ? '❌ Try again'
-                          : 'Subscribe Free →'}
+                        {formState === 'loading' ? (
+                          'Subscribing…'
+                        ) : formState === 'error' ? (
+                          <span className="flex items-center gap-1.5"><AlertCircle size={15} /> Try again</span>
+                        ) : (
+                          <span className="flex items-center gap-1.5">Subscribe Free <ArrowRight size={15} /></span>
+                        )}
                       </button>
                     </form>
                   </>

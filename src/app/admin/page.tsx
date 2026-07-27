@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FileText, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, Loader2, BarChart2 } from 'lucide-react';
+import { FileText, Users, Lightbulb, TrendingUp, PenSquare, Plus, MessageSquare, BookMarked, Loader2, BarChart2, ThumbsUp } from 'lucide-react';
 import { formatIndianNumber } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { getCachedAnalytics } from '@/lib/analyticsCache';
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
                 <div key={s.id || i} style={{ padding: '12px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 2px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title.slice(0, 45)}{s.title.length > 45 ? '…' : ''}</p>
-                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>👍 {s.votes} votes · {s.category}</p>
+                    <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}><ThumbsUp size={11} /> {s.votes} votes · {s.category}</p>
                   </div>
                   <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, background: `${STATUS_COLORS[s.status] || '#6B7280'}18`, color: STATUS_COLORS[s.status] || '#6B7280', fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
                     {s.status === 'in-progress' ? 'In Progress' : s.status === 'published' ? 'Published' : 'Pending'}

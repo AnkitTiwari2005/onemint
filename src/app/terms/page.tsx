@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AlertTriangle } from 'lucide-react';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
@@ -67,7 +68,7 @@ export default function TermsPage() {
         }}
       >
         <p style={{ fontWeight: 700, fontSize: 15, color: '#92400e', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          ⚠️ Important Financial Disclaimer
+          <AlertTriangle size={18} style={{ color: '#d97706', flexShrink: 0 }} /> Important Financial Disclaimer
         </p>
         <p style={{ fontSize: 14, color: '#78350f', lineHeight: 1.7, margin: 0 }}>
           OneMint is <strong>not a SEBI-registered Investment Advisor</strong>. All articles, tools,

@@ -19,7 +19,6 @@ import { buildArticle, buildBreadcrumbs, buildFAQ } from '@/lib/jsonld';
 import type { FaqItem } from '@/lib/jsonld';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ArticleBodyClient } from './ArticleBodyClient';
-import { TrendingWidget } from '@/components/TrendingWidget';
 import { PushNotificationButton } from '@/components/PushNotificationButton';
 import { ArticleViewTracker } from '@/components/ArticleViewTracker';
 
@@ -328,7 +327,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <aside className="hidden lg:block w-[220px] shrink-0 toc-sidebar">
               <div className="sticky top-28 flex flex-col gap-6">
                 <TableOfContents items={tocItems} />
-                <TrendingWidget currentSlug={slug} />
               </div>
             </aside>
           )}

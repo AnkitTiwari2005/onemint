@@ -1,6 +1,7 @@
 'use client';
 
 import { trackEvent } from '@/lib/analytics';
+import { ArrowUpRight } from 'lucide-react';
 
 interface AffiliateLinkProps {
   href: string;
@@ -48,8 +49,8 @@ export function AffiliateLink({ href, program, children, className = '', variant
     >
       {children}
       {variant === 'link' && (
-        <span className="ml-0.5 text-[9px] font-bold text-[var(--color-ink-tertiary)] uppercase tracking-wider align-super opacity-0 group-hover:opacity-100 transition-opacity select-none">
-          ↗aff
+        <span className="inline-flex items-center ml-0.5 text-[9px] font-bold text-[var(--color-ink-tertiary)] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity select-none">
+          <ArrowUpRight size={10} className="-mr-0.5" />aff
         </span>
       )}
     </a>

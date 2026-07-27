@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { formatIndianNumber } from '@/lib/utils';
-import { HeartPulse, ExternalLink } from 'lucide-react';
+import { HeartPulse, ExternalLink, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 type AgeBracket = 'under30' | '30to45' | '45to60' | 'above60';
@@ -154,7 +154,7 @@ export default function HealthInsurancePage() {
         Compare plans on Policybazaar <ExternalLink size={14} />
       </a>
       <p className="text-xs text-[var(--color-ink-tertiary)] leading-relaxed">
-        ⚠️ These are estimates only. Actual premiums vary significantly by insurer, your health history, and specific policy terms.
+        <span className="inline-flex items-center gap-1 text-amber-600 font-medium mr-1"><AlertCircle size={13} className="shrink-0" /> Note:</span> These are estimates only. Actual premiums vary significantly by insurer, your health history, and specific policy terms.
       </p>
     </div>
   );

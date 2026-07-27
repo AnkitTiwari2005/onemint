@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   MessageSquare, Send, Loader2, CheckCircle2,
   AlertCircle, User, CornerDownRight, X,
+  ThumbsUp, Heart, Flame, Lightbulb, Smile,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -23,6 +24,13 @@ type FormState   = { name: string; email: string; body: string };
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const EMOJIS  = ['👍', '❤️', '🔥', '💡', '😂'] as const;
+const REACTION_ICONS: Record<string, { icon: React.ReactNode; label: string; color?: string }> = {
+  '👍': { icon: <ThumbsUp size={14} />, label: 'Like' },
+  '❤️': { icon: <Heart size={14} className="text-rose-500" />, label: 'Love', color: '#f43f5e' },
+  '🔥': { icon: <Flame size={14} className="text-orange-500" />, label: 'Insightful', color: '#f97316' },
+  '💡': { icon: <Lightbulb size={14} className="text-amber-500" />, label: 'Brilliant', color: '#f59e0b' },
+  '😂': { icon: <Smile size={14} className="text-yellow-600" />, label: 'Amusing', color: '#ca8a04' },
+};
 const EMPTY   : FormState = { name: '', email: '', body: '' };
 const LS_KEY  = 'onemint-reactions';
 
@@ -98,24 +106,25 @@ function ReactionBar({ commentId, reactions, myReactions, onReact }: ReactionBar
       {EMOJIS.map(emoji => {
         const count  = reactions[commentId]?.[emoji] ?? 0;
         const active = !!myReactions[`${commentId}:${emoji}`];
+        const cfg    = REACTION_ICONS[emoji] || { icon: null, label: 'reaction' };
         return (
           <button
             key={emoji}
             onClick={() => onReact(commentId, emoji)}
-            title={active ? `Remove ${emoji}` : `React with ${emoji}`}
+            title={active ? `Remove ${cfg.label}` : `React with ${cfg.label}`}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-              padding: '3px 9px', borderRadius: 20,
-              border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-border)'}`,
-              background: active ? 'rgba(22,163,74,0.10)' : 'transparent',
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '3px 10px', borderRadius: 20,
+              border: `1.5px solid ${active ? (cfg.color || 'var(--color-accent)') : 'var(--color-border)'}`,
+              background: active ? `${cfg.color || 'var(--color-accent)'}15` : 'transparent',
               cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-ui)',
-              color: active ? 'var(--color-accent)' : 'var(--color-ink-secondary)',
+              color: active ? (cfg.color || 'var(--color-accent)') : 'var(--color-ink-secondary)',
               fontWeight: active ? 700 : 400,
               transition: 'all 0.15s ease',
               transform: active ? 'scale(1.05)' : 'scale(1)',
             }}
           >
-            <span style={{ fontSize: 14 }}>{emoji}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>{cfg.icon}</span>
             {count > 0 && <span style={{ fontSize: 12 }}>{count}</span>}
           </button>
         );
