@@ -356,21 +356,25 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
                 </Link>
               </div>
               <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                {catArticles.map((article, i) => (
-                  <motion.div key={article.id} variants={cardVariants} data-motion="true">
-                    <ArticleCard article={article} variant="standard" index={i} />
-                  </motion.div>
-                ))}
+                {catArticles.map((article, i) => {
+                  // For the 2nd category row, swap the 4th card with the In-Feed Ad
+                  // This places the ad inside the grid, constraining its width and height to match a card perfectly.
+                  if (catIndex === 1 && i === 3) {
+                    return (
+                      <motion.div key="in-feed-ad" variants={cardVariants} data-motion="true" className="w-full h-full min-h-[300px] flex flex-col justify-center">
+                        <InFeedAd />
+                      </motion.div>
+                    );
+                  }
+                  
+                  return (
+                    <motion.div key={article.id} variants={cardVariants} data-motion="true">
+                      <ArticleCard article={article} variant="standard" index={i} />
+                    </motion.div>
+                  );
+                })}
               </StaggerContainer>
             </AnimatedSection>
-
-            {/* In-feed ad — injected after the 2nd category row (catIndex 1).
-                Sits between two rows of article cards — feels native, not intrusive. */}
-            {catIndex === 1 && (
-              <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
-                <InFeedAd />
-              </div>
-            )}
           </span>
         );
       })}
