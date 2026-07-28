@@ -21,6 +21,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ArticleBodyClient } from './ArticleBodyClient';
 import { PushNotificationButton } from '@/components/PushNotificationButton';
 import { ArticleViewTracker } from '@/components/ArticleViewTracker';
+import { AdSlot } from '@/components/AdSlot';
+
 
 // ISR: cache each article page for up to 1 hour.
 // On the next request after expiry, Next.js re-fetches from Supabase in the background.
@@ -322,11 +324,18 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
         {/* Article Layout */}
         <div className="relative flex flex-col lg:flex-row gap-16">
-          {/* TOC + Trending Sidebar */}
+          {/* TOC + Sidebar Ad */}
           {tocItems.length > 0 && (
             <aside className="hidden lg:block w-[220px] shrink-0 toc-sidebar">
               <div className="sticky top-28 flex flex-col gap-6">
                 <TableOfContents items={tocItems} />
+                {/* Sidebar display ad — only on desktop, below TOC */}
+                <AdSlot
+                  slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR}
+                  format="auto"
+                  label="Sidebar"
+                  className="w-full"
+                />
               </div>
             </aside>
           )}
@@ -464,6 +473,13 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             currentCategoryId={article!.categories?.slug ?? article!.category_id}
             currentTags={article!.tags ?? []}
             allArticles={allArticles}
+          />
+
+          {/* Multiplex ad — content recommendation grid after related articles */}
+          <AdSlot
+            slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_MULTIPLEX}
+            format="autorelaxed"
+            label="After Related Articles"
           />
 
           {/* Next Article — read on */}
