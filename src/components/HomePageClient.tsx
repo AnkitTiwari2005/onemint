@@ -26,8 +26,48 @@ import { cardVariants, heroVariants } from '@/lib/motion';
 import { cn } from '@/lib/cn';
 import { trackEvent } from '@/lib/analytics';
 import type { Article } from '@/data/articles';
+import { AdSlot } from '@/components/AdSlot';
+
+
+const IN_FEED_SLOT       = process.env.NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED;
+const IN_FEED_LAYOUT_KEY = process.env.NEXT_PUBLIC_ADSENSE_IN_FEED_LAYOUT_KEY;
+const PUB_ID             = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID;
+
+/**
+ * InFeedAd — renders the in-feed native ad unit between category rows.
+ * Requires data-ad-layout-key (unique to in-feed units) which AdSlot doesn't expose.
+ * In dev mode falls back to AdSlot placeholder.
+ */
+function InFeedAd() {
+  if (process.env.NODE_ENV !== 'production') {
+    return <AdSlot slotId={IN_FEED_SLOT} format="infeed" label="In-feed (between categories)" />;
+  }
+  if (!PUB_ID || !IN_FEED_SLOT) return null;
+  return (
+    <div aria-label="Advertisement">
+      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>
+        Advertisement
+      </p>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-format="fluid"
+        data-ad-layout-key={IN_FEED_LAYOUT_KEY ?? '-7h+er-j-q+3j'}
+        data-ad-client={PUB_ID}
+        data-ad-slot={IN_FEED_SLOT}
+      />
+      {/* Push is handled by AdSlot's useEffect; InFeedAd is SSR-safe (no window access) */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: '(adsbygoogle = window.adsbygoogle || []).push({});',
+        }}
+      />
+    </div>
+  );
+}
 
 type NewsletterState = 'idle' | 'loading' | 'success' | 'error';
+
 
 interface HomePageClientProps {
   /** Pre-fetched articles from the server — passed as props to avoid client-side fetch */
@@ -299,31 +339,43 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
       </AnimatedSection>
 
       {/* ── Category Rows ──────────────────────────────────────────────── */}
-      {staticCategories.slice(0, 6).map((category) => {
+      {staticCategories.slice(0, 6).map((category, catIndex) => {
         const catArticles = articles.filter((a) => a.categoryId === category.slug || a.categoryId === category.id).slice(0, 4);
         if (catArticles.length === 0) return null;
         return (
-          <AnimatedSection key={category.id} delay={0} className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-1 h-6 rounded-full" style={{ background: category.accentColor }} />
-                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">{category.name}</h2>
-                <span className="hidden sm:inline text-sm text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{category.description}</span>
+          <span key={category.id}>
+            <AnimatedSection delay={0} className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-6 rounded-full" style={{ background: category.accentColor }} />
+                  <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--color-ink)]">{category.name}</h2>
+                  <span className="hidden sm:inline text-sm text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{category.description}</span>
+                </div>
+                <Link href={`/topics/${category.slug}`} className="text-sm font-semibold flex items-center gap-1 font-[family-name:var(--font-ui)] hover:gap-2 transition-all" style={{ color: category.accentColor }}>
+                  View all <ArrowRight size={14} />
+                </Link>
               </div>
-              <Link href={`/topics/${category.slug}`} className="text-sm font-semibold flex items-center gap-1 font-[family-name:var(--font-ui)] hover:gap-2 transition-all" style={{ color: category.accentColor }}>
-                View all <ArrowRight size={14} />
-              </Link>
-            </div>
-            <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {catArticles.map((article, i) => (
-                <motion.div key={article.id} variants={cardVariants} data-motion="true">
-                  <ArticleCard article={article} variant="standard" index={i} />
-                </motion.div>
-              ))}
-            </StaggerContainer>
-          </AnimatedSection>
+              <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                {catArticles.map((article, i) => (
+                  <motion.div key={article.id} variants={cardVariants} data-motion="true">
+                    <ArticleCard article={article} variant="standard" index={i} />
+                  </motion.div>
+                ))}
+              </StaggerContainer>
+            </AnimatedSection>
+
+            {/* In-feed ad — injected after the 2nd category row (catIndex 1).
+                Sits between two rows of article cards — feels native, not intrusive. */}
+            {catIndex === 1 && (
+              <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
+                <InFeedAd />
+              </div>
+            )}
+          </span>
         );
       })}
+
+
 
       {/* ── Most Read + Newsletter ──────────────────────────────────────── */}
       <AnimatedSection className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 mb-14">
