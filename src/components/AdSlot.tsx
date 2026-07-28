@@ -17,6 +17,8 @@ interface AdSlotProps {
   /** Optional label shown above ad */
   label?: string;
   className?: string;
+  /** Constrains the max vertical space the ad can claim (AdSense supported) */
+  maxHeight?: string | number;
 }
 
 const PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID; // e.g. "ca-pub-XXXXXXXXXXXXXXXX"
@@ -28,7 +30,7 @@ const PUB_ID = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID; // e.g. "ca-pub-XXXXXXXXX
  * In development: renders a labelled placeholder box — no real ads shown.
  * In production without PUB_ID or slotId: renders nothing (fail-safe).
  */
-export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', className = '' }: AdSlotProps) {
+export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', className = '', maxHeight }: AdSlotProps) {
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
 
@@ -91,7 +93,7 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
         <ins
           ref={ref}
           className="adsbygoogle"
-          style={{ display: 'block' }}
+          style={{ display: 'block', maxHeight: maxHeight ?? 480 }}
           data-ad-client={PUB_ID}
           data-ad-slot={slotId}
           data-ad-format="autorelaxed"
@@ -109,7 +111,7 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
       <ins
         ref={ref}
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', maxHeight: maxHeight ?? (format === 'auto' ? 280 : undefined) }}
         data-ad-client={PUB_ID}
         data-ad-slot={slotId}
         data-ad-format={format === 'infeed' ? 'fluid' : format}
