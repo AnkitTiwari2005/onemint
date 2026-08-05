@@ -8,6 +8,10 @@ import { Loader2, CheckCircle2, Heart } from 'lucide-react';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
 
+// Computed at module scope — identical value on server and client,
+// preventing React hydration mismatches from timezone differences.
+const CURRENT_YEAR = new Date().getFullYear();
+
 const EXPLORE_LINKS = [
   ['Home', '/'],
   ['Topics', '/topics'],
@@ -47,7 +51,7 @@ const TOOL_LINKS = [
 export function Footer() {
   const [email, setEmail] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
-  const copyright = `© ${new Date().getFullYear()} OneMint. All rights reserved. Not SEBI registered. Educational content only.`;
+  const copyright = `© ${CURRENT_YEAR} OneMint. All rights reserved. Not SEBI registered. Educational content only.`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

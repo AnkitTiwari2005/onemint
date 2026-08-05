@@ -53,9 +53,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   const { articles: allArticles } = await fetchPublishedArticles();
 
-  // Filter to this category using the slug (works for both DB and static fallback)
+  // Filter to this category using slug from join, falling back to category_id
+  // (handles cases where the categories join is null due to DB config)
   const catArticles = allArticles
-    .filter((a) => a.categories?.slug === category!.slug)
+    .filter((a) =>
+      a.categories?.slug === category!.slug ||
+      a.category_id === category!.id ||
+      a.category_id === category!.slug
+    )
     .map((a, i) => toArticle(a, i));
 
   const featured = catArticles[0];
