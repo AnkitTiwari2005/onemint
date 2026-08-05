@@ -10,8 +10,13 @@ const nextConfig = {
   // Remove X-Powered-By: Next.js header — no functional effect, pure security hygiene
   poweredByHeader: false,
   images: {
+    // Use Cloudinary as the image optimization CDN instead of Vercel's optimizer.
+    // This completely bypasses Vercel's 5,000/month free-tier image transformation limit.
+    // All <Image> components are automatically routed through Cloudinary's fetch endpoint.
+    loader: 'custom',
+    loaderFile: './src/lib/cloudinary-loader.ts',
+    // remotePatterns still needed so Next.js allows the domains at the framework level
     remotePatterns: [
-      // Allow all HTTPS image sources — this CMS publishes content from arbitrary domains
       { protocol: 'https', hostname: '**', port: '', pathname: '/**' },
     ],
   },
