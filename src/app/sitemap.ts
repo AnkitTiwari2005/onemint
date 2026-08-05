@@ -81,23 +81,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoryPages: MetadataRoute.Sitemap;
   try {
     if (supabaseAdmin) {
-      // Query which category slugs actually have published articles.
-      // Supabase returns the joined relation as an array even for many-to-one.
+      // Query category_id directly — safer than joining 'categories' table
+      // which may return an object (many-to-one) instead of an array.
       const { data: articlesWithCats } = await supabaseAdmin
         .from('articles')
-        .select('categories(slug)')
+        .select('category_id')
         .eq('status', 'published');
 
       if (articlesWithCats && articlesWithCats.length > 0) {
-        // Collect unique category slugs that have at least one article.
-        // categories is returned as an array by the Supabase JS client.
-        const activeCatSlugs = new Set<string>();
-        articlesWithCats.forEach((row: { categories: { slug: string }[] | null }) => {
-          const cats = row.categories ?? [];
-          cats.forEach((c) => { if (c.slug) activeCatSlugs.add(c.slug); });
-        });
-        categoryPages = Array.from(activeCatSlugs).map((slug) => ({
-          url: `${BASE}/topics/${slug}`,
+        // Collect unique category IDs that have at least one published article
+        const activeCatIds = new Set<string>(
+          articlesWithCats
+            .map((row: { category_id: string | null }) => row.category_id)
+            .filter((id): id is string => !!id)
+        );
+        // Map IDs → slugs using staticCategories (matches by id OR slug)
+        const activeCategories = staticCategories.filter(
+          c => activeCatIds.has(c.id) || activeCatIds.has(c.slug)
+        );
+        categoryPages = activeCategories.map((c) => ({
+          url: `${BASE}/topics/${c.slug}`,
           lastModified: new Date(),
           changeFrequency: 'daily' as const,
           priority: 0.8,
@@ -128,6 +131,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
   }
+
 
   // ── Authors ───────────────────────────────────────────────────────────────
   let authorPages: MetadataRoute.Sitemap;

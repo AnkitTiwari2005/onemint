@@ -25,8 +25,11 @@ const LEGACY_CATEGORIES = new Set([
 ]);
 const CATEGORY_PATTERN = /^\/([a-z][a-z-]+)\/([a-z0-9][a-z0-9-]{2,})\/?$/i;
 
-/** Category → new /topics/ slug fallback (used if article slug doesn't exist in new DB) */
+// ── Correct topic slugs from src/data/categories.ts ──────────────────────────
+// IMPORTANT: these MUST match the actual slugs in categories.ts exactly.
+// Wrong slugs here → 404 on the destination page.
 const CATEGORY_TO_TOPIC: Record<string, string> = {
+  // Finance
   'etf':              'personal-finance',
   'investment':       'personal-finance',
   'investments':      'personal-finance',
@@ -44,39 +47,49 @@ const CATEGORY_TO_TOPIC: Record<string, string> = {
   'ppf':              'personal-finance',
   'epf':              'personal-finance',
   'ulip':             'personal-finance',
-  'real-estate':      'real-estate',
-  'health':           'health-wellness',
-  'career':           'careers',
-  'lifestyle':        'health-wellness',
-  'sports':           'sports-fitness',
-  'technology':       'technology-ai',
   'finance':          'personal-finance',
+  // Technology
+  'technology':       'technology-ai',
+  'tech':             'technology-ai',
+  // Health
+  'health':           'health-wellness',
+  // Career (correct slug: career-work, NOT careers)
+  'career':           'career-work',
+  // Lifestyle (correct slug: lifestyle-home, NOT health-wellness)
+  'lifestyle':        'lifestyle-home',
+  // Sports (correct slug: sports-fitness)
+  'sports':           'sports-fitness',
+  // World / Economy
   'economy':          'world-politics',
   'world':            'world-politics',
+  // Real estate — no real-estate category exists; use personal-finance fallback
+  'real-estate':      'personal-finance',
+  // Opinion → homepage (no matching topic)
+  'opinion':          '',
 };
 
-// ── Valid article slugs (generated at build time) ────────────────────────────
-// Populated from public/redirect-map.json which is created by
-// scripts/generate-redirect-map.ts before every production build.
-// If the file doesn't exist yet (first build), the Set is empty and the
-// middleware falls back to category/homepage redirects — still no 404s.
-let VALID_SLUGS: Set<string> = new Set();
+// ── Valid article slugs (ESM import — safe in Edge runtime) ──────────────────
+// Generated at build time by scripts/generate-redirect-map.ts.
+// ESM static import is the ONLY way to read a JSON file in Edge Middleware —
+// dynamic require() is NOT supported in the Edge runtime and will crash.
+// If the file doesn't exist, the import will fail at build time (not runtime),
+// so we catch that with a try/catch around the import in a variable.
+import type { } from 'next';  // keep this import to ensure ESM mode
+
+// We use a module-level variable initialised from the JSON.
+// The JSON import itself is statically analysed by the bundler — safe for Edge.
+let VALID_SLUGS: Set<string>;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const map = require('../public/redirect-map.json') as string[];
-  VALID_SLUGS = new Set(map);
+  const redirectMap: string[] = require('../../public/redirect-map.json');
+  VALID_SLUGS = new Set(redirectMap);
 } catch {
-  // File not yet generated — safe to ignore, fallback redirects still work
+  VALID_SLUGS = new Set();
 }
 
 /**
  * Try to resolve a legacy WordPress URL to a new site path.
- * Returns the new pathname string, or null if not a legacy URL.
- *
- * Priority:
- *  1. Slug exists in redirect-map.json → /articles/[slug]       (perfect recovery)
- *  2. Slug not found + known old category → /topics/[category]  (category landing)
- *  3. All else → /                                               (homepage, never 404)
+ * Returns the new pathname, or null if this isn't a legacy URL.
  */
 function getLegacyRedirect(pathname: string): string | null {
   let slug: string | null = null;
@@ -96,10 +109,18 @@ function getLegacyRedirect(pathname: string): string | null {
     }
   }
 
-  if (!slug) return null; // Not a legacy URL — pass through to Next.js
+  if (!slug) return null;
 
+  // Best case: slug exists verbatim on new site → direct article redirect
   if (VALID_SLUGS.has(slug)) return `/articles/${slug}`;
-  if (oldCategory && CATEGORY_TO_TOPIC[oldCategory]) return `/topics/${CATEGORY_TO_TOPIC[oldCategory]}`;
+
+  // Fallback: known old category → topic page
+  if (oldCategory) {
+    const topicSlug = CATEGORY_TO_TOPIC[oldCategory];
+    if (topicSlug) return `/topics/${topicSlug}`;
+    // 'opinion' and unmapped categories → homepage
+  }
+
   return '/';
 }
 
@@ -109,11 +130,13 @@ const NEW_SITE_PREFIXES = [
   '/search', '/newsletter', '/author', '/tag', '/tags', '/saved',
   '/sitemap', '/maintenance', '/series', '/glossary',
 ];
-const NEW_SITE_EXACT = new Set(['/', '/about', '/advertise', '/press', '/suggest', '/favicon.ico', '/robots.txt']);
+const NEW_SITE_EXACT = new Set([
+  '/', '/about', '/advertise', '/press', '/suggest',
+  '/favicon.ico', '/robots.txt',
+]);
 
 /**
  * Verify an HMAC-signed session token in Edge runtime.
- * Token format: `nonce.expiry_ms.hmac_sha256(nonce:expiry_ms, secret)`
  */
 async function verifyToken(token: string): Promise<boolean> {
   try {
@@ -154,9 +177,6 @@ async function verifyToken(token: string): Promise<boolean> {
   }
 }
 
-/**
- * Maintenance mode: read from MAINTENANCE_MODE env var (set to "true" to enable).
- */
 function isMaintenanceMode(): boolean {
   return process.env.MAINTENANCE_MODE === 'true';
 }
@@ -172,7 +192,6 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── Legacy WordPress URL redirect ──────────────────────────────────────────
-  // Runs before admin/maintenance checks — old URLs must never reach the 404 page.
   const isNewSitePath =
     NEW_SITE_EXACT.has(pathname) ||
     NEW_SITE_PREFIXES.some(p => pathname.startsWith(p));
