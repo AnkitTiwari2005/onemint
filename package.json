@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "node -e \"require('child_process').execSync('npx ts-node --skip-project --compiler-options \\'{}\\' scripts/generate-redirect-map.ts', {stdio:'inherit', env: {...process.env}})\" || true",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
