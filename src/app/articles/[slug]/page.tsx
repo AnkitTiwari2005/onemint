@@ -280,8 +280,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <span className="opacity-50">•</span>
                   <BookOpen size={10} />
                   <span className="font-semibold text-[var(--color-ink-secondary)]">{article!.read_time_minutes ?? 5} min read</span>
-                  <span className="opacity-50">•</span>
-                  <ArticleViewTracker slug={slug} showCount={true} />
+                  <ArticleViewTracker slug={slug} showCount={false} />
                 </div>
                 {/* Author social links from DB */}
                 {author && (() => {
