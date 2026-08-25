@@ -3,10 +3,12 @@
  * Single source of truth so DB logic isn't duplicated.
  */
 
+import { unstable_cache } from 'next/cache';
 import { supabaseAdmin } from './supabase';
 import { articles as staticArticles } from '@/data/articles';
 import type { Article } from '@/data/articles';
 import { getCategoryById } from '@/data/categories';
+
 
 
 export interface PublicArticle {
@@ -68,8 +70,12 @@ function staticToPublic(a: typeof staticArticles[number]): PublicArticle {
   };
 }
 
-/** Fetch all published articles. Falls back to static data if DB unavailable/empty. */
-export async function fetchPublishedArticles(): Promise<{
+/** Fetch all published articles. Falls back to static data if DB unavailable/empty.
+ * Wrapped in unstable_cache so all callers (home, /articles, /topics/[slug],
+ * /tag/[slug], /author/[slug], /api/articles/public) share ONE DB query result
+ * per 60-second window instead of each firing independent Supabase round-trips.
+ */
+async function fetchPublishedArticlesUncached(): Promise<{
   articles: PublicArticle[];
   source: 'db' | 'static';
   degraded: boolean;
@@ -115,6 +121,14 @@ export async function fetchPublishedArticles(): Promise<{
     degraded: true,
   };
 }
+
+/** Cached entry point — identical signature/return shape to before; no call sites change. */
+export const fetchPublishedArticles = unstable_cache(
+  fetchPublishedArticlesUncached,
+  ['published-articles'],
+  { revalidate: 60, tags: ['articles'] }
+);
+
 
 /** Fetch a single published article by slug. Returns null if not found. */
 export async function fetchPublishedArticleBySlug(slug: string): Promise<{

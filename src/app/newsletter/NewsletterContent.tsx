@@ -8,7 +8,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, CheckCircle2, Loader2, Star, Users, Zap, Target, IndianRupee, Unlock } from 'lucide-react';
+import { Mail, CheckCircle2, Loader2, Star, Zap, Target, IndianRupee, Unlock } from 'lucide-react';
+
 import { PushNotificationButton } from '@/components/PushNotificationButton';
 
 type FormState = 'idle' | 'loading' | 'success' | 'error';
@@ -51,8 +52,9 @@ export default function NewsletterContent() {
               The smartest newsletter<br />in India
             </h1>
             <p className="text-lg lg:text-xl opacity-90 max-w-xl mx-auto font-[family-name:var(--font-body)] leading-relaxed mb-8">
-              One email, 3× a week. Covers money, tech, health — and the stuff nobody else explains well.
+              One email, 2× a week. Covers money, tech, health — and the stuff nobody else explains well.
             </p>
+
 
             <AnimatePresence mode="wait">
               {formState === 'success' ? (
@@ -64,7 +66,8 @@ export default function NewsletterContent() {
                 >
                   <CheckCircle2 size={48} className="mx-auto mb-4" />
                   <h2 className="text-2xl font-bold mb-2">You&apos;re in!</h2>
-                  <p className="opacity-90 mb-6">Check your inbox for a welcome email. See you on Monday!</p>
+                  <p className="opacity-90 mb-6">Check your inbox for a welcome email. First issue arrives Monday — and every Sunday after that.</p>
+
                   <div className="flex flex-col items-center gap-2">
                     <p className="text-xs opacity-70">Also get instant browser alerts for new articles:</p>
                     <PushNotificationButton />
@@ -110,12 +113,12 @@ export default function NewsletterContent() {
       {/* What You Get */}
       <section className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-ink)] mb-12 text-center">What you&apos;ll get every week</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
           {[
-            { icon: <Zap size={28} className="text-[var(--color-accent)]" />, title: 'Monday: Money Brief', desc: 'Markets, investments, tax updates — what happened and what it means for your wallet.' },
-            { icon: <Star size={28} className="text-[var(--color-accent-warm)]" />, title: 'Wednesday: Deep Dive', desc: 'One topic explained in 5 minutes — from AI regulation to health insurance fine print.' },
-            { icon: <Users size={28} className="text-[var(--color-cat-technology)]" />, title: 'Friday: Life & Career', desc: 'Productivity, career moves, health tips, and the best reads we found this week.' },
+            { icon: <Zap size={28} className="text-[var(--color-accent)]" />, title: 'Monday: Money Brief', desc: 'Markets, investments, tax updates — what happened and what it means for your wallet. Sent every Monday morning.' },
+            { icon: <Star size={28} className="text-[var(--color-accent-warm)]" />, title: 'Sunday: The Roundup', desc: 'One deep dive per week — from AI regulation to health insurance fine print. Plus the best reads we found.' },
           ].map((item) => (
+
             <div key={item.title} className="bg-[var(--color-surface)] rounded-2xl p-8 border border-[var(--color-border)] shadow-sm hover:shadow-[var(--shadow-card-hover)] transition-shadow">
               <div className="mb-4">{item.icon}</div>
               <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold text-[var(--color-ink)] mb-2">{item.title}</h3>

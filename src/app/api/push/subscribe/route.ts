@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
+
 
 /**
  * POST /api/push/subscribe  — store a push subscription from a browser
@@ -16,7 +18,16 @@ import { supabaseAdmin } from '@/lib/supabase';
  */
 
 export async function POST(req: NextRequest) {
+  // 10 push subscription registrations per IP per hour
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'push-subscribe', 10, 60 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
   try {
+
     const body = await req.json();
     const { endpoint, keys } = body;
 

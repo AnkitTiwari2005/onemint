@@ -15,10 +15,22 @@ const nextConfig = {
     // All <Image> components are automatically routed through Cloudinary's fetch endpoint.
     loader: 'custom',
     loaderFile: './src/lib/cloudinary-loader.ts',
-    // remotePatterns still needed so Next.js allows the domains at the framework level
+    // remotePatterns: explicit allowlist of trusted image source domains.
+    // Note: the custom Cloudinary loader intercepts <Image> calls first, so
+    // remotePatterns is a secondary safety check — but still worth being explicit.
     remotePatterns: [
-      { protocol: 'https', hostname: '**', port: '', pathname: '/**' },
+      // Cloudinary CDN — our image optimization proxy
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      // Unsplash — used as fallback cover images in static article data
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      // Supabase storage — author avatars and legacy uploads
+      { protocol: 'https', hostname: '*.supabase.co' },
+      // Cloudflare R2 — admin-uploaded article cover images (domain from env)
+      // Pattern matches *.r2.dev and custom R2 public domains
+      { protocol: 'https', hostname: '*.r2.dev' },
+      { protocol: 'https', hostname: '*.cloudflarestorage.com' },
     ],
+
   },
 
   // ── Canonical domain enforcement ────────────────────────────────────────

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
+
 
 const VALID_EMOJIS = ['👍', '❤️', '🔥', '💡', '😂'];
 
@@ -23,7 +25,17 @@ function getFingerprint(req: NextRequest): string {
  * Response: { reacted: boolean, emoji: string | null, count: number }
  */
 export async function POST(req: NextRequest) {
+  // 30 reactions per IP per hour
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'comment-react', 30, 60 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
+
   if (!supabaseAdmin) return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
+
 
   try {
     const { comment_id, emoji } = await req.json();

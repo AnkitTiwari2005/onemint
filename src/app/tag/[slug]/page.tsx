@@ -7,10 +7,11 @@ import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-// ISR: tag pages rebuild every 60s. dynamicParams=true allows new tags to
-// render on first request without a redeploy.
-export const revalidate = 60;
+// ISR: tag pages rebuild at most once per hour. Tag counts don't need
+// sub-minute freshness — 60s was the root cause of the 6x ISR writes overage.
+export const revalidate = 3600;
 export const dynamicParams = true;
+
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: canonicalUrl },
     // Tag pages with very few articles are low-value; keep them out of Google's index
     // but allow following links so Googlebot discovers the actual articles.
-    robots: { index: true, follow: true },
+    robots: { index: false, follow: true },
   };
 }
 

@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { typesenseAdmin } from '@/lib/typesense';
 import { supabaseAdmin } from '@/lib/supabase';
 
-// Only callable with the correct service secret
+// Only callable with the correct service secret.
+// Fails closed (401) if SYNC_SECRET is not explicitly configured —
+// intentionally NOT falling back to ADMIN_PASSWORD_HASH to keep credentials
+// fully isolated (a sync secret leak should not compromise admin login).
 function authorizeServiceCall(req: NextRequest): boolean {
-  const syncSecret = process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '';
+  const syncSecret = process.env.SYNC_SECRET || '';
   if (!syncSecret) return false;
   return req.headers.get('x-sync-secret') === syncSecret;
 }
+
 
 // Collection schema — defined once, reused for create + index
 const SCHEMA = {

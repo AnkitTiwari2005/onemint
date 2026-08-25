@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { typesenseSearch } from '@/lib/typesense';
 import { supabaseAdmin } from '@/lib/supabase';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
+
 
 export async function GET(req: NextRequest) {
+  // 60 queries per IP per minute — generous for humans, stops automated scrapers
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'search', 60, 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { results: [], found: 0, error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
+
   const q = req.nextUrl.searchParams.get('q') || '';
   if (!q.trim()) return NextResponse.json({ results: [], found: 0 });
+
 
   // ── 1. Try Typesense first ─────────────────────────────────────────────────
   try {
