@@ -136,13 +136,32 @@ const NEW_SITE_EXACT = new Set([
 ]);
 
 /**
+ * Normalise a secret read from process.env.
+ * hPanel (Hostinger) escapes every `$` → `\$` in stored env var values.
+ * A bcrypt hash stored as `$2b$12$...` arrives at runtime as `\$2b\$12\$...`
+ * (3 extra chars), making it a different key from what the login route saw
+ * after applying the same cleanup — session tokens would be signed with one
+ * key and verified with another, rejecting every login immediately.
+ *
+ * Inlined here (not imported from lib/env) because middleware runs in the
+ * Edge runtime which cannot import arbitrary server-side Node.js modules.
+ */
+function cleanSecret(value: string | undefined): string {
+  return (value || '').trim().replace(/\\\$/g, '$');
+}
+
+/**
  * Verify an HMAC-signed session token in Edge runtime.
  */
 async function verifyToken(token: string): Promise<boolean> {
   try {
+    // Apply cleanSecret() to both vars — same priority as login route:
+    // ADMIN_SESSION_SECRET (dedicated) → ADMIN_PASSWORD_HASH (fallback).
+    // Without this, hPanel's \$ corruption makes the two sides use different
+    // key bytes, silently rejecting every session token after login.
     const secret =
-      process.env.ADMIN_SESSION_SECRET ||
-      process.env.ADMIN_PASSWORD_HASH ||
+      cleanSecret(process.env.ADMIN_SESSION_SECRET) ||
+      cleanSecret(process.env.ADMIN_PASSWORD_HASH) ||
       '';
     if (!secret) return false;
 

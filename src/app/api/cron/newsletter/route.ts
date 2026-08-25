@@ -21,6 +21,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runNewsletter, type NewsletterResult } from '@/lib/newsletter-engine';
 import type { Series } from '@/lib/newsletter-templates';
+import { getCleanEnv } from '@/lib/env';
+
 
 // Use Node.js runtime (not Edge) — requires Supabase + full Node APIs
 export const runtime = 'nodejs';
@@ -31,7 +33,7 @@ const VALID_SERIES: Series[] = ['monday', 'wednesday', 'sunday'];
 
 
 function isAuthorised(req: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
+  const secret = getCleanEnv('CRON_SECRET');
 
   // If no secret is configured, allow from localhost only
   if (!secret) {
@@ -39,7 +41,7 @@ function isAuthorised(req: NextRequest): boolean {
     return host.includes('localhost') || host.includes('127.0.0.1');
   }
 
-  // Check Authorization header (Vercel Cron injects this automatically)
+  // Check Authorization header
   const authHeader = req.headers.get('authorization') ?? '';
   if (authHeader === `Bearer ${secret}`) return true;
 

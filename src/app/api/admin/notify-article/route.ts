@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ENV } from '@/lib/env';
+import { ENV, getCleanEnv } from '@/lib/env';
+
 
 // ── Configuration ────────────────────────────────────────────────────────────
 const NOTIFY_TO_EMAIL = 'shivskukreja@gmail.com';
@@ -277,7 +278,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-cron-secret': process.env.CRON_SECRET ?? '',
+        'x-cron-secret': getCleanEnv('CRON_SECRET'),
       },
       body: JSON.stringify({
         title: `New: ${title.trim()}`,

@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { typesenseAdmin } from '@/lib/typesense';
+import { getCleanEnv } from '@/lib/env';
+
 
 /** Validate that callers provide the correct internal service secret */
 function authorizeServiceCall(req: NextRequest): boolean {
-  const syncSecret = process.env.SYNC_SECRET || '';
+  const syncSecret = getCleanEnv('SYNC_SECRET');
   if (!syncSecret) {
     console.warn('[Sync] SYNC_SECRET env var is not set — all sync requests will be rejected');
     return false; // fail closed
   }
   return req.headers.get('x-sync-secret') === syncSecret;
 }
+
 
 // Sync a single article document into Typesense
 export async function POST(req: NextRequest) {

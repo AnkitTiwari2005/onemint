@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { randomBytes, createHmac } from 'crypto';
-import { ENV } from '@/lib/env';
+import { ENV, getCleanEnv } from '@/lib/env';
 import { rateLimit, getClientIP } from '@/lib/rate-limit';
+
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -35,24 +36,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password required' }, { status: 400 });
     }
 
-    // Read directly from process.env so the value is always fresh (not cached in the ENV object).
-    // .trim() guards against invisible trailing newline/space — a single extra character makes
-    // bcrypt.compare() silently return false. This can happen when pasting into hPanel's env editor.
-    const hash = (process.env.ADMIN_PASSWORD_HASH || '').trim().replace(/\\\$/g, '$');
+    // Read and normalise directly from process.env (fresh on every request, not cached).
+    // getCleanEnv() trims whitespace and undoes hPanel's $ → \$ escaping.
+    const hash = getCleanEnv('ADMIN_PASSWORD_HASH');
+
     if (!hash) {
       console.warn('[AdminAuth] ADMIN_PASSWORD_HASH not set');
       return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
     }
 
-    // Always log observable values so Runtime Logs are actionable without a repro step.
-    // Does NOT log the full hash or password — only safe diagnostic signals.
-    console.log(
-      '[AdminAuth][DEBUG] hash_len=%d hash_prefix=%s hash_suffix=%s pw_len=%d',
-      hash.length,
-      hash.slice(0, 7),         // always "$2b$12$" if well-formed
-      hash.slice(-4),            // last 4 chars of hash
-      (password as string).length
-    );
+    // Diagnostic logging — only emitted when DEBUG_AUTH=true to avoid noise in production.
+    // Set DEBUG_AUTH=true in hPanel env vars temporarily when troubleshooting login issues.
+    if (process.env.DEBUG_AUTH === 'true') {
+      console.log(
+        '[AdminAuth][DEBUG] hash_len=%d hash_prefix=%s hash_suffix=%s pw_len=%d',
+        hash.length,
+        hash.slice(0, 7),   // always "$2b$12$" if well-formed
+        hash.slice(-4),      // last 4 chars
+        (password as string).length
+      );
+    }
 
     const valid = await bcrypt.compare(password, hash);
     if (!valid) {
@@ -63,7 +66,10 @@ export async function POST(req: NextRequest) {
 
     // Match the same secret priority as middleware to avoid token mismatch / lockout:
     // ADMIN_SESSION_SECRET (dedicated) → ADMIN_PASSWORD_HASH (fallback)
-    const secret = (process.env.ADMIN_SESSION_SECRET || hash).trim().replace(/\\\$/g, '$');
+    // getCleanEnv() must be used here too — middleware applies cleanSecret() to its reads,
+    // so both sides must see the same bytes or the HMAC signature will never verify.
+    const secret = getCleanEnv('ADMIN_SESSION_SECRET') || hash;
+
     const token = generateToken(secret);
 
     const response = NextResponse.json({ success: true });

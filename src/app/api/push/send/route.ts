@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getCleanEnv } from '@/lib/env';
+
 
 /**
  * POST /api/push/send — send a push notification to all subscribers
@@ -19,9 +21,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 export async function POST(req: NextRequest) {
   // ── Auth (header only — never read the body for secrets) ─────────────────
   const secret = req.headers.get('x-cron-secret');
-  if (secret !== process.env.CRON_SECRET) {
+  if (secret !== getCleanEnv('CRON_SECRET')) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
   }
+
 
   // ── Parse body (single read — req.json() can only be called once) ─────────
   let title: string, msgBody: string, url: string | undefined, icon: string | undefined;

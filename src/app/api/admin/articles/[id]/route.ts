@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { typesenseAdmin } from '@/lib/typesense';
-import { ENV } from '@/lib/env';
+import { ENV, getCleanEnv } from '@/lib/env';
+
 
 // GET /api/admin/articles/[id] — load article for edit page
 export async function GET(
@@ -95,7 +96,7 @@ export async function PATCH(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-sync-secret': process.env.SYNC_SECRET || process.env.ADMIN_PASSWORD_HASH || '',
+          'x-sync-secret': getCleanEnv('SYNC_SECRET') || getCleanEnv('ADMIN_PASSWORD_HASH'),
         },
         body: JSON.stringify({ articleId: id }),
       }).catch((err) => console.error('[Sync trigger PATCH]', err));
