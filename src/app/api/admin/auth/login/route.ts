@@ -35,16 +35,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password required' }, { status: 400 });
     }
 
-    // Read directly from process.env so the value is always fresh (not cached in the ENV object)
-    const hash = process.env.ADMIN_PASSWORD_HASH || '';
+    // Read directly from process.env so the value is always fresh (not cached in the ENV object).
+    // .trim() guards against invisible trailing newline/space — a single extra character makes
+    // bcrypt.compare() silently return false. This can happen when pasting into hPanel's env editor.
+    const hash = (process.env.ADMIN_PASSWORD_HASH || '').trim();
     if (!hash) {
       console.warn('[AdminAuth] ADMIN_PASSWORD_HASH not set');
       return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
     }
 
+    // Always log observable values so Runtime Logs are actionable without a repro step.
+    // Does NOT log the full hash or password — only safe diagnostic signals.
+    console.log(
+      '[AdminAuth][DEBUG] hash_len=%d hash_prefix=%s hash_suffix=%s pw_len=%d',
+      hash.length,
+      hash.slice(0, 7),         // always "$2b$12$" if well-formed
+      hash.slice(-4),            // last 4 chars of hash
+      (password as string).length
+    );
+
     const valid = await bcrypt.compare(password, hash);
     if (!valid) {
-      await new Promise(r => setTimeout(r, 600)); // slow brute-force (doubled)
+      console.warn('[AdminAuth] bcrypt.compare returned false — hash_len=%d', hash.length);
+      await new Promise(r => setTimeout(r, 600)); // slow brute-force
       return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
     }
 

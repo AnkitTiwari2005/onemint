@@ -2,13 +2,17 @@
   "name": "onemint",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
-    "prebuild": "node -e \"require('child_process').execSync('npx ts-node --skip-project --compiler-options \\'{}\\' scripts/generate-redirect-map.ts', {stdio:'inherit', env: {...process.env}})\" || true",
+    "prebuild": "npx tsx scripts/generate-redirect-map.ts || true",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
+
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1033.0",
     "@aws-sdk/s3-request-presigner": "^3.1033.0",
@@ -31,16 +35,21 @@
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0",
-    "typesense": "^3.0.6"
+    "typesense": "^3.0.6",
+    "web-push": "^3.6.7"
   },
+
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }

@@ -1,5 +1,7 @@
-// All credentials read from environment variables — never hardcoded
-// Set these in Vercel dashboard and in .env.local for local development
+// All credentials read from environment variables — never hardcoded.
+// Set these in your hosting platform's environment variable manager (hPanel on Hostinger)
+// and in .env.local for local development.
+
 
 export const ENV = {
   // Supabase

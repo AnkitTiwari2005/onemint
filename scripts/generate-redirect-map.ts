@@ -10,7 +10,7 @@
  * that end in another 404.
  *
  * Usage:
- *   node --require ts-node/register scripts/generate-redirect-map.ts
+ *   node --loader ts-node/esm scripts/generate-redirect-map.ts
  *   OR (via package.json prebuild)
  *   npm run build  →  prebuild fires this automatically
  */
@@ -18,6 +18,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
+import { fileURLToPath } from 'url';
+
+// ESM-compatible __dirname replacement.
+// __dirname is not defined in ES module scope — this is the standard fix.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+
+
 
 const SUPABASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL  || '';
 const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';

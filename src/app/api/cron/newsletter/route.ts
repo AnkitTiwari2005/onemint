@@ -1,18 +1,21 @@
 /**
  * GET /api/cron/newsletter
  *
- * Triggered automatically by Vercel Cron on Mon, Wed, Sun.
- * Can also be triggered manually for preview/testing.
+ * Triggered by an external cron job (Hostinger hPanel → Cron Jobs) or manually.
+ * Previously triggered by Vercel Cron — now called from an external scheduler.
  *
  * Query params:
- *   series=monday|wednesday|sunday   — which series to run
- *   preview=true                     — build HTML but don't send
+ *   series=monday|sunday        — which series to run
+ *   preview=true                — build HTML but don't send
  *
  * Auth:
- *   Set CRON_SECRET in Vercel env vars.
+ *   Set CRON_SECRET in env vars.
  *   Pass as: Authorization: Bearer <CRON_SECRET>
  *   OR as query param: ?secret=<CRON_SECRET>
- *   (Vercel Cron automatically injects the Authorization header.)
+ *
+ * Hostinger Cron Job setup (hPanel → Cron Jobs):
+ *   Monday:  30 8 * * 1  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.in/api/cron/newsletter?series=monday
+ *   Sunday:  30 9 * * 0  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.in/api/cron/newsletter?series=sunday
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,10 +25,10 @@ import type { Series } from '@/lib/newsletter-templates';
 // Use Node.js runtime (not Edge) — requires Supabase + full Node APIs
 export const runtime = 'nodejs';
 
-// Allow up to 10s — Vercel Hobby plan limit
-export const maxDuration = 10;
+// maxDuration was a Vercel-only config — removed; has no effect on Hostinger.
 
 const VALID_SERIES: Series[] = ['monday', 'wednesday', 'sunday'];
+
 
 function isAuthorised(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
