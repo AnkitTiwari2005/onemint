@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     // Read directly from process.env so the value is always fresh (not cached in the ENV object).
     // .trim() guards against invisible trailing newline/space — a single extra character makes
     // bcrypt.compare() silently return false. This can happen when pasting into hPanel's env editor.
-    const hash = (process.env.ADMIN_PASSWORD_HASH || '').trim();
+    const hash = (process.env.ADMIN_PASSWORD_HASH || '').trim().replace(/\\\$/g, '$');
     if (!hash) {
       console.warn('[AdminAuth] ADMIN_PASSWORD_HASH not set');
       return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     // Match the same secret priority as middleware to avoid token mismatch / lockout:
     // ADMIN_SESSION_SECRET (dedicated) → ADMIN_PASSWORD_HASH (fallback)
-    const secret = process.env.ADMIN_SESSION_SECRET || hash;
+    const secret = (process.env.ADMIN_SESSION_SECRET || hash).trim().replace(/\\\$/g, '$');
     const token = generateToken(secret);
 
     const response = NextResponse.json({ success: true });
