@@ -5,18 +5,21 @@
  * Docs: https://developers.google.com/analytics/devguides/reporting/data/v1
  */
 
+import { getCleanEnv } from '@/lib/env';
+
 const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID ?? '';
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const GA4_API_BASE = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}`;
+
 
 /** In-memory access-token cache — survives across warm serverless invocations */
 let _cachedToken: { token: string; expiresAt: number } | null = null;
 
 /** Returns a valid access token, refreshing when necessary. */
 export async function getAccessToken(): Promise<string | null> {
-  const clientId = process.env.GA4_CLIENT_ID;
-  const clientSecret = process.env.GA4_CLIENT_SECRET;
-  const refreshToken = process.env.GA4_REFRESH_TOKEN;
+  const clientId     = getCleanEnv('GA4_CLIENT_ID');
+  const clientSecret = getCleanEnv('GA4_CLIENT_SECRET');
+  const refreshToken = getCleanEnv('GA4_REFRESH_TOKEN');
 
   if (!clientId || !clientSecret || !refreshToken) return null;
 
@@ -58,9 +61,9 @@ export async function getAccessToken(): Promise<string | null> {
 /** Returns true when all required GA4 env vars are present. */
 export function isGA4Configured(): boolean {
   return !!(
-    process.env.GA4_CLIENT_ID &&
-    process.env.GA4_CLIENT_SECRET &&
-    process.env.GA4_REFRESH_TOKEN &&
+    getCleanEnv('GA4_CLIENT_ID') &&
+    getCleanEnv('GA4_CLIENT_SECRET') &&
+    getCleanEnv('GA4_REFRESH_TOKEN') &&
     process.env.GA4_PROPERTY_ID
   );
 }

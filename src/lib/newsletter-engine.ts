@@ -11,6 +11,8 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAccessToken } from '@/lib/ga4';
 import { buildNewsletterHtml, type Series, type ArticleCard } from '@/lib/newsletter-templates';
+import { ENV } from '@/lib/env';
+
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -175,7 +177,7 @@ async function fetchRecentArticles(
 // ── NVIDIA — editorial intro ──────────────────────────────────────────────────
 
 async function generateIntro(series: Series, articles: ArticleCard[]): Promise<string> {
-  const apiKey = process.env.NVIDIA_API_KEY;
+  const apiKey = ENV.NVIDIA_API_KEY;
   if (!apiKey) return FALLBACK_INTROS[series];
 
   const tones: Record<Series, string> = {
@@ -245,9 +247,10 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
 
   if (!subs || subs.length === 0) return 0;
 
-  const apiKey     = process.env.BREVO_API_KEY ?? '';
+  const apiKey     = ENV.BREVO_API_KEY;
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
   const senderMail = process.env.BREVO_SENDER_EMAIL ?? 'no-reply@onemint.in';
+
 
   // Send in sequential batches of 25 individual Brevo calls per batch.
   // Sequential batches keep us well within Vercel Hobby's 10-second limit:

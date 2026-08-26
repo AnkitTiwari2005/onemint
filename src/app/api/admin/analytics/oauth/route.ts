@@ -7,10 +7,12 @@
  *   https://onemint-alpha.vercel.app/api/admin/analytics/oauth
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { getCleanEnv } from '@/lib/env';
 
-const CLIENT_ID     = process.env.GA4_CLIENT_ID     || '';
-const CLIENT_SECRET = process.env.GA4_CLIENT_SECRET  || '';
+const CLIENT_ID     = getCleanEnv('GA4_CLIENT_ID');
+const CLIENT_SECRET = getCleanEnv('GA4_CLIENT_SECRET');
 const SCOPE         = 'https://www.googleapis.com/auth/analytics.readonly';
+
 
 function getRedirectUri(req: NextRequest) {
   const host = req.headers.get('host') ?? 'localhost:3000';

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import NotFoundClient from './not-found-client';
+import { ENV } from '@/lib/env';
+
 
 // 404 pages should never be indexed.
 export const metadata: Metadata = {
@@ -14,8 +16,9 @@ export const metadata: Metadata = {
 async function getRecentArticles() {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const key = ENV.SUPABASE_SERVICE_ROLE_KEY || ENV.SUPABASE_ANON_KEY;
     if (!url || !key) return [];
+
 
     const supabase = createClient(url, key);
     const { data, error } = await supabase
