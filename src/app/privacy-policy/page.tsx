@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/privacy-policy` },
 };
 
-const EFFECTIVE_DATE = 'April 19, 2026';
+const EFFECTIVE_DATE = 'August 28, 2026';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -152,8 +152,9 @@ export default function PrivacyPolicyPage() {
               cookie.
             </li>
             <li>
-              <strong>Advertising cookies:</strong> Google AdSense may set cookies to show relevant ads.
-              These are third-party cookies outside our direct control.
+              <strong>Advertising cookies:</strong> No advertising cookies are currently set on
+              OneMint. If we enable advertising in the future, this policy will be updated
+              accordingly.
             </li>
           </ul>
 
@@ -172,8 +173,9 @@ export default function PrivacyPolicyPage() {
               topics resonate, so we can publish more useful content.
             </li>
             <li>
-              <strong>Ad relevance:</strong> We participate in the Google AdSense program to keep
-              OneMint free. Google uses anonymised data to show relevant ads to users.
+              <strong>Future advertising:</strong> We may participate in advertising programmes in
+              the future to help keep OneMint free. No third-party advertising is currently active
+              on this site.
             </li>
             <li>
               <strong>Legal obligations:</strong> If required by Indian law (IT Act 2000, DPDP Act 2023),
@@ -196,10 +198,6 @@ export default function PrivacyPolicyPage() {
             >
               Google Analytics Opt-Out Browser Add-on
             </a>
-            . To opt out of Google AdSense personalised ads, visit{' '}
-            <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">
-              Google Ad Settings
-            </a>
             .
           </p>
 
@@ -210,14 +208,14 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul>
             <li>
-              <strong>Google AdSense:</strong> Advertising platform. May collect user data for ad
-              targeting. See{' '}
+              <strong>Hostinger:</strong> Our hosting provider. May collect server-side access logs
+              (IP address, request path, timestamp) for security and operational purposes. See{' '}
               <a
-                href="https://policies.google.com/privacy"
+                href="https://www.hostinger.com/privacy-policy"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Google&rsquo;s Privacy Policy
+                Hostinger&rsquo;s Privacy Policy
               </a>
               .
             </li>
@@ -226,23 +224,16 @@ export default function PrivacyPolicyPage() {
               servers in the EU under GDPR compliance.
             </li>
             <li>
-              <strong>Google Analytics / Umami:</strong> Site analytics. Anonymised usage statistics.
-            </li>
-            <li>
-              <strong>Cloudflare:</strong> CDN and DDoS protection. May log your IP address for security
-              purposes. See{' '}
+              <strong>Google Analytics:</strong> Site analytics. Anonymised usage statistics to
+              understand aggregate site performance. See{' '}
               <a
-                href="https://www.cloudflare.com/privacypolicy/"
+                href="https://policies.google.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Cloudflare&rsquo;s Privacy Policy
+                Google&rsquo;s Privacy Policy
               </a>
               .
-            </li>
-            <li>
-              <strong>Vercel:</strong> Hosting platform. May collect server-side access logs (IP address,
-              request path, timestamp). Logs are retained for 7 days.
             </li>
             <li>
               <strong>Giscus / GitHub:</strong> Comment system powered by GitHub Discussions. Subject to{' '}
@@ -260,7 +251,8 @@ export default function PrivacyPolicyPage() {
           <h2 id="data-storage" style={{ scrollMarginTop: 90 }}>6. Data Storage &amp; Security</h2>
           <p>
             Email addresses collected through our newsletter form are stored on Brevo&rsquo;s EU-based
-            servers. Our website is hosted on Vercel&rsquo;s global edge network with Cloudflare CDN.
+            servers. Our website is hosted on Hostinger&rsquo;s infrastructure. All data in transit
+            is protected by HTTPS/TLS encryption.
           </p>
           <p>
             We protect your data using HTTPS encryption for all data in transit. We do not sell your
