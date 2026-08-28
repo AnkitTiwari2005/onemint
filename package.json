@@ -9,6 +9,7 @@
     "prebuild": "npx tsx scripts/generate-redirect-map.ts || true",
     "dev": "next dev",
     "build": "next build",
+    "prestart": "fuser -k 3000/tcp 2>/dev/null || true",
     "start": "next start",
     "lint": "eslint"
   },
