@@ -1,11 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone output — required for self-hosted deployments (Hostinger, VPS, Docker).
+  // Creates .next/standalone/server.js — a self-contained server that doesn't need
+  // the project's node_modules at runtime. Hostinger runs this directly.
+  // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/output
+  output: 'standalone',
   // Brotli/Gzip compression — compresses HTML/JSON/CSS before sending over the wire.
-  // 357KB homepage HTML → ~45-60KB on the wire. Browser decompresses instantly.
   compress: true,
   // Enforce no-trailing-slash across all URLs to prevent canonical conflicts.
-  // https://www.onemint.in  →  canonical (matches layout.tsx + sitemap)
-  // https://www.onemint.in/ →  301 redirect to above (eliminates GSC duplicate)
   trailingSlash: false,
   // Remove X-Powered-By: Next.js header — no functional effect, pure security hygiene
   poweredByHeader: false,

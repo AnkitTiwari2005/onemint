@@ -9,8 +9,8 @@
     "prebuild": "npx tsx scripts/generate-redirect-map.ts || true",
     "dev": "next dev",
     "build": "next build",
-    "prestart": "fuser -k 3000/tcp 2>/dev/null || true",
-    "start": "next start",
+    "postbuild": "cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint"
   },
 
