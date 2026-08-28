@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    // Derive extension from verified magic bytes — never trust user-supplied filename
+    const ext = isPNG ? 'png' : isJPEG ? 'jpg' : isWebP ? 'webp' : 'gif';
     const filename = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     await R2.send(

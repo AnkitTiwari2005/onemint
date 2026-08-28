@@ -159,10 +159,7 @@ async function verifyToken(token: string): Promise<boolean> {
     // ADMIN_SESSION_SECRET (dedicated) → ADMIN_PASSWORD_HASH (fallback).
     // Without this, hPanel's \$ corruption makes the two sides use different
     // key bytes, silently rejecting every session token after login.
-    const secret =
-      cleanSecret(process.env.ADMIN_SESSION_SECRET) ||
-      cleanSecret(process.env.ADMIN_PASSWORD_HASH) ||
-      '';
+    const secret = cleanSecret(process.env.ADMIN_SESSION_SECRET) || '';
     if (!secret) return false;
 
     const parts = token.split('.');
@@ -225,7 +222,6 @@ export async function middleware(req: NextRequest) {
   // ── Admin auth bypass ──────────────────────────────────────────────────────
   if (pathname === '/admin/login') return NextResponse.next();
   if (pathname.startsWith('/api/admin/auth')) return NextResponse.next();
-  if (pathname.startsWith('/api/admin/analytics/oauth')) return NextResponse.next();
 
   // ── Maintenance mode ───────────────────────────────────────────────────────
   const isAdminRoute    = pathname.startsWith('/admin');

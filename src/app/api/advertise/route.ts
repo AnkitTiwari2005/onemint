@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/advertise

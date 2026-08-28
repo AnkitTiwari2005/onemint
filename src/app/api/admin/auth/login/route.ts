@@ -5,7 +5,7 @@ import { ENV, getCleanEnv } from '@/lib/env';
 import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
 
 
 /**
@@ -64,11 +64,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
     }
 
-    // Match the same secret priority as middleware to avoid token mismatch / lockout:
-    // ADMIN_SESSION_SECRET (dedicated) → ADMIN_PASSWORD_HASH (fallback)
-    // getCleanEnv() must be used here too — middleware applies cleanSecret() to its reads,
-    // so both sides must see the same bytes or the HMAC signature will never verify.
-    const secret = getCleanEnv('ADMIN_SESSION_SECRET') || hash;
+    // Dedicated signing secret — must be set; never falls back to password hash.
+    // If these two collapse into one secret, leaking the hash → forged admin cookies.
+    const secret = getCleanEnv('ADMIN_SESSION_SECRET');
+    if (!secret) {
+      console.error('[AdminAuth] ADMIN_SESSION_SECRET not set — cannot issue session token');
+      return NextResponse.json({ error: 'Admin not configured' }, { status: 503 });
+    }
 
     const token = generateToken(secret);
 

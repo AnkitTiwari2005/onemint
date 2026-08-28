@@ -1,10 +1,13 @@
 /**
  * GET /api/admin/analytics/oauth?action=start  → redirects to Google consent
- * GET /api/admin/analytics/oauth?code=xxx       → exchanges code for refresh_token
+ * GET /api/admin/analytics/oauth?code=xxx       → exchanges code, returns JSON
+ *
+ * This route is protected by middleware admin auth (session cookie required).
+ * Used once during setup to obtain a GA4 refresh token.
  *
  * Add these redirect URIs in Google Cloud Console → Credentials → OAuth client:
  *   http://localhost:3000/api/admin/analytics/oauth
- *   https://onemint-alpha.vercel.app/api/admin/analytics/oauth
+ *   https://www.onemint.in/api/admin/analytics/oauth
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getCleanEnv } from '@/lib/env';
@@ -12,7 +15,6 @@ import { getCleanEnv } from '@/lib/env';
 const CLIENT_ID     = getCleanEnv('GA4_CLIENT_ID');
 const CLIENT_SECRET = getCleanEnv('GA4_CLIENT_SECRET');
 const SCOPE         = 'https://www.googleapis.com/auth/analytics.readonly';
-
 
 function getRedirectUri(req: NextRequest) {
   const host = req.headers.get('host') ?? 'localhost:3000';
@@ -29,12 +31,12 @@ export async function GET(req: NextRequest) {
   if (action === 'start') {
     const redirectUri = getRedirectUri(req);
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authUrl.searchParams.set('client_id',    CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', redirectUri);
-    authUrl.searchParams.set('response_type','code');
-    authUrl.searchParams.set('scope',        SCOPE);
-    authUrl.searchParams.set('access_type',  'offline');
-    authUrl.searchParams.set('prompt',       'consent'); // forces refresh_token
+    authUrl.searchParams.set('client_id',     CLIENT_ID);
+    authUrl.searchParams.set('redirect_uri',  redirectUri);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('scope',         SCOPE);
+    authUrl.searchParams.set('access_type',   'offline');
+    authUrl.searchParams.set('prompt',        'consent'); // forces refresh_token
     return NextResponse.redirect(authUrl.toString());
   }
 
@@ -56,11 +58,10 @@ export async function GET(req: NextRequest) {
       const json = await tokenRes.json();
 
       if (json.refresh_token) {
-        // Redirect to analytics page with token as query param (one-time display)
-        // The analytics page reads this param and shows a copyable setup banner.
-        const analyticsUrl = new URL('/admin/analytics', req.url);
-        analyticsUrl.searchParams.set('refresh_token', json.refresh_token);
-        return NextResponse.redirect(analyticsUrl.toString());
+        // Return token as JSON — caller (admin analytics page) reads it and
+        // displays a copyable banner. NOT a redirect URL param (tokens in URLs
+        // end up in server access logs and Referer headers).
+        return NextResponse.json({ refresh_token: json.refresh_token });
       }
 
       return NextResponse.json(

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimit, getClientIP } from '@/lib/rate-limit';
 
 // Basic profanity/spam word list
 const SPAM_WORDS = ['casino', 'viagra', 'porn', 'xxx', 'buy now', 'click here', 'free money', 'make money fast'];

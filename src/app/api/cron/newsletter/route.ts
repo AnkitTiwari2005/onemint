@@ -35,10 +35,10 @@ const VALID_SERIES: Series[] = ['monday', 'wednesday', 'sunday'];
 function isAuthorised(req: NextRequest): boolean {
   const secret = getCleanEnv('CRON_SECRET');
 
-  // If no secret is configured, allow from localhost only
+  // Deny if secret is not configured — no silent localhost bypass in production
   if (!secret) {
-    const host = req.headers.get('host') ?? '';
-    return host.includes('localhost') || host.includes('127.0.0.1');
+    console.error('[Cron] CRON_SECRET not configured — denying all requests');
+    return false;
   }
 
   // Check Authorization header
