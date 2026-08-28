@@ -224,6 +224,19 @@ export default function PrivacyPolicyPage() {
               servers in the EU under GDPR compliance.
             </li>
             <li>
+              <strong>Cloudflare R2:</strong> Object storage service used to host article cover
+              images and media uploads. When you view an article with an uploaded image, your
+              browser may connect to Cloudflare&rsquo;s network to retrieve that asset. See{' '}
+              <a
+                href="https://www.cloudflare.com/privacypolicy/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Cloudflare&rsquo;s Privacy Policy
+              </a>
+              .
+            </li>
+            <li>
               <strong>Google Analytics:</strong> Site analytics. Anonymised usage statistics to
               understand aggregate site performance. See{' '}
               <a
