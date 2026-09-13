@@ -1,3 +1,6 @@
+﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+export const revalidate = false;
+
 import type { Metadata } from 'next';
 import { AlertTriangle } from 'lucide-react';
 

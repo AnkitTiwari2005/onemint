@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase';
 import { typesenseAdmin } from '@/lib/typesense';
 import { ENV, getCleanEnv } from '@/lib/env';
@@ -102,6 +103,10 @@ export async function PATCH(
       }).catch((err) => console.error('[Sync trigger PATCH]', err));
     }
 
+    // Instantly purge ISR cache: homepage, /articles, /articles/[slug], tags, topics, etc.
+    // Without this, changes take up to 1h (article slug page) to appear on the live site.
+    revalidateTag('articles');
+
     return NextResponse.json(data);
   } catch (err) {
     console.error('[Admin articles PATCH]', err);
@@ -136,6 +141,9 @@ export async function DELETE(
     } catch {
       // Doc may not be indexed — not a failure condition
     }
+
+    // Purge ISR cache so deleted article pages return 404 immediately
+    revalidateTag('articles');
 
     return NextResponse.json({ success: true });
   } catch (err) {

@@ -1,3 +1,6 @@
+﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+export const revalidate = false;
+
 import Link from 'next/link';
 import { Calculator, HeartPulse, Briefcase, IndianRupee, Home, TrendingUp, Sparkles, Lock, MapPin } from 'lucide-react';
 import { JsonLd } from '@/components/JsonLd';

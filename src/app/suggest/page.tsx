@@ -1,3 +1,6 @@
+﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+export const revalidate = false;
+
 /**
  * Suggest page — Server Component wrapper.
  * Interactive UI is in SuggestContent.tsx ('use client').

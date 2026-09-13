@@ -1,3 +1,6 @@
+﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+export const revalidate = false;
+
 'use client';
 
 import { useState } from 'react';

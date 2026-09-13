@@ -130,8 +130,8 @@ export const fetchPublishedArticles = unstable_cache(
 );
 
 
-/** Fetch a single published article by slug. Returns null if not found. */
-export async function fetchPublishedArticleBySlug(slug: string): Promise<{
+/** Fetch a single published article by slug (uncached inner function). */
+async function fetchPublishedArticleBySlugUncached(slug: string): Promise<{
   article: PublicArticle | null;
   source: 'db' | 'static';
 }> {
@@ -185,6 +185,18 @@ export async function fetchPublishedArticleBySlug(slug: string): Promise<{
 
   return { article: null, source: 'static' };
 }
+
+/**
+ * Cached entry point for single article fetches.
+ * generateMetadata() and the Page component both call this — they share
+ * ONE cached result instead of each firing an independent Supabase round-trip.
+ * Tagged 'articles' so revalidateTag('articles') purges it instantly on publish.
+ */
+export const fetchPublishedArticleBySlug = unstable_cache(
+  fetchPublishedArticleBySlugUncached,
+  ['article-by-slug'],
+  { revalidate: 300, tags: ['articles'] }
+);
 
 
 /**
