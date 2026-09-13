@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ENV } from '@/lib/env';
 
 /**
- * Edge runtime — no 10-second serverless timeout on Vercel.
+ * Edge runtime — no 10-second serverless timeout.
  */
 export const runtime = 'edge';
 
@@ -11,104 +10,39 @@ export const runtime = 'edge';
  * Body:   { content: string; title: string; category?: string; tags?: string[] }
  * Returns:{ faqs: Array<{ question: string; answer: string }> }
  *
- * Uses NVIDIA NIM (build.nvidia.com) — OpenAI-compatible API.
- * Model: meta/llama-3.3-70b-instruct — smart, fast, near-unlimited free tier.
+ * Uses Google Gemini API (gemini-2.0-flash — free tier, fast, reliable).
+ * Falls back to gemini-1.5-flash if the primary model is unavailable.
  * Protected by HMAC session middleware on /api/admin/*.
  */
 
-// Primary: Llama 3.1 8B — extremely fast and reliable, perfect for simple JSON tasks.
-// Fallback 1: Llama 3.3 70B
-// Fallback 2: Llama 4 Maverick (deprecated July 27, 2026).
-const NVIDIA_MODELS   = [
-  'meta/llama-3.1-8b-instruct',
-  'meta/llama-3.3-70b-instruct',
-  'meta/llama-4-maverick-17b-128e-instruct',
+const GEMINI_MODELS = [
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
 ];
-const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-/** Sleep for `ms` ms — works in Edge runtime. */
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-
-async function callNvidia(apiKey: string, model: string, prompt: string, globalSignal: AbortSignal): Promise<Response> {
-  return await fetch(NVIDIA_ENDPOINT, {
-    method:  'POST',
-    signal:  globalSignal,
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
-      top_p:       1.0,
-      max_tokens:  800,
-      frequency_penalty: 0.0,
-      presence_penalty:  0.0,
-      stream:      false,
-      response_format: { type: 'json_object' },
-    }),
-  });
-}
-
-/**
- * Call NVIDIA NIM with model fallback + retry on 429.
- */
-async function callNvidiaWithRetry(
+async function callGemini(
   apiKey: string,
+  model: string,
   prompt: string,
-): Promise<{ response: Response; lastErrText: string }> {
-  // Global 22-second timeout to strictly respect Vercel Edge 25s limit
-  const globalController = new AbortController();
-  const globalTimer = setTimeout(() => globalController.abort(), 22000);
-
-  try {
-    for (const model of NVIDIA_MODELS) {
-      if (globalController.signal.aborted) break;
-
-      console.log(`[AI FAQ] Trying model: ${model}`);
-      const maxAttempts = 2; // Reduce to 2 to save time
-
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        if (globalController.signal.aborted) break;
-
-        let response: Response;
-        try {
-          response = await callNvidia(apiKey, model, prompt, globalController.signal);
-        } catch (fetchErr) {
-          const isTimeout = fetchErr instanceof Error && fetchErr.name === 'AbortError';
-          console.error(`[AI FAQ] ${model} — ${isTimeout ? 'global timeout reached' : 'network error'}`);
-          if (isTimeout) throw fetchErr; // Stop completely if global timeout hit
-          break; // Try next model on random network error
-        }
-
-        // 404 or 422 = model unavailable/invalid — try next model
-        if (response.status === 404 || response.status === 422) {
-          console.warn(`[AI FAQ] ${model} returned ${response.status} — trying next model`);
-          break; // break inner loop, try next model
-        }
-
-        // Success or non-retryable error
-        if (response.status !== 429) return { response, lastErrText: '' };
-
-        // 429 = rate limited — retry with backoff
-        const errText = await response.text();
-        if (attempt === maxAttempts - 1) return { response, lastErrText: errText };
-
-        const retryAfterSec = Number(response.headers.get('retry-after') ?? 0);
-        const waitMs = retryAfterSec > 0 ? retryAfterSec * 1000 : (attempt + 1) * 3000;
-        
-        // Don't wait if it pushes us over the global timeout
-        if (globalController.signal.aborted) break;
-        console.log(`[AI FAQ] ${model} 429 — waiting ${waitMs / 1000}s`);
-        await sleep(waitMs);
-      }
-    }
-  } finally {
-    clearTimeout(globalTimer);
-  }
-
-  throw Object.assign(new Error('all models failed or timed out'), { kind: 'timeout' });
+  signal: AbortSignal,
+): Promise<Response> {
+  return fetch(
+    `${GEMINI_BASE}/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature:     0.2,
+          maxOutputTokens: 900,
+          responseMimeType: 'application/json',
+        },
+      }),
+    },
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -123,15 +57,15 @@ export async function POST(req: NextRequest) {
     if (!content?.trim() || !title?.trim()) {
       return NextResponse.json(
         { error: 'content and title are required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const apiKey = ENV.NVIDIA_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'AI service not configured — add NVIDIA_API_KEY to Vercel env vars (get it free at build.nvidia.com)' },
-        { status: 503 }
+        { error: 'AI service not configured — add GEMINI_API_KEY to env vars' },
+        { status: 503 },
       );
     }
 
@@ -158,89 +92,119 @@ Title: "${title.trim()}"${meta ? '\n' + meta : ''}${intro ? '\n\nArticle intro:\
 Return ONLY a valid JSON object with a "faqs" array — no explanation:
 {"faqs": [{"question":"...","answer":"..."},{"question":"...","answer":"..."}]}`;
 
-    // ── Call NVIDIA NIM (auto-retries on 429 up to 3 attempts) ─────────────
-    let response: Response;
-    let lastErrText = '';
-    try {
-      ({ response, lastErrText } = await callNvidiaWithRetry(apiKey, prompt));
-    } catch (fetchErr: unknown) {
-      const kind = (fetchErr as { kind?: string }).kind;
-      return NextResponse.json(
-        { error: kind === 'timeout' ? 'AI request timed out — try again.' : 'Could not reach AI service.' },
-        { status: 504 }
-      );
-    }
+    // Global 22-second timeout
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 22_000);
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        console.error('[AI FAQ] NVIDIA 429 after retries:', lastErrText.slice(0, 200));
-        return NextResponse.json(
-          { error: 'NVIDIA rate limit hit — wait 60 seconds and try again.' },
-          { status: 429 }
-        );
+    let lastStatus = 0;
+    let lastBody   = '';
+
+    try {
+      for (const model of GEMINI_MODELS) {
+        if (controller.signal.aborted) break;
+
+        let res: Response;
+        try {
+          res = await callGemini(apiKey, model, prompt, controller.signal);
+        } catch (err) {
+          const isAbort = err instanceof Error && err.name === 'AbortError';
+          console.error(`[AI FAQ] ${model} — ${isAbort ? 'timeout' : 'network error'}`);
+          if (isAbort) {
+            return NextResponse.json(
+              { error: 'AI request timed out — try again.' },
+              { status: 504 },
+            );
+          }
+          continue; // try next model
+        }
+
+        lastStatus = res.status;
+
+        // 404 / 429 / 5xx — try next model or surface error
+        if (res.status === 404) {
+          console.warn(`[AI FAQ] ${model} not found — trying next model`);
+          continue;
+        }
+        if (res.status === 429) {
+          lastBody = await res.text();
+          console.warn(`[AI FAQ] ${model} rate-limited — trying next model`);
+          continue;
+        }
+        if (!res.ok) {
+          lastBody = await res.text();
+          console.error(`[AI FAQ] ${model} error ${res.status}:`, lastBody.slice(0, 200));
+          continue;
+        }
+
+        // ── Parse Gemini response ──────────────────────────────────────────
+        const json = await res.json() as {
+          candidates?: Array<{
+            content?: { parts?: Array<{ text?: string }> };
+          }>;
+        };
+
+        const raw = json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+
+        if (!raw.trim()) {
+          return NextResponse.json(
+            { error: 'AI returned an empty response. Try regenerating.' },
+            { status: 422 },
+          );
+        }
+
+        // Strip markdown fences if the model adds them despite instructions
+        const cleaned = (() => {
+          const stripped = raw.replace(/```(?:json)?/gi, '').replace(/```/g, '');
+          const start = stripped.indexOf('{');
+          const end   = stripped.lastIndexOf('}');
+          if (start !== -1 && end > start) return stripped.slice(start, end + 1);
+          return stripped.trim();
+        })();
+
+        let parsed: { faqs?: { question: string; answer: string }[] };
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch {
+          console.error('[AI FAQ] JSON parse failed. Raw:', raw.slice(0, 400));
+          return NextResponse.json(
+            { error: 'AI returned unexpected format. Try again — this usually works on the second attempt.' },
+            { status: 422 },
+          );
+        }
+
+        const faqs = parsed.faqs;
+        if (!Array.isArray(faqs) || faqs.length === 0) {
+          return NextResponse.json(
+            { error: 'AI returned empty FAQ list. Try regenerating.' },
+            { status: 422 },
+          );
+        }
+
+        const validated = faqs
+          .filter((f) => f?.question && f?.answer)
+          .slice(0, 5)
+          .map((f) => ({
+            question: String(f.question).trim(),
+            answer:   String(f.answer).trim(),
+          }));
+
+        return NextResponse.json({ faqs: validated });
       }
-
-      const errText = await response.text();
-      console.error('[AI FAQ] NVIDIA error:', response.status, errText.slice(0, 300));
-      return NextResponse.json(
-        { error: `AI service error (${response.status}). Try again.` },
-        { status: 502 }
-      );
+    } finally {
+      clearTimeout(timer);
     }
 
-    // ── Parse OpenAI-compatible response ───────────────────────────────────
-    const result = await response.json() as {
-      choices?: Array<{
-        message?: { content?: string };
-      }>;
-    };
-
-    const raw = result.choices?.[0]?.message?.content ?? '';
-
-    if (!raw.trim()) {
+    // All models failed
+    if (lastStatus === 429) {
       return NextResponse.json(
-        { error: 'AI returned an empty response. Try regenerating.' },
-        { status: 422 }
+        { error: 'AI rate limit hit — wait 60 seconds and try again.' },
+        { status: 429 },
       );
     }
-
-    // Strip markdown fences if the model adds them despite instructions
-    const cleaned = (() => {
-      const stripped = raw.replace(/```(?:json)?/gi, '').replace(/```/g, '');
-      const start = stripped.indexOf('{');
-      const end   = stripped.lastIndexOf('}');
-      if (start !== -1 && end > start) return stripped.slice(start, end + 1);
-      return stripped.trim();
-    })();
-
-    let parsedResult: { faqs?: { question: string; answer: string }[] };
-    try {
-      parsedResult = JSON.parse(cleaned);
-    } catch {
-      console.error('[AI FAQ] JSON parse failed. Raw output:', raw.slice(0, 400));
-      return NextResponse.json(
-        { error: 'AI returned unexpected format. Please try again — this usually works on the second attempt.' },
-        { status: 422 }
-      );
-    }
-
-    const faqs = parsedResult.faqs;
-    if (!Array.isArray(faqs) || faqs.length === 0) {
-      return NextResponse.json(
-        { error: 'AI returned empty FAQ list. Try regenerating.' },
-        { status: 422 }
-      );
-    }
-
-    const validated = faqs
-      .filter((f) => f?.question && f?.answer)
-      .slice(0, 5)
-      .map((f) => ({
-        question: String(f.question).trim(),
-        answer:   String(f.answer).trim(),
-      }));
-
-    return NextResponse.json({ faqs: validated });
+    return NextResponse.json(
+      { error: `AI service error (${lastStatus || 'unknown'}). Try again.` },
+      { status: 502 },
+    );
 
   } catch (err) {
     console.error('[AI FAQ] Unexpected error:', err);
