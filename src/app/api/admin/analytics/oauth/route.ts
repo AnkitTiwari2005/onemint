@@ -58,10 +58,64 @@ export async function GET(req: NextRequest) {
       const json = await tokenRes.json();
 
       if (json.refresh_token) {
-        // Return token as JSON — caller (admin analytics page) reads it and
-        // displays a copyable banner. NOT a redirect URL param (tokens in URLs
-        // end up in server access logs and Referer headers).
-        return NextResponse.json({ refresh_token: json.refresh_token });
+        // Return a styled HTML page with a copyable token box.
+        // Token stays out of the URL (no access log leakage) and out of raw JSON.
+        const token = json.refresh_token as string;
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GA4 OAuth — Token Ready</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{background:#1a1d27;border:1px solid #2d3148;border-radius:12px;padding:32px;max-width:680px;width:100%}
+    h1{font-size:1.25rem;font-weight:600;margin-bottom:8px;color:#a3e635}
+    p{font-size:.9rem;color:#94a3b8;margin-bottom:20px;line-height:1.6}
+    label{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:6px}
+    .token-box{background:#0d1117;border:1px solid #2d3148;border-radius:8px;padding:14px 16px;font-family:monospace;font-size:.78rem;word-break:break-all;color:#7dd3fc;line-height:1.6;margin-bottom:16px;user-select:all}
+    button{background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer;transition:background .2s}
+    button:hover{background:#2563eb}
+    button.copied{background:#16a34a}
+    .step{background:#1e2535;border-radius:8px;padding:16px;margin-top:20px;font-size:.85rem;color:#94a3b8;line-height:1.8}
+    .step strong{color:#e2e8f0}
+    code{background:#0d1117;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.8rem;color:#fbbf24}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>✅ GA4 Refresh Token Ready</h1>
+  <p>Copy the token below and save it as <code>GA4_REFRESH_TOKEN</code> in your Hostinger environment variables.</p>
+  <label>GA4_REFRESH_TOKEN</label>
+  <div class="token-box" id="token">${token}</div>
+  <button onclick="copyToken()" id="btn">Copy Token</button>
+  <div class="step">
+    <strong>Next steps:</strong><br>
+    1. Copy the token above<br>
+    2. Go to <strong>hPanel → Websites → Manage → Advanced → Environment Variables</strong><br>
+    3. Update <code>GA4_REFRESH_TOKEN</code> with this value<br>
+    4. Also update your local <code>.env.local</code> file<br>
+    5. Restart the app — analytics will start working immediately
+  </div>
+</div>
+<script>
+function copyToken(){
+  const text=document.getElementById('token').innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('btn');
+    btn.textContent='Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy Token';btn.classList.remove('copied')},2500);
+  });
+}
+</script>
+</body>
+</html>`;
+        return new Response(html, {
+          status: 200,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
       }
 
       return NextResponse.json(
