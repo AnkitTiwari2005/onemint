@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set(ENV.ADMIN_SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax', // 'strict' breaks OAuth redirects — Google's callback is cross-site
       maxAge: SESSION_TTL_MS / 1000,
       path: '/',
     });
