@@ -102,6 +102,10 @@ export default function NewsletterContent() {
             </AnimatePresence>
 
             <p className="text-xs opacity-60 mt-6">No spam. Unsubscribe anytime. We respect your inbox.</p>
+            <p className="text-xs opacity-50 mt-2">
+              By subscribing, you agree to our{' '}
+              <a href="/privacy-policy" className="underline underline-offset-2 hover:opacity-80 transition-opacity">Privacy Policy</a>.
+            </p>
             <div className="flex items-center justify-center gap-3 mt-4">
               <span className="text-xs opacity-50">Or get instant browser alerts:</span>
               <PushNotificationButton />

@@ -87,7 +87,7 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
   if (format === 'autorelaxed') {
     return (
       <div className={className} style={{ margin: '32px 0' }} aria-label="Advertisement">
-        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, textAlign: 'center' }}>
+        <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, textAlign: 'center' }}>
           Advertisement
         </p>
         <ins
@@ -105,7 +105,7 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
   // Standard display / fluid / rectangle / infeed
   return (
     <div className={className} style={{ margin: '24px 0', textAlign: 'center' }} aria-label="Advertisement">
-      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
         Advertisement
       </p>
       <ins

@@ -243,7 +243,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
                 whileTap={{ rotate: 180 }}
                 transition={{ duration: 0.3 }}
               >
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait" initial={false}>
                   {dark ? (
                     <motion.div key="sun" initial={{ opacity: 0, rotate: -90 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: 90 }} transition={{ duration: 0.2 }}>
                       <Sun size={18} className="text-[var(--color-accent-gold)]" />
@@ -269,7 +269,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
                 className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-alt)] transition-colors"
                 aria-label="Open menu"
               >
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait" initial={false}>
                   {mobileOpen ? (
                     <motion.div key="x" initial={{ opacity: 0, rotate: -90 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: 90 }}>
                       <X size={20} />

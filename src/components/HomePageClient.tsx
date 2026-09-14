@@ -45,7 +45,7 @@ function InFeedAd() {
   if (!PUB_ID || !IN_FEED_SLOT) return null;
   return (
     <div aria-label="Advertisement">
-      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>
+      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>
         Advertisement
       </p>
       <ins

@@ -159,6 +159,8 @@ export default function RootLayout({
         {/* PWA manifest + Apple meta */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        {/* RSS autodiscovery — enables feed readers and Google News to find the feed */}
+        <link rel="alternate" type="application/rss+xml" title="OneMint — Latest Articles" href="/feed.xml" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="OneMint" />

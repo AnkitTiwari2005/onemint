@@ -279,7 +279,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   )}
                   <span className="opacity-50">•</span>
                   <BookOpen size={10} />
-                  <span className="font-semibold text-[var(--color-ink-secondary)]">{article!.read_time_minutes ?? 5} min read</span>
+                  <span
+                    className="font-semibold text-[var(--color-ink-secondary)]"
+                    aria-label={`Estimated reading time: ${article!.read_time_minutes ?? 5} minutes`}
+                  >
+                    {article!.read_time_minutes ?? 5} min read
+                  </span>
                   <ArticleViewTracker slug={slug} showCount={false} />
                 </div>
                 {/* Author social links from DB */}
