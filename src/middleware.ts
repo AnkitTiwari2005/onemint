@@ -81,7 +81,7 @@ import type { } from 'next';  // keep this import to ensure ESM mode
 let VALID_SLUGS: Set<string>;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const redirectMap: string[] = require('../../public/redirect-map.json');
+  const redirectMap: string[] = require('../public/redirect-map.json');
   VALID_SLUGS = new Set(redirectMap);
 } catch {
   VALID_SLUGS = new Set();

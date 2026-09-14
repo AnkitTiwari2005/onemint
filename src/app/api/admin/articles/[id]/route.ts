@@ -105,7 +105,7 @@ export async function PATCH(
 
     // Instantly purge ISR cache: homepage, /articles, /articles/[slug], tags, topics, etc.
     // Without this, changes take up to 1h (article slug page) to appear on the live site.
-    revalidateTag('articles');
+    revalidateTag('articles', { expire: 0 });
 
     return NextResponse.json(data);
   } catch (err) {
@@ -143,7 +143,7 @@ export async function DELETE(
     }
 
     // Purge ISR cache so deleted article pages return 404 immediately
-    revalidateTag('articles');
+    revalidateTag('articles', { expire: 0 });
 
     return NextResponse.json({ success: true });
   } catch (err) {

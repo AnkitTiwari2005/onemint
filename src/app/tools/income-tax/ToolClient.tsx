@@ -108,7 +108,7 @@ export default function IncomeTaxPage() {
         cess: newTaxFinal > 0 ? Math.round(newResult.tax * 0.04) : 0,
         effectiveRate: income > 0 ? ((newTaxFinal / income) * 100).toFixed(1) : '0',
         breakdown: newResult.breakdown,
-        deductions: standardDeduction + nps80CCD,
+        deductions: newStdDeduction + nps80CCD,
       },
       savings: oldTaxFinal - newTaxFinal,
       recommended: newTaxFinal <= oldTaxFinal ? 'new' : 'old',
