@@ -342,7 +342,7 @@ export default function SIPCalculatorPage() {
             <h3>The Formula Behind SIP Returns</h3>
             <p>The mathematical formula used by SIP calculators is:</p>
             <p className="font-[family-name:var(--font-mono)] bg-[var(--color-surface-alt)] p-4 rounded-xl text-center">
-              M = P × ({'{(1 + i)'}^n - 1) / i × (1 + i)
+              M = P × [((1 + i)ⁿ − 1) / i] × (1 + i)
             </p>
             <p>Where:<br/>
               <strong>M</strong> = Maturity amount<br/>

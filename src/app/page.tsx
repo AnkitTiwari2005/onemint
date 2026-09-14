@@ -11,6 +11,7 @@ import type { Metadata } from 'next';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { getMostReadWeekly, getTrendingDaily } from '@/lib/analyticsData';
 import { HomePageClient } from '@/components/HomePageClient';
+import { JsonLd } from '@/components/JsonLd';
 
 // ISR: serve from cache, rebuild in background every 60 seconds.
 // New articles appear within 1 minute — zero per-request DB calls.
@@ -51,11 +52,32 @@ export default async function HomePage() {
     getMostReadWeekly(),
   ]);
 
+  // ItemList schema — signals to Google that this page is an article listing.
+  // Enables article carousel rich results in SERPs. Capped at 20 so the JSON-LD
+  // payload stays small; Google reads position/url for ranking signal.
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: "OneMint — Latest Articles",
+    description: "Expert articles on personal finance, technology, health, and careers.",
+    url: SITE_URL,
+    numberOfItems: Math.min(articles.length, 20),
+    itemListElement: articles.slice(0, 20).map((article, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `${SITE_URL}/articles/${article.slug}`,
+      name: article.title,
+    })),
+  };
+
   return (
-    <HomePageClient
-      articles={articles}
-      trendingSlugs={trendingSlugs}
-      mostReadSlugs={mostReadSlugs}
-    />
+    <>
+      <JsonLd data={itemListSchema} />
+      <HomePageClient
+        articles={articles}
+        trendingSlugs={trendingSlugs}
+        mostReadSlugs={mostReadSlugs}
+      />
+    </>
   );
 }

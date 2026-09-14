@@ -21,13 +21,15 @@ const OLD_SLABS: Slab[] = [
   { from: 1000000, to: Infinity, rate: 30 },
 ];
 
+// FY 2025-26 new regime slabs — Budget 2025 (effective April 2025)
 const NEW_SLABS: Slab[] = [
-  { from: 0, to: 300000, rate: 0 },
-  { from: 300000, to: 700000, rate: 5 },
-  { from: 700000, to: 1000000, rate: 10 },
-  { from: 1000000, to: 1200000, rate: 15 },
-  { from: 1200000, to: 1500000, rate: 20 },
-  { from: 1500000, to: Infinity, rate: 30 },
+  { from: 0,        to: 400000,   rate: 0  },
+  { from: 400000,   to: 800000,   rate: 5  },
+  { from: 800000,   to: 1200000,  rate: 10 },
+  { from: 1200000,  to: 1600000,  rate: 15 },
+  { from: 1600000,  to: 2000000,  rate: 20 },
+  { from: 2000000,  to: 2400000,  rate: 25 },
+  { from: 2400000,  to: Infinity, rate: 30 },
 ];
 
 function calculateTax(income: number, slabs: Slab[]): { tax: number; breakdown: { range: string; taxable: number; rate: number; tax: number }[] } {
@@ -65,16 +67,18 @@ export default function IncomeTaxPage() {
   const [nps80CCD, setNps80CCD] = useState(50000);
 
   const results = useMemo(() => {
-    const standardDeduction = 75000; // FY 2024-25 new regime
+    // FY 2025-26 standard deductions (Budget 2025 — unchanged from FY 2024-25)
+    const newStdDeduction = 75000;  // new regime
+    const oldStdDeduction = 50000;  // old regime
     let taxableOld = income;
     let taxableNew = income;
 
     // Old regime deductions
-    const totalOldDeductions = deductions80C + deductions80D + hra + nps80CCD + 50000; // 50k std deduction old
+    const totalOldDeductions = deductions80C + deductions80D + hra + nps80CCD + oldStdDeduction;
     taxableOld = Math.max(0, income - totalOldDeductions);
 
-    // New regime: only standard deduction + NPS
-    taxableNew = Math.max(0, income - standardDeduction - nps80CCD);
+    // New regime: standard deduction + NPS only
+    taxableNew = Math.max(0, income - newStdDeduction - nps80CCD);
 
     const oldResult = calculateTax(taxableOld, OLD_SLABS);
     const newResult = calculateTax(taxableNew, NEW_SLABS);
@@ -83,8 +87,10 @@ export default function IncomeTaxPage() {
     const oldTaxWithCess = Math.round(oldResult.tax * 1.04);
     const newTaxWithCess = Math.round(newResult.tax * 1.04);
 
-    // New regime rebate u/s 87A — no tax if taxable income <= 7L
-    const newTaxFinal = taxableNew <= 700000 ? 0 : newTaxWithCess;
+    // New regime rebate u/s 87A — Budget 2025 raised nil-tax ceiling from ₹7L to ₹12L
+    // Zero tax if net taxable income (after std deduction) ≤ ₹12L
+    const newTaxFinal = taxableNew <= 1200000 ? 0 : newTaxWithCess;
+    // Old regime 87A rebate: no tax up to ₹5L taxable income
     const oldTaxFinal = taxableOld <= 500000 ? 0 : oldTaxWithCess;
 
     return {
@@ -130,7 +136,7 @@ export default function IncomeTaxPage() {
             Income Tax Calculator
           </h1>
           <p className="text-lg text-[var(--color-ink-secondary)] max-w-2xl font-[family-name:var(--font-body)]">
-            Compare old vs new tax regime for FY 2024-25. See which saves you more and plan your deductions smartly.
+            Compare old vs new tax regime for FY 2025-26 / AY 2026-27. See which saves you more and plan your deductions smartly.
           </p>
         </div>
 
@@ -231,7 +237,7 @@ export default function IncomeTaxPage() {
 
             <div className="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm flex gap-3 border border-blue-100 font-[family-name:var(--font-body)]">
               <Info className="shrink-0 mt-0.5" size={18} />
-              <p>This calculator uses FY 2024-25 slabs. Under new regime, income up to ₹7L is tax-free (Section 87A rebate). Standard deduction of ₹75,000 applies.</p>
+              <p><strong>FY 2025-26 / AY 2026-27</strong> — Budget 2025: Under new regime, income up to <strong>₹12L is completely tax-free</strong> (expanded Section 87A rebate). Standard deduction of ₹75,000 applies. Last updated: Feb 2025 Budget.</p>
             </div>
           </div>
 
@@ -334,12 +340,13 @@ export default function IncomeTaxPage() {
           <div className="article-body">
             <p>India offers two tax regimes. The <strong>Old Regime</strong> has higher tax rates but allows deductions under Sections 80C, 80D, HRA, and more. The <strong>New Regime</strong> (default from FY 2023-24) has lower slab rates but almost no deductions.</p>
             <h3>Which Regime Should You Choose?</h3>
-            <p>If your total deductions exceed ₹3-4 lakhs, the old regime might still save you more. For salaried individuals with limited deductions, the new regime is almost always better.</p>
-            <h3>Key Changes for FY 2024-25</h3>
+            <p>If your total deductions exceed ₹3-4 lakhs, the old regime might still save you more. For salaried individuals with limited deductions, the new regime is almost always better — especially now that ₹12L income is completely tax-free under it.</p>
+            <h3>Key Changes for FY 2025-26 (Budget 2025)</h3>
             <ul>
-              <li>Standard deduction increased to ₹75,000 (new regime)</li>
-              <li>New regime is the default — you must opt out for old regime</li>
-              <li>Section 87A rebate: No tax up to ₹7L taxable income (new regime)</li>
+              <li><strong>Section 87A rebate raised to ₹12L</strong> — zero tax for net taxable income up to ₹12 lakh under new regime</li>
+              <li>New regime slabs restructured: 0% up to ₹4L, 5% (₹4–8L), 10% (₹8–12L), 15% (₹12–16L), 20% (₹16–20L), 25% (₹20–24L), 30% above ₹24L</li>
+              <li>Standard deduction of ₹75,000 retained in new regime</li>
+              <li>New regime remains the default — opt out explicitly for old regime</li>
               <li>NPS deduction (80CCD 1B) of ₹50,000 available in both regimes</li>
             </ul>
           </div>
