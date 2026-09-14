@@ -10,13 +10,13 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
 export const metadata: Metadata = {
   title: 'SIP Calculator — Monthly Mutual Fund Returns Calculator India',
-  description: 'Free SIP Calculator — India. Calculate the future value of your monthly SIP investments. See how ₹500/month grows with the power of compounding. Instant results.',,
+  description: 'Free SIP Calculator — India. Calculate the future value of your monthly SIP investments. See how ₹500/month grows with the power of compounding. Instant results.',
   alternates: { canonical: `${SITE_URL}/tools/sip` },
   openGraph: {
     type: 'website',
     url: `${SITE_URL}/tools/sip`,
     title: 'SIP Calculator — Monthly Mutual Fund Returns Calculator India',
-    description: 'Free SIP Calculator — India. Calculate the future value of your monthly SIP investments. See how ₹500/month grows with the power of compounding. Instant results.',,
+    description: 'Free SIP Calculator — India. Calculate the future value of your monthly SIP investments. See how ₹500/month grows with the power of compounding. Instant results.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'SIP Calculator | OneMint' }],
   },
 };
