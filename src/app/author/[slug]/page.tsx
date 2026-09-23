@@ -43,23 +43,50 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   // Try DB first, then static
-  let name = '', bio = '';
+  let name = '', bio = '', id = '';
   if (supabaseAdmin) {
     const { data } = await supabaseAdmin
-      .from('authors').select('name, bio').eq('slug', slug).maybeSingle();
-    if (data) { name = data.name; bio = data.bio ?? ''; }
+      .from('authors').select('id, name, bio').eq('slug', slug).maybeSingle();
+    if (data) { id = data.id; name = data.name; bio = data.bio ?? ''; }
   }
   if (!name) {
     const staticAuthor = getAuthorBySlug(slug);
     if (staticAuthor) { name = staticAuthor.name; bio = staticAuthor.bio; }
   }
   if (!name) return { title: 'Author Not Found' };
+
+  // Verify author's published article count
+  let articleCount = 0;
+  if (supabaseAdmin && id) {
+    try {
+      const { count } = await supabaseAdmin
+        .from('articles')
+        .select('id', { count: 'exact', head: true })
+        .eq('author_id', id)
+        .eq('status', 'published')
+        .is('deleted_at', null);
+      articleCount = count ?? 0;
+    } catch {
+      articleCount = 0;
+    }
+  } else {
+    try {
+      const { articles: allArticles } = await fetchPublishedArticles();
+      articleCount = allArticles.filter(a => a.authors?.slug === slug).length;
+    } catch {
+      articleCount = 0;
+    }
+  }
+
   return {
     title: `${name} — Author at OneMint`,
     description: bio
       ? bio.slice(0, 155)
       : `Read all articles by ${name} on OneMint — India's most trusted knowledge platform.`,
     alternates: { canonical: `${SITE_URL}/author/${slug}` },
+    robots: articleCount === 0
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
     openGraph: {
       type: 'profile' as const,
       url: `${SITE_URL}/author/${slug}`,

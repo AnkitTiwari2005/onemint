@@ -19,11 +19,13 @@ interface Author {
   status: 'active' | 'inactive';
   joinedDate: string;
   articleCount: number;
+  expertise_tags?: string[];
 }
 
 export default function AdminAuthorsPage() {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [editing, setEditing] = useState<Author | null>(null);
+  const [expertiseInput, setExpertiseInput] = useState('');
   const [isNew, setIsNew] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -53,7 +55,8 @@ export default function AdminAuthorsPage() {
   };
 
   const startNew = () => {
-    setEditing({ id: '', name: '', slug: '', role: '', avatar: '', bio: '', email: '', twitter: '', linkedin: '', whatsapp: '', phone: '', status: 'active', joinedDate: new Date().toISOString().split('T')[0], articleCount: 0 });
+    setEditing({ id: '', name: '', slug: '', role: '', avatar: '', bio: '', email: '', twitter: '', linkedin: '', whatsapp: '', phone: '', status: 'active', joinedDate: new Date().toISOString().split('T')[0], articleCount: 0, expertise_tags: [] });
+    setExpertiseInput('');
     setIsNew(true);
   };
 
@@ -62,6 +65,11 @@ export default function AdminAuthorsPage() {
     setSaving(true);
     setSaveError('');
     try {
+      const cleanTags = expertiseInput
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+
       const method = isNew ? 'POST' : 'PUT';
       const payload = isNew
         ? {
@@ -77,6 +85,7 @@ export default function AdminAuthorsPage() {
             phone: editing.phone,
             status: editing.status,
             joined_date: editing.joinedDate || null,
+            expertise_tags: cleanTags,
           }
         : {
             id: editing.id,
@@ -92,6 +101,7 @@ export default function AdminAuthorsPage() {
             phone: editing.phone,
             status: editing.status,
             joined_date: editing.joinedDate || null,
+            expertise_tags: cleanTags,
           };
 
       const res = await fetch('/api/admin/authors', {
@@ -198,6 +208,22 @@ export default function AdminAuthorsPage() {
               style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
             />
           </div>
+          {/* Expertise Tags */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
+              Expertise Tags
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Certified Financial Planner (CFP), Mutual Funds & SIPs, Taxation"
+              value={expertiseInput}
+              onChange={e => setExpertiseInput(e.target.value)}
+              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink)', outline: 'none', boxSizing: 'border-box' }}
+            />
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', marginTop: 4 }}>
+              Comma-separated list of credentials and specializations shown as verified badges on the author profile.
+            </p>
+          </div>
           <div style={{ marginBottom: 20, display: 'flex', gap: 16, alignItems: 'center' }}>
             <div>
               <label style={{ display: 'block', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Status</label>
@@ -282,7 +308,9 @@ export default function AdminAuthorsPage() {
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => {
                       const raw = author as unknown as Record<string, unknown>;
-                      setEditing({ ...author, joinedDate: String(raw.joined_date ?? raw.joinedDate ?? '') });
+                      const tags = Array.isArray(author.expertise_tags) ? author.expertise_tags : (Array.isArray(raw.expertise_tags) ? (raw.expertise_tags as string[]) : []);
+                      setEditing({ ...author, joinedDate: String(raw.joined_date ?? raw.joinedDate ?? ''), expertise_tags: tags });
+                      setExpertiseInput(tags.join(', '));
                       setIsNew(false);
                     }} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', cursor: 'pointer' }}><Pencil size={13} /></button>
                     <Link href={`/author/${author.slug}`} target="_blank" style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-alt)', color: 'var(--color-ink-secondary)', display: 'flex', alignItems: 'center' }}><ExternalLink size={13} /></Link>

@@ -48,6 +48,57 @@ const nextConfig = {
         destination: 'https://www.onemint.in/:path*',
         permanent: true, // 301 — tells Google to update its index permanently
       },
+      // Permanent 301 redirects for 10 cleaned/untruncated slugs
+      {
+        source: '/articles/a-degree-from-nowhere-how-india-s-academic-bank-of',
+        destination: '/articles/a-degree-from-nowhere-how-indias-academic-bank-of-credits',
+        permanent: true,
+      },
+      {
+        source: '/articles/how-to-read-a-skincare-ingredient-list-without-falling-for-marketing-c',
+        destination: '/articles/how-to-read-a-skincare-ingredient-list-without-falling-for-marketing-claims',
+        permanent: true,
+      },
+      {
+        source: '/articles/skincare-in-humid-weather-how-to-adjust-texture-cleansing-and-sun-prot',
+        destination: '/articles/skincare-in-humid-weather-how-to-adjust-texture-cleansing-and-sun-protection',
+        permanent: true,
+      },
+      {
+        source: '/articles/the-skin-barrier-journal-a-14-day-way-to-track-comfort-irritation',
+        destination: '/articles/the-skin-barrier-journal-14-day-track-comfort-irritation-routine',
+        permanent: true,
+      },
+      {
+        source: '/articles/self-care-by-friction-design-a-routine-you-can-repeat-on-ordinary',
+        destination: '/articles/self-care-by-friction-design-a-routine-for-ordinary-days',
+        permanent: true,
+      },
+      {
+        source: '/articles/the-no-pressure-morning-routine-a-three-version-system-for-real',
+        destination: '/articles/the-no-pressure-morning-routine-three-version-system-real-life',
+        permanent: true,
+      },
+      {
+        source: '/articles/how-to-design-a-wellness-weekend-at-home-a-low-cost-alternative',
+        destination: '/articles/how-to-design-a-wellness-weekend-at-home-low-cost-alternative',
+        permanent: true,
+      },
+      {
+        source: '/articles/how-to-plan-a-restorative-trip-the-anti-itinerary-for-travellers',
+        destination: '/articles/how-to-plan-a-restorative-trip-anti-itinerary-for-travellers',
+        permanent: true,
+      },
+      {
+        source: '/articles/city-break-or-nature-break-choose-a-trip-format-based-on-the-rest',
+        destination: '/articles/city-break-or-nature-break-choose-a-trip-format-for-rest',
+        permanent: true,
+      },
+      {
+        source: '/articles/wellness-claims-on-social-media-how-to-read-before-and-after',
+        destination: '/articles/wellness-claims-on-social-media-how-to-read-before-and-after-photos',
+        permanent: true,
+      },
     ];
   },
 

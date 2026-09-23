@@ -30,7 +30,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/tools/financial-health`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/glossary`,               lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE}/tags`,                   lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.7 },
-    { url: `${BASE}/series`,                 lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${BASE}/newsletter`,             lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/about`,                  lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     // /search intentionally excluded — pure client-side UI, no indexable content
@@ -41,6 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // ── Articles ─────────────────────────────────────────────────────────────
+  const publishedSlugsSet = new Set<string>();
   let articlePages: MetadataRoute.Sitemap;
   try {
     const dbArticles = supabaseAdmin
@@ -52,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       : null;
 
     if (dbArticles && dbArticles.length > 0) {
+      dbArticles.forEach((a) => { if (a.slug) publishedSlugsSet.add(a.slug); });
       articlePages = dbArticles.map((a) => ({
         url: `${BASE}/articles/${a.slug}`,
         lastModified: new Date(a.updated_at || Date.now()),
@@ -59,6 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: a.featured ? 0.9 : 0.7,
       }));
     } else {
+      staticArticles.forEach((a) => { if (a.slug) publishedSlugsSet.add(a.slug); });
       articlePages = staticArticles.map((a) => ({
         url: `${BASE}/articles/${a.slug}`,
         lastModified: new Date(a.updatedAt),
@@ -67,6 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     }
   } catch {
+    staticArticles.forEach((a) => { if (a.slug) publishedSlugsSet.add(a.slug); });
     articlePages = staticArticles.map((a) => ({
       url: `${BASE}/articles/${a.slug}`,
       lastModified: new Date(a.updatedAt),
@@ -134,20 +137,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 
   // ── Authors ───────────────────────────────────────────────────────────────
+  // Only include authors with articleCount > 0 — empty author pages are thin content
   let authorPages: MetadataRoute.Sitemap;
   try {
-    const dbAuthors = supabaseAdmin
-      ? await supabaseAdmin.from('authors').select('slug').eq('status', 'active').then(({ data }) => data)
-      : null;
-    const authorSlugs = dbAuthors && dbAuthors.length > 0
-      ? dbAuthors.map((a: { slug: string }) => a.slug)
-      : staticAuthors.map(a => a.slug);
-    authorPages = authorSlugs.map((slug: string) => ({
-      url: `${BASE}/author/${slug}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
-    }));
+    if (supabaseAdmin) {
+      const [{ data: dbAuthors }, { data: dbArticlesForAuthors }] = await Promise.all([
+        supabaseAdmin.from('authors').select('id, slug').eq('status', 'active').is('deleted_at', null),
+        supabaseAdmin.from('articles').select('author_id').eq('status', 'published').is('deleted_at', null),
+      ]);
+      const authorIdCounts = new Set<string>();
+      (dbArticlesForAuthors || []).forEach((a: { author_id?: string | null }) => {
+        if (a.author_id) authorIdCounts.add(a.author_id);
+      });
+      const activeAuthors = (dbAuthors || []).filter((a: { id: string }) => authorIdCounts.has(a.id));
+      authorPages = activeAuthors.map((a: { slug: string }) => ({
+        url: `${BASE}/author/${a.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      }));
+    } else {
+      const authorArticleCounts = new Set<string>();
+      staticArticles.forEach(a => { if (a.authorId) authorArticleCounts.add(a.authorId); });
+      authorPages = staticAuthors
+        .filter(a => authorArticleCounts.has(a.id) || authorArticleCounts.has(a.slug))
+        .map(a => ({
+          url: `${BASE}/author/${a.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+        }));
+    }
   } catch {
     authorPages = staticAuthors.map((a) => ({
       url: `${BASE}/author/${a.slug}`,
@@ -205,35 +225,57 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ── Series ────────────────────────────────────────────────────────────────
-  let seriesPages: MetadataRoute.Sitemap;
+  // Only include series with >= 1 published article. Omit empty series from Google's discovery tree.
+  let seriesPages: MetadataRoute.Sitemap = [];
+  let seriesHubPages: MetadataRoute.Sitemap = [];
   try {
     const dbSeries = supabaseAdmin
       ? await supabaseAdmin
           .from('series')
-          .select('slug, updated_at')
+          .select('slug, updated_at, article_slugs')
           .eq('status', 'published')
           .then(({ data }) => data)
       : null;
-    const seriesSlugs = dbSeries && dbSeries.length > 0
-      ? dbSeries.map((s: { slug: string; updated_at: string | null }) => ({ slug: s.slug, updated: s.updated_at }))
-      : staticSeries.map(s => ({ slug: s.slug, updated: null }));
-    seriesPages = seriesSlugs.map(({ slug, updated }) => ({
-      url: `${BASE}/series/${slug}`,
-      lastModified: updated ? new Date(updated) : new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    }));
+
+    if (dbSeries && dbSeries.length > 0) {
+      const activeSeries = dbSeries.filter((s: { article_slugs?: string[] | null }) => {
+        const slugs = Array.isArray(s.article_slugs) ? s.article_slugs : [];
+        return slugs.some(slug => publishedSlugsSet.has(slug));
+      });
+      seriesPages = activeSeries.map((s: { slug: string; updated_at: string | null }) => ({
+        url: `${BASE}/series/${s.slug}`,
+        lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      }));
+    } else {
+      const activeStaticSeries = staticSeries.filter(s =>
+        (s.articleSlugs || []).some(slug => publishedSlugsSet.has(slug))
+      );
+      seriesPages = activeStaticSeries.map(s => ({
+        url: `${BASE}/series/${s.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      }));
+    }
   } catch {
-    seriesPages = staticSeries.map(s => ({
-      url: `${BASE}/series/${s.slug}`,
+    seriesPages = [];
+  }
+
+  // Only include root /series hub if there is at least 1 populated series
+  if (seriesPages.length > 0) {
+    seriesHubPages = [{
+      url: `${BASE}/series`,
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
+      changeFrequency: 'weekly' as const,
       priority: 0.7,
-    }));
+    }];
   }
 
   return [
     ...staticPages,
+    ...seriesHubPages,
     ...articlePages,
     ...categoryPages,
     ...authorPages,

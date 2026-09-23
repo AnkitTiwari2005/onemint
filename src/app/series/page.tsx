@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { categories } from '@/data/categories';
 import { BookOpen, ArrowRight } from 'lucide-react';
@@ -6,11 +7,34 @@ import SeriesProgressClient from '@/components/SeriesProgressClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
 
-export const metadata = {
-  title: 'Article Series — OneMint',
-  description: 'Deep-dive multi-part guides on finance, tax, health and career. Read them in order for the full picture.',
-  alternates: { canonical: `${SITE_URL}/series` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const allSeries = await fetchSeries();
+  const allSlugs = allSeries.flatMap((s) => s.articleSlugs || []);
+  let hasPopulated = false;
+
+  if (allSlugs.length > 0 && supabaseAdmin) {
+    try {
+      const { count } = await supabaseAdmin
+        .from('articles')
+        .select('id', { count: 'exact', head: true })
+        .in('slug', allSlugs)
+        .eq('status', 'published')
+        .is('deleted_at', null);
+      hasPopulated = (count ?? 0) > 0;
+    } catch {
+      hasPopulated = false;
+    }
+  }
+
+  return {
+    title: 'Article Series — OneMint',
+    description: 'Deep-dive multi-part guides on finance, tax, health and career. Read them in order for the full picture.',
+    alternates: { canonical: `${SITE_URL}/series` },
+    robots: hasPopulated
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
+  };
+}
 
 // ISR: series list changes rarely — cache for 1 hour.
 export const revalidate = 3600;

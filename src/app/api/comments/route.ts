@@ -10,6 +10,18 @@ function containsSpam(text: string): boolean {
   return SPAM_WORDS.some(w => lower.includes(w));
 }
 
+function containsLinks(text: string): boolean {
+  const patterns = [
+    /<a\s+/i,
+    /<\/a>/i,
+    /href\s*=/i,
+    /https?:\/\//i,
+    /www\./i,
+    /\[.+\]\(https?:\/\/.+\)/i,
+  ];
+  return patterns.some(p => p.test(text));
+}
+
 /**
  * GET /api/comments?slug=article-slug
  * Returns approved comments + aggregated reaction counts.
@@ -72,7 +84,27 @@ export async function POST(req: NextRequest) {
     if (!supabaseAdmin) return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
 
     const body = await req.json();
-    const { article_slug, name, email, body: commentBody, parent_id } = body;
+    const { article_slug, name, email, body: commentBody, parent_id, website_url, honeypot } = body;
+
+    // Honeypot check: hidden field filled by automated spam bots
+    if (
+      (typeof website_url === 'string' && website_url.trim().length > 0) ||
+      (typeof honeypot === 'string' && honeypot.trim().length > 0)
+    ) {
+      // Silently discard spam submission without recording to DB
+      return NextResponse.json({
+        success: true,
+        message: 'Comment submitted for review. It will appear once approved.',
+      });
+    }
+
+    // Anti-spam link rejection: reject comments containing <a href or raw URLs to prevent backlink spam
+    if (containsLinks(commentBody || '') || containsLinks(name || '')) {
+      return NextResponse.json(
+        { error: 'Links and promotional URLs are not permitted in comments.' },
+        { status: 400 }
+      );
+    }
 
     // Validation
     if (!article_slug || typeof article_slug !== 'string')

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getSeriesBySlug } from '@/data/series';
 import { supabaseAdmin } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
@@ -81,14 +82,21 @@ async function fetchSeriesArticles(slugs: string[]): Promise<SeriesArticleItem[]
   }
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const s = await getSeriesData(slug);
   if (!s) return { title: 'Series Not Found' };
+
+  const articles = await fetchSeriesArticles(s.articleSlugs);
+  const isEmpty = articles.length === 0;
+
   return {
     title: s.name,
     description: s.description.slice(0, 160),
     alternates: { canonical: `${SITE_URL}/series/${slug}` },
+    robots: isEmpty
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
   };
 }
 

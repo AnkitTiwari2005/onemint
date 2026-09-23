@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
       phone: body.phone || '',
       status: body.status || 'active',
       joined_date: body.joinedDate || body.joined_date || null,
+      expertise_tags: Array.isArray(body.expertise_tags) ? body.expertise_tags : (body.expertise_tags ? [body.expertise_tags] : []),
     }]).select().single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -152,6 +153,7 @@ export async function PUT(req: NextRequest) {
       phone: body.phone || '',
       status: body.status,
       joined_date: body.joinedDate || body.joined_date,
+      expertise_tags: Array.isArray(body.expertise_tags) ? body.expertise_tags : (body.expertise_tags ? [body.expertise_tags] : []),
       updated_at: new Date().toISOString(),
     }).eq('id', body.id).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

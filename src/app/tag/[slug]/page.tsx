@@ -25,13 +25,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const display = slug.replace(/-/g, ' ');
   const canonicalUrl = `${SITE_URL}/tag/${slug}`;
+
+  // Count published articles associated with this tag
+  let articleCount = 0;
+  try {
+    const { articles: allArticles } = await fetchPublishedArticles();
+    const allTags = [...new Set(allArticles.flatMap((a) => a.tags ?? []))];
+    const tag = allTags.find((t) => slugifyTag(t) === slug);
+    if (tag) {
+      articleCount = allArticles.filter((a) => (a.tags ?? []).includes(tag)).length;
+    }
+  } catch {
+    articleCount = 0;
+  }
+
+  const isThin = articleCount < 3;
+
   return {
     title: `#${display} — OneMint`,
     description: `Browse OneMint articles tagged with "${display}".`,
     alternates: { canonical: canonicalUrl },
-    // Tag pages with very few articles are low-value; keep them out of Google's index
-    // but allow following links so Googlebot discovers the actual articles.
-    robots: { index: false, follow: true },
+    robots: isThin
+      ? { index: false, follow: true, nocache: true, googleBot: { index: false, follow: true } }
+      : { index: true, follow: true },
   };
 }
 

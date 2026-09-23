@@ -19,7 +19,7 @@ interface Comment {
 
 type ReactionMap = Record<string, Record<string, number>>;
 type MyReactions = Record<string, boolean>;
-type FormState   = { name: string; email: string; body: string };
+type FormState   = { name: string; email: string; body: string; website_url?: string };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -31,7 +31,7 @@ const REACTION_ICONS: Record<string, { icon: React.ReactNode; label: string; col
   '💡': { icon: <Lightbulb size={14} className="text-amber-500" />, label: 'Brilliant', color: '#f59e0b' },
   '😂': { icon: <Smile size={14} className="text-yellow-600" />, label: 'Amusing', color: '#ca8a04' },
 };
-const EMPTY   : FormState = { name: '', email: '', body: '' };
+const EMPTY   : FormState = { name: '', email: '', body: '', website_url: '' };
 const LS_KEY  = 'onemint-reactions';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -70,6 +70,9 @@ function validate(f: FormState): Record<string, string> {
   if (!f.body.trim())                e.body = 'Comment cannot be empty';
   else if (f.body.trim().length < 3) e.body = 'Too short';
   else if (f.body.trim().length > 2000) e.body = `${f.body.trim().length}/2000 — too long`;
+  else if (/<a\s+/i.test(f.body) || /href\s*=/i.test(f.body) || /https?:\/\//i.test(f.body) || /www\./i.test(f.body)) {
+    e.body = 'Links and HTML are not permitted in comments.';
+  }
   return e;
 }
 
@@ -175,6 +178,19 @@ function InlineReplyForm({
       </div>
 
       <form onSubmit={e => onSubmit(e, parentId)} noValidate>
+        {/* Honeypot field — hidden from humans, catches automated spam bots */}
+        <div style={{ position: 'absolute', opacity: 0, zIndex: -1, pointerEvents: 'none', height: 0, overflow: 'hidden' }} aria-hidden="true">
+          <label htmlFor={`website_url_${parentId || 'reply'}`}>Leave this field empty</label>
+          <input
+            type="text"
+            id={`website_url_${parentId || 'reply'}`}
+            name="website_url"
+            value={replyForm.website_url || ''}
+            tabIndex={-1}
+            autoComplete="off"
+            onChange={e => onChange('website_url', e.target.value)}
+          />
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div>
             <label style={labelSt}>Name <span style={{ color: '#DC2626' }}>*</span></label>
@@ -647,6 +663,19 @@ export function ArticleComments({ slug }: { slug: string }) {
           Leave a Comment
         </h3>
         <form onSubmit={handleSubmit} noValidate>
+          {/* Honeypot field — hidden from humans, catches automated spam bots */}
+          <div style={{ position: 'absolute', opacity: 0, zIndex: -1, pointerEvents: 'none', height: 0, overflow: 'hidden' }} aria-hidden="true">
+            <label htmlFor="website_url_main">Leave this field empty</label>
+            <input
+              type="text"
+              id="website_url_main"
+              name="website_url"
+              value={form.website_url || ''}
+              tabIndex={-1}
+              autoComplete="off"
+              onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))}
+            />
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div>
               <label style={labelSt}>Name <span style={{ color: '#DC2626' }}>*</span></label>
