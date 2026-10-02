@@ -15,6 +15,15 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/admin', '/admin/', '/admin/login', '/api/', '/maintenance'],
       },
+      // Explicit allow for AdSense crawlers — required for Google AdSense review
+      {
+        userAgent: 'Mediapartners-Google',
+        allow: '/',
+      },
+      {
+        userAgent: 'Google-Display-Ads-Bot',
+        allow: '/',
+      },
     ],
     sitemap: [
       `${SITE_URL}/sitemap.xml`,
@@ -23,3 +32,4 @@ export default function robots(): MetadataRoute.Robots {
     host: SITE_URL,
   };
 }
+

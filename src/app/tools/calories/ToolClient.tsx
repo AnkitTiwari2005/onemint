@@ -71,7 +71,7 @@ export default function CaloriesPage() {
         </div>
       </div>
 
-      <SliderInput label="Age" value={age} min={15} max={80} step={1} suffix=" yrs" onChange={setAge} />
+      <SliderInput label="Age" value={age} min={18} max={80} step={1} suffix=" yrs" onChange={setAge} hint="Ages 18–80 (adult Mifflin-St Jeor equation)" />
       <SliderInput label="Weight" value={weight} min={30} max={200} step={1} suffix=" kg" onChange={setWeight} />
       <SliderInput label="Height" value={height} min={120} max={230} step={1} suffix=" cm" onChange={setHeight} />
 

@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import NotFoundClient from './not-found-client';
 import { ENV } from '@/lib/env';
 
-
 // 404 pages should never be indexed.
 export const metadata: Metadata = {
   title: '404 — Page Not Found — OneMint',
@@ -19,23 +18,27 @@ async function getRecentArticles() {
     const key = ENV.SUPABASE_SERVICE_ROLE_KEY || ENV.SUPABASE_ANON_KEY;
     if (!url || !key) return [];
 
-
     const supabase = createClient(url, key);
     const { data, error } = await supabase
       .from('articles')
-      .select('slug, title, category_id, read_time_minutes')
+      .select('slug, title, category_id, read_time_minutes, categories(name, slug)')
+      .eq('status', 'published')
       .order('published_at', { ascending: false })
       .limit(50); // Fetch 50 most recent — keyword matcher picks the best 3
 
     if (error || !data) return [];
 
     // Normalise snake_case DB fields → camelCase Article shape
-    return data.map((row: Record<string, unknown>) => ({
-      slug:             String(row.slug ?? ''),
-      title:            String(row.title ?? ''),
-      categoryId:       String(row.category_id ?? ''),
-      readTimeMinutes:  Number(row.read_time_minutes ?? 5),
-    }));
+    return data.map((row: Record<string, unknown>) => {
+      const cat = row.categories as { name?: string; slug?: string } | null;
+      return {
+        slug:            String(row.slug ?? ''),
+        title:           String(row.title ?? ''),
+        // Prefer category slug for CATEGORY_LABELS lookup; fall back to raw UUID
+        categoryId:      cat?.slug ?? String(row.category_id ?? ''),
+        readTimeMinutes: Number(row.read_time_minutes ?? 5),
+      };
+    });
   } catch {
     return [];
   }

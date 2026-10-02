@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { Briefcase } from 'lucide-react';
 
-const EPF_INTEREST = 8.15;
+const EPF_INTEREST = 8.25;
 const EMPLOYEE_RATE = 0.12;
 const EMPLOYER_RATE = 0.0367; // 3.67% goes to EPF, rest to EPS
 
@@ -64,7 +64,10 @@ export default function EPFPage() {
       <SliderInput label="Your Age" value={age} min={18} max={57} step={1} suffix=" yrs" onChange={setAge} />
       <SliderInput label="Annual Salary Hike" value={annualHike} min={0} max={15} step={1} suffix="%" onChange={setAnnualHike} />
       <div className="p-3 rounded-xl bg-[var(--color-cat-finance-light)] border border-[var(--color-border)] text-sm font-[family-name:var(--font-ui)] text-[var(--color-cat-finance)]">
-        <strong>Current EPF interest rate: 8.15% p.a.</strong> (EPFO, FY2025-26)
+        <strong>Current EPF interest rate: 8.25% p.a.</strong> (EPFO, FY2025–26, notified July 2026)
+        <p className="mt-1 text-xs text-[var(--color-cat-finance)] opacity-80">
+          Future returns are projected based on the latest declared rate and are subject to annual government notification.
+        </p>
       </div>
     </div>
   );
@@ -87,7 +90,7 @@ export default function EPFPage() {
           <p className="font-bold text-[var(--color-ink)] text-sm font-[family-name:var(--font-ui)]">₹{formatIndianNumber(result.employerTotal)}</p>
         </div>
         <div className="p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] col-span-2">
-          <p className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] mb-1">Total Interest Earned (8.15%)</p>
+          <p className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] mb-1">Total Interest Earned (8.25%)</p>
           <p className="font-bold text-[var(--color-cat-finance)] font-[family-name:var(--font-ui)]">₹{formatIndianNumber(result.interestTotal)}</p>
         </div>
       </div>
@@ -116,7 +119,7 @@ export default function EPFPage() {
   return (
     <CalculatorLayout
       title="EPF Calculator"
-      description="Calculate your Employee Provident Fund corpus at retirement (age 58), including your contributions, employer contributions, and interest at 8.15% p.a."
+      description="Calculate your Employee Provident Fund corpus at retirement (age 58), including your contributions, employer contributions, and interest at 8.25% p.a. (FY2025–26 rate)."
       icon={<Briefcase size={30} />}
       theme="finance"
       results={results}

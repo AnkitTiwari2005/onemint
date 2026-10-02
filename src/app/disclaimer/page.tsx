@@ -1,4 +1,4 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -63,7 +63,7 @@ export default function DisclaimerPage() {
           and informational purposes only.</strong>
         </p>
         <p>
-          Nothing on OneMint.com should be construed as:
+          Nothing on OneMint.in should be construed as:
         </p>
         <ul>
           <li>Investment advice or a recommendation to buy, sell, or hold any security</li>
@@ -76,9 +76,28 @@ export default function DisclaimerPage() {
           (Investment Advisers) Regulations, 2013. We are a media and educational platform only.
         </p>
 
-        <h2 id="sebi">2. SEBI Disclaimer</h2>
+        <h2 id="medical">2. Medical &amp; Health Content Disclaimer</h2>
         <p>
-          OneMint.com is not a SEBI-registered research analyst or investment advisor. The views expressed
+          All health, nutrition, wellness, and medical content published on OneMint is for general
+          educational and informational purposes only. <strong>It is not a substitute for professional
+          medical advice, diagnosis, or treatment.</strong>
+        </p>
+        <p>
+          Always seek the advice of your physician or a qualified healthcare provider with any questions
+          you may have regarding a medical condition, dietary change, fitness programme, or wellness
+          practice. Never disregard professional medical advice or delay seeking it because of something
+          you have read on OneMint.
+        </p>
+        <p>
+          OneMint does not recommend or endorse any specific tests, physicians, procedures, opinions,
+          or other information that may be mentioned on this site. Reliance on any information provided
+          by OneMint is solely at your own risk. Health content is reviewed for general accuracy but
+          individual medical situations vary — always consult a qualified professional.
+        </p>
+
+        <h2 id="sebi">3. SEBI Disclaimer</h2>
+        <p>
+          OneMint.in is not a SEBI-registered research analyst or investment advisor. The views expressed
           in our financial articles are those of the authors and are based on publicly available information.
           They should not be treated as research reports under SEBI (Research Analysts) Regulations, 2014.
         </p>

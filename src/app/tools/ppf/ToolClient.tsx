@@ -117,7 +117,7 @@ export default function PPFPage() {
       <span className="text-lg shrink-0">🏛️</span>
       <div>
         <p className="font-semibold text-[var(--color-ink)] mb-1">PPF is completely Tax-Free (EEE Status)</p>
-        <p className="text-[var(--color-ink-secondary)]">Investments qualify for deduction under Section 80C. Interest earned and maturity amount are both 100% tax-free.</p>
+        <p className="text-[var(--color-ink-secondary)]">Investments qualify for deduction under Section 80C <strong>(available only under the Old Tax Regime)</strong>. Interest earned and maturity amount are both 100% tax-free regardless of regime. Deposits must clear on or before the 5th of each month to accrue interest for that month.</p>
       </div>
     </div>
   );

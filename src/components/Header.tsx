@@ -6,7 +6,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import Image from 'next/image';
 import { categories } from '@/data/categories';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Search, Moon, Sun, Menu, X, ChevronDown, BookOpen, Lightbulb, Bookmark, PenSquare, Info, Phone } from 'lucide-react';
+import { Search, Moon, Sun, Menu, X, ChevronDown, Lightbulb, Bookmark, PenSquare, Info, Phone } from 'lucide-react';
 
 interface HeaderProps {
   onSearchOpen: () => void;
@@ -18,7 +18,6 @@ const MORE_ITEMS = [
   { label: 'Write for Us', href: '/contribute', icon: PenSquare, sub: 'Share your expertise' },
   { label: 'Saved Articles', href: '/saved', icon: Bookmark, sub: 'Your reading list' },
   { label: 'Suggest a Topic', href: '/suggest', icon: Lightbulb, sub: 'Vote on future articles' },
-  { label: 'Article Series', href: '/series', icon: BookOpen, sub: 'Multi-part deep dives' },
 ];
 
 export function Header({ onSearchOpen }: HeaderProps) {

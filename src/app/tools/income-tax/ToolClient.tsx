@@ -73,12 +73,14 @@ export default function IncomeTaxPage() {
     let taxableOld = income;
     let taxableNew = income;
 
-    // Old regime deductions
+    // Old regime deductions (80C + 80D + HRA + 80CCD(1B) NPS + std deduction)
     const totalOldDeductions = deductions80C + deductions80D + hra + nps80CCD + oldStdDeduction;
     taxableOld = Math.max(0, income - totalOldDeductions);
 
-    // New regime: standard deduction + NPS only
-    taxableNew = Math.max(0, income - newStdDeduction - nps80CCD);
+    // New regime: standard deduction only — 80C, 80D, HRA, and 80CCD(1B) are NOT available.
+    // (NPS employer contribution under 80CCD(2) is available but not modelled here as it
+    // requires knowing the employer's contribution, which varies by employer.)
+    taxableNew = Math.max(0, income - newStdDeduction);
 
     const oldResult = calculateTax(taxableOld, OLD_SLABS);
     const newResult = calculateTax(taxableNew, NEW_SLABS);
@@ -108,7 +110,7 @@ export default function IncomeTaxPage() {
         cess: newTaxFinal > 0 ? Math.round(newResult.tax * 0.04) : 0,
         effectiveRate: income > 0 ? ((newTaxFinal / income) * 100).toFixed(1) : '0',
         breakdown: newResult.breakdown,
-        deductions: newStdDeduction + nps80CCD,
+        deductions: newStdDeduction,
       },
       savings: oldTaxFinal - newTaxFinal,
       recommended: newTaxFinal <= oldTaxFinal ? 'new' : 'old',
@@ -347,7 +349,7 @@ export default function IncomeTaxPage() {
               <li>New regime slabs restructured: 0% up to ₹4L, 5% (₹4–8L), 10% (₹8–12L), 15% (₹12–16L), 20% (₹16–20L), 25% (₹20–24L), 30% above ₹24L</li>
               <li>Standard deduction of ₹75,000 retained in new regime</li>
               <li>New regime remains the default — opt out explicitly for old regime</li>
-              <li>NPS deduction (80CCD 1B) of ₹50,000 available in both regimes</li>
+              <li><strong>NPS deduction (80CCD 1B) of ₹50,000 available only under the Old Tax Regime</strong> — this deduction does not apply under the New Tax Regime (Finance Act 2023)</li>
             </ul>
           </div>
         </article>

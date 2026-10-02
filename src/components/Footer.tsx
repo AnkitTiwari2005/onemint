@@ -18,7 +18,6 @@ const EXPLORE_LINKS = [
   ['Tools & Calculators', '/tools'],
   ['Glossary', '/glossary'],
   ['Newsletter', '/newsletter'],
-  ['Article Series', '/series'],
   ['Saved Articles', '/saved'],
   ['Tags', '/tags'],
 ];

@@ -1,4 +1,4 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -155,9 +155,14 @@ export default function PrivacyPolicyPage() {
               cookie.
             </li>
             <li>
-              <strong>Advertising cookies:</strong> No advertising cookies are currently set on
-              OneMint. If we enable advertising in the future, this policy will be updated
-              accordingly.
+              <strong>Advertising cookies:</strong> We use Google AdSense to display advertisements.
+              Google AdSense may set advertising cookies (such as{' '}
+              <code>NID</code>, <code>DSID</code>, <code>IDE</code>) to serve personalised ads and
+              measure ad performance. You can opt out of personalised ads via{' '}
+              <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">
+                Google&rsquo;s Ad Settings
+              </a>
+              .
             </li>
           </ul>
 
@@ -176,9 +181,10 @@ export default function PrivacyPolicyPage() {
               topics resonate, so we can publish more useful content.
             </li>
             <li>
-              <strong>Future advertising:</strong> We may participate in advertising programmes in
-              the future to help keep OneMint free. No third-party advertising is currently active
-              on this site.
+              <strong>Advertising:</strong> We display advertisements through Google AdSense to help
+              keep OneMint free. Google AdSense uses cookies to serve personalised ads based on your
+              interests. See the{' '}
+              <a href="/cookies" className="text-[var(--color-accent)]">Cookie Policy</a> for details.
             </li>
             <li>
               <strong>Legal obligations:</strong> If required by Indian law (IT Act 2000, DPDP Act 2023),

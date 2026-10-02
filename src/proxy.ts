@@ -22,6 +22,8 @@ const LEGACY_CATEGORIES = new Set([
   'personal-finance', 'health', 'career', 'lifestyle',
   'sports', 'world', 'technology', 'finance', 'economy',
   'gold', 'nps', 'ppf', 'epf', 'ulip',
+  // Legacy WordPress URL patterns found in GSC 404 report
+  'iponfo', 'ipo', 'books', 'page',
 ]);
 const CATEGORY_PATTERN = /^\/([a-z][a-z-]+)\/([a-z0-9][a-z0-9-]{2,})\/?$/i;
 
@@ -64,8 +66,14 @@ const CATEGORY_TO_TOPIC: Record<string, string> = {
   'world':            'world-politics',
   // Real estate — no real-estate category exists; use personal-finance fallback
   'real-estate':      'personal-finance',
-  // Opinion → homepage (no matching topic)
+  // Books → education-learning
+  'books':            'education-learning',
+  // IPO content → personal-finance
+  'ipo':              'personal-finance',
+  'iponfo':           'personal-finance',
+  // Opinion / page → homepage (no matching topic)
   'opinion':          '',
+  'page':             '',
 };
 
 // ── Valid article slugs (ESM import — safe in Edge runtime) ──────────────────
@@ -92,6 +100,9 @@ try {
  * Returns the new pathname, or null if this isn't a legacy URL.
  */
 function getLegacyRedirect(pathname: string): string | null {
+  // Explicit: /page/N WordPress paginated URLs → homepage (301)
+  if (/^\/page\/\d+\/?$/.test(pathname)) return '/';
+
   let slug: string | null = null;
   let oldCategory: string | null = null;
 
@@ -197,7 +208,7 @@ function isMaintenanceMode(): boolean {
   return process.env.MAINTENANCE_MODE === 'true';
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get('host') ?? '';
 

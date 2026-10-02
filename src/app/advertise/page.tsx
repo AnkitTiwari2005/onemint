@@ -1,4 +1,4 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -46,12 +46,11 @@ export default function AdvertisePage() {
         </div>
 
         {/* Ad formats */}
-        <div style={{ marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Advertising Formats</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[
               { title: 'Newsletter Sponsorship', desc: 'Your brand featured in our weekly digest reaching active subscribers. Includes logo, headline, 2-line copy, and CTA. High visibility, guaranteed opens.', tag: 'Most Popular' },
-              { title: 'Native Content', desc: 'Sponsor an editorial-style article written by our team on a topic relevant to your product. Clearly labelled as sponsored. Permanent archive link.', tag: 'High Trust' },
               { title: 'Display Advertising', desc: 'Banner and sidebar placements on high-traffic article pages and calculators. CPM pricing, category targeting available.', tag: 'Self-serve' },
               { title: 'Calculator Co-branding', desc: 'Your brand associated with one of our 20+ financial calculators (e.g. "Home Loan Calculator, presented by [Bank]"). Persistent attribution.', tag: 'Premium' },
             ].map((f) => (
