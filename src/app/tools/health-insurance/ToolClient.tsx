@@ -145,7 +145,7 @@ export default function HealthInsurancePage() {
           <p className="font-bold text-[var(--color-ink)] text-sm">₹{formatIndianNumber(result.monthlyMin)} – ₹{formatIndianNumber(result.monthlyMax)}</p>
         </div>
         <div className="p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
-          <p className="text-xs text-[var(--color-ink-tertiary)] mb-1">80D Tax Deduction</p>
+          <p className="text-xs text-[var(--color-ink-tertiary)] mb-1">80D Tax Deduction <span className="font-normal">(Old Regime only)</span></p>
           <p className="font-bold text-[var(--color-cat-finance)] text-sm">Up to ₹{formatIndianNumber(result.deduction80D)}</p>
         </div>
       </div>

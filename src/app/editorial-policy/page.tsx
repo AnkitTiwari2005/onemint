@@ -1,4 +1,4 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -44,7 +44,7 @@ Our coverage spans personal finance, technology, health & wellness, career devel
     title: 'Editorial Independence',
     content: `OneMint's editorial content is strictly independent from commercial considerations:
 
-**No sponsored articles.** We do not publish paid-for editorial content. Advertisements are clearly labelled and physically separated from editorial content.
+**No sponsored articles or paid guest posts.** OneMint does not accept paid editorial content, sponsored articles, or paid guest posts in any form. Every article on this site is independently commissioned, researched, and written by our editorial team. Advertisements are clearly labelled "Advertisement" and are physically separated from editorial content. Advertisers receive no editorial consideration in exchange for ad spend.
 
 **No affiliate bias.** When we recommend a product, service, or financial instrument, it is because our research supports that recommendation — not because we receive a commission. Any commercial relationships that could affect coverage are disclosed prominently.
 
