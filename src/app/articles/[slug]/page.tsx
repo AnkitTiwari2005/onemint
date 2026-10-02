@@ -32,8 +32,8 @@ export const revalidate = 3600;
 // Allow on-demand slug rendering (new articles don't need a redeploy)
 export const dynamicParams = true;
 
-/** Slugify a heading text into an HTML-safe id — also used by ArticleBodyClient */
-export function headingId(text: string): string {
+/** Slugify a heading text into an HTML-safe id */
+function headingId(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
