@@ -5,7 +5,6 @@ import Link from 'next/link';
 
 const FORMATS = [
   'Newsletter Sponsorship',
-  'Native Content / Sponsored Article',
   'Display Advertising',
   'Calculator Co-branding',
   'Multiple / Not sure yet',
