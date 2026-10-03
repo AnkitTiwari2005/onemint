@@ -150,8 +150,8 @@ export default function PrivacyPolicyPage() {
               preferences (theme, font size). Valid for 1 year.
             </li>
             <li>
-              <strong>Analytics cookies:</strong> We use privacy-first analytics (Umami or Google
-              Analytics) to understand aggregate site usage. These may set a session or persistent
+              <strong>Analytics cookies:</strong> We use Google Analytics to
+              understand aggregate site usage. These may set a session or persistent
               cookie.
             </li>
             <li>
@@ -182,9 +182,29 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>Advertising:</strong> We display advertisements through Google AdSense to help
-              keep OneMint free. Google AdSense uses cookies to serve personalised ads based on your
-              interests. See the{' '}
-              <a href="/cookies" className="text-[var(--color-accent)]">Cookie Policy</a> for details.
+              keep OneMint free. Google AdSense and its partners use cookies and device identifiers
+              to serve ads based on your visits to this site and other sites across the internet
+              (interest-based advertising). This means Google may use information about your browsing
+              activity on OneMint — and on other partner websites — to show you more relevant ads.
+              To learn how Google uses data when you use partner sites, visit{' '}
+              <a
+                href="https://policies.google.com/technologies/partner-sites"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-accent)]"
+              >
+                policies.google.com/technologies/partner-sites
+              </a>
+              . To opt out of interest-based ads from Google, visit{' '}
+              <a
+                href="https://adssettings.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-accent)]"
+              >
+                adssettings.google.com
+              </a>
+              .
             </li>
             <li>
               <strong>Legal obligations:</strong> If required by Indian law (IT Act 2000, DPDP Act 2023),

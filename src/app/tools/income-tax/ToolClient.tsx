@@ -138,7 +138,7 @@ export default function IncomeTaxPage() {
             Income Tax Calculator
           </h1>
           <p className="text-lg text-[var(--color-ink-secondary)] max-w-2xl font-[family-name:var(--font-body)]">
-            Compare old vs new tax regime for FY 2025-26 / AY 2026-27. See which saves you more and plan your deductions smartly.
+            Compare old vs new tax regime for <strong>FY 2025-26 / AY 2026-27</strong> — for filing your income tax return due July 2026. See which regime saves you more and plan your deductions.
           </p>
         </div>
 
@@ -239,7 +239,7 @@ export default function IncomeTaxPage() {
 
             <div className="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm flex gap-3 border border-blue-100 font-[family-name:var(--font-body)]">
               <Info className="shrink-0 mt-0.5" size={18} />
-              <p><strong>FY 2025-26 / AY 2026-27</strong> — Budget 2025: Under new regime, income up to <strong>₹12L is completely tax-free</strong> (expanded Section 87A rebate). Standard deduction of ₹75,000 applies. Last updated: Feb 2025 Budget.</p>
+              <p><strong>FY 2025-26 / AY 2026-27 — Tax Filing Calculator.</strong> Budget 2025 rules apply: under the new regime, income up to <strong>₹12L is completely tax-free</strong> (expanded Section 87A rebate). Standard deduction of ₹75,000 applies. Use this to calculate tax for returns due July 2026.</p>
             </div>
           </div>
 

@@ -109,6 +109,7 @@ export default async function AboutPage() {
             <p>Our content is researched from primary sources (RBI, SEBI, government notifications, peer-reviewed studies) and reviewed by our editorial team before publication. We don&apos;t chase clicks. We chase clarity.</p>
             <blockquote>&ldquo;Like a brilliant friend who happens to know everything.&rdquo;</blockquote>
             <p>Whether you&apos;re figuring out your first SIP, understanding the new tax regime, or wondering if that health supplement actually works — OneMint gives you clear, sourced, honest answers. Our finance and health content is for educational purposes only and does not constitute professional advice.</p>
+            <p>OneMint was founded by <strong>Shiv Kukreja</strong> — Certified Financial Planner (CFP, FPSB India) and CFA Level II candidate — and is built and maintained by <strong>Ankit Kumar Tiwari</strong> (Founding Engineer &amp; CTO). The platform is independently operated and focused on the Indian personal finance reader.</p>
           </div>
         </div>
       </section>

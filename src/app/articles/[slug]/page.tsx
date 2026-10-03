@@ -265,6 +265,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                     <span className="text-sm font-semibold text-[var(--color-ink)]">OneMint Editorial</span>
                   )}
                 </div>
+                {(author as unknown as Record<string, string>)?.role && (
+                  <p className="text-[10px] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] uppercase tracking-wider mt-0.5">
+                    {(author as unknown as Record<string, string>).role}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 text-[11px] text-[var(--color-ink-tertiary)] mt-1 font-[family-name:var(--font-ui)] uppercase tracking-wider">
                   <Clock size={10} />
                   <span>{article!.published_at ? formatDate(article!.published_at) : ''}</span>

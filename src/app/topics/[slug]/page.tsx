@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getCategoryBySlug, categories } from '@/data/categories';
@@ -63,8 +63,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     )
     .map((a, i) => toArticle(a, i));
 
+  // Redirect thin categories (< 5 published articles) to /topics.
+  // Self-heals automatically: once the 5th article is published,
+  // the next ISR refresh (revalidate = 60s) will serve the full category page.
+  if (catArticles.length < 5) redirect('/topics');
+
   const featured = catArticles[0];
   const rest = catArticles.slice(1);
+
 
   const collectionSchema = buildCollectionPage(
     category!.name,

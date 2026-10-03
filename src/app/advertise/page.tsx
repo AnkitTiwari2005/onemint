@@ -35,7 +35,7 @@ export default function AdvertisePage() {
           {[
             { value: '12+', label: 'Content Categories', sub: 'Finance to health to tech' },
             { value: '25+', label: 'Financial Tools', sub: 'Free calculators for every need' },
-            { value: '4.2 min', label: 'Avg Session', sub: 'High-intent, engaged audience' },
+            { value: '100%', label: 'Free to Read', sub: 'No paywalls, no subscriptions' },
           ].map((s) => (
             <div key={s.label} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
               <p style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 5vw, 36px)', fontWeight: 700, color: 'var(--color-accent)', margin: '0 0 6px', lineHeight: 1 }}>{s.value}</p>
@@ -50,9 +50,9 @@ export default function AdvertisePage() {
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 20 }}>Advertising Formats</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[
-              { title: 'Newsletter Sponsorship', desc: 'Your brand featured in our weekly digest reaching active subscribers. Includes logo, headline, 2-line copy, and CTA. High visibility, guaranteed opens.', tag: 'Most Popular' },
+              { title: 'Newsletter Sponsorship', desc: 'Your brand featured in our weekly digest reaching active subscribers. Includes logo, headline, 2-line copy, and CTA. High visibility, high-intent audience.', tag: 'Most Popular' },
               { title: 'Display Advertising', desc: 'Banner and sidebar placements on high-traffic article pages and calculators. CPM pricing, category targeting available.', tag: 'Self-serve' },
-              { title: 'Calculator Co-branding', desc: 'Your brand associated with one of our 20+ financial calculators (e.g. "Home Loan Calculator, presented by [Bank]"). Persistent attribution.', tag: 'Premium' },
+              { title: 'Calculator Co-branding', desc: 'Your brand associated with one of our 20+ financial calculators (e.g. "Home Loan Calculator, presented by [Bank]"). Persistent attribution. Sponsors have no influence over calculator formulas, default values, or outputs.', tag: 'Premium' },
             ].map((f) => (
               <div key={f.title} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '20px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
