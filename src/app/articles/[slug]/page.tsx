@@ -274,7 +274,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <Clock size={10} />
                   <span>{article!.published_at ? formatDate(article!.published_at) : ''}</span>
                   {(article as unknown as Record<string,string>).updated_at &&
-                    (article as unknown as Record<string,string>).updated_at !== article!.published_at && (
+                    (article as unknown as Record<string,string>).updated_at > (article!.published_at ?? '') && (
                     <>
                       <span className="opacity-50">·</span>
                       <span className="text-[var(--color-accent)] font-semibold">
