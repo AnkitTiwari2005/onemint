@@ -49,3 +49,9 @@ supabase/.temp/
 next-env.d.ts
 
 .vercel
+
+# Scratch/temp files
+*.txt
+TECHNICAL_AUDIT_DIFF_REPORT.md
+adsense_review_content.txt
+build_*.txt
