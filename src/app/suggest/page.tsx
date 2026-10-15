@@ -1,8 +1,8 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 /**
- * Suggest page — Server Component wrapper.
+ * Suggest page â€” Server Component wrapper.
  * Interactive UI is in SuggestContent.tsx ('use client').
  * This server component exists solely to export metadata.
  */
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     title: 'Suggest a Topic | OneMint',
     description:
       'Vote on topics you want OneMint to cover, or suggest something new. Our editorial team reviews the top suggestions every week.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Suggest a Topic — OneMint' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Suggest a Topic â€” OneMint' }],
   },
-  robots: { index: false, follow: true }, // community page — no indexing needed
+  robots: { index: false, follow: true }, // community page â€” no indexing needed
 };
 
 export default function SuggestPage() {
