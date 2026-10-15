@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import {
   BarChart2, Eye, Users, Clock, Globe,
   ArrowUp, ArrowDown, Loader2, RefreshCw,
   AlertTriangle, Monitor, Smartphone, Tablet, Tv,
-  TrendingUp, Activity, Copy, CheckCircle, Key, FileText, X,
+  TrendingUp, Activity, FileText, X,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -142,97 +141,7 @@ function DeviceDonut({ deviceSplit }: { deviceSplit: AnalyticsStats['deviceSplit
   );
 }
 
-// ── OAuth setup banner ────────────────────────────────────────────────────────
-// Shown once after /api/admin/analytics/oauth redirects here with ?refresh_token=
-function OAuthTokenBanner({ token, onDismiss }: { token: string; onDismiss: () => void }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(token);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      // Fallback: select the text
-      const el = document.getElementById('oauth-refresh-token');
-      if (el) (el as HTMLInputElement).select();
-    }
-  }, [token]);
-
-  return (
-    <div style={{
-      marginBottom: 24,
-      padding: '16px 20px',
-      background: '#EFF6FF',
-      border: '1px solid #3B82F6',
-      borderRadius: 12,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <Key size={18} color="#2563EB" />
-        <strong style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: '#1E40AF' }}>
-          Google OAuth Completed — Copy Your Refresh Token
-        </strong>
-      </div>
-      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: '#1E40AF', margin: '0 0 10px' }}>
-        Add this as <code style={{ background: '#DBEAFE', padding: '1px 5px', borderRadius: 4, fontFamily: 'var(--font-mono, monospace)' }}>GA4_REFRESH_TOKEN</code> in your Vercel environment variables, then redeploy.
-      </p>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
-        <input
-          id="oauth-refresh-token"
-          readOnly
-          value={token}
-          style={{
-            flex: 1,
-            padding: '8px 12px',
-            fontFamily: 'var(--font-mono, monospace)',
-            fontSize: 11,
-            background: 'white',
-            border: '1px solid #93C5FD',
-            borderRadius: 8,
-            color: '#1E40AF',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-          onFocus={(e) => e.target.select()}
-        />
-        <button
-          onClick={handleCopy}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '8px 14px',
-            background: copied ? '#16A34A' : '#2563EB',
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            fontFamily: 'var(--font-ui)',
-            fontSize: 13,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            transition: 'background 0.2s',
-          }}
-        >
-          {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
-        <button
-          onClick={onDismiss}
-          style={{
-            padding: '8px 14px',
-            background: 'transparent',
-            color: '#6B7280',
-            border: '1px solid #D1D5DB',
-            borderRadius: 8,
-            fontFamily: 'var(--font-ui)',
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
-        >
-          Dismiss
-        </button>
-      </div>
-    </div>
-  );
-}
+// ── (OAuth setup banner removed — GA4 now uses permanent Service Account auth) ─
 
 // ── Report helpers ────────────────────────────────────────────────────────────
 function getDurationLabel(duration: string, customFrom?: string, customTo?: string): string {
@@ -798,10 +707,8 @@ function ReportModal({
 }
 
 // ── main component ───────────────────────────────────────────────────────────
-// Inner component — must be wrapped in <Suspense> because it uses useSearchParams()
+// Inner component — wrapped in <Suspense> as required by Next.js App Router
 function AnalyticsPageContent() {
-  const searchParams = useSearchParams();
-  const [oauthToken, setOauthToken] = useState<string | null>(null);
   const [period, setPeriod]         = useState<'weekly' | 'monthly'>('weekly');
   const [data, setData]             = useState<AnalyticsStats | null>(null);
   const [loading, setLoading]       = useState(true);
@@ -810,17 +717,6 @@ function AnalyticsPageContent() {
   const [reportOpen, setReportOpen]     = useState(false);
   const [reportFetching, setReportFetching] = useState(false);
   const [reportError, setReportError] = useState('');
-
-  // Pick up refresh_token from OAuth redirect and clean the URL
-  useEffect(() => {
-    const token = searchParams.get('refresh_token');
-    if (token) {
-      setOauthToken(token);
-      const clean = new URL(window.location.href);
-      clean.searchParams.delete('refresh_token');
-      window.history.replaceState({}, '', clean.toString());
-    }
-  }, [searchParams]);
 
   const load = async (force = false, p: 'weekly' | 'monthly' = period) => {
     if (force) clearAnalyticsCache(p);
@@ -905,30 +801,20 @@ function AnalyticsPageContent() {
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
-    <div>
-      {oauthToken && (
-        <OAuthTokenBanner token={oauthToken} onDismiss={() => setOauthToken(null)} />
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 80, color: 'var(--color-ink-tertiary)' }}>
-        <Loader2 size={22} className="animate-spin" />
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14 }}>Loading GA4 data…</span>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 80, color: 'var(--color-ink-tertiary)' }}>
+      <Loader2 size={22} className="animate-spin" />
+      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14 }}>Loading GA4 data…</span>
     </div>
   );
 
   // ── Error ────────────────────────────────────────────────────────────────
   if (error || !data) return (
-    <div>
-      {oauthToken && (
-        <OAuthTokenBanner token={oauthToken} onDismiss={() => setOauthToken(null)} />
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 32, background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12 }}>
-        <AlertTriangle size={20} color="#DC2626" />
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: '#DC2626' }}>{error || 'No data available'}</span>
-        <button onClick={() => load(true)} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #FCA5A5', borderRadius: 6, background: '#fff', color: '#DC2626', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
-          <RefreshCw size={13} /> Retry
-        </button>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 32, background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12 }}>
+      <AlertTriangle size={20} color="#DC2626" />
+      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: '#DC2626' }}>{error || 'No data available'}</span>
+      <button onClick={() => load(true)} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #FCA5A5', borderRadius: 6, background: '#fff', color: '#DC2626', fontFamily: 'var(--font-ui)', fontSize: 13, cursor: 'pointer' }}>
+        <RefreshCw size={13} /> Retry
+      </button>
     </div>
   );
 
@@ -948,10 +834,6 @@ function AnalyticsPageContent() {
 
   return (
     <div>
-      {/* OAuth token banner */}
-      {oauthToken && (
-        <OAuthTokenBanner token={oauthToken} onDismiss={() => setOauthToken(null)} />
-      )}
 
       {/* Report Modal */}
       <ReportModal
