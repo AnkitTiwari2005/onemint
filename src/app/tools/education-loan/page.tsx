@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Education Loan EMI Calculator — Student Loan Planning India',
+  title: 'Education Loan EMI Calculator â€” Student Loan Planning India',
   description: 'Free Education Loan EMI Calculator India. Calculate monthly EMI for your student loan. Compare loan amounts and repayment tenures to plan your education financing smartly.',
   alternates: { canonical: `${SITE_URL}/tools/education-loan` },
   openGraph: {

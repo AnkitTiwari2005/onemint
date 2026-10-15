@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Loan Prepayment Calculator — Save on Interest & Reduce Tenure',
+  title: 'Loan Prepayment Calculator â€” Save on Interest & Reduce Tenure',
   description: 'Free Loan Prepayment Calculator India. See how a one-time prepayment saves you lakhs in interest and cuts years off your loan. Works for home loans, car loans & personal loans.',
   alternates: { canonical: `${SITE_URL}/tools/loan-prepayment` },
   openGraph: {

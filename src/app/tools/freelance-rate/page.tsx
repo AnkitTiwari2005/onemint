@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Freelance Hourly Rate Calculator India — What Should You Charge?',
+  title: 'Freelance Hourly Rate Calculator India â€” What Should You Charge?',
   description: 'Free Freelance Rate Calculator India. Calculate your minimum hourly or daily rate as a freelancer based on income goals, expenses, and working hours. Never undercharge again.',
   alternates: { canonical: `${SITE_URL}/tools/freelance-rate` },
   openGraph: {

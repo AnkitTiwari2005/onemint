@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import Link from 'next/link';

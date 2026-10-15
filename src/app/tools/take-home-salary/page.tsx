@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'In-Hand Salary Calculator India — CTC to Take-Home Pay FY 2024-25',
+  title: 'In-Hand Salary Calculator India â€” CTC to Take-Home Pay FY 2024-25',
   description: 'Free In-Hand Salary Calculator India FY 2024-25. Convert your CTC to exact monthly take-home pay. Includes PF, professional tax, income tax, and HRA deductions for all salary slabs.',
   alternates: { canonical: `${SITE_URL}/tools/take-home-salary` },
   openGraph: {

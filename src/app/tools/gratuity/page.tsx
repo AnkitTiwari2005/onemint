@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Gratuity Calculator India — Calculate Gratuity Amount 2024',
+  title: 'Gratuity Calculator India â€” Calculate Gratuity Amount 2024',
   description: 'Free Gratuity Calculator India 2024. Calculate your gratuity amount under the Payment of Gratuity Act. See how basic salary and years of service determine your gratuity payout.',
   alternates: { canonical: `${SITE_URL}/tools/gratuity` },
   openGraph: {

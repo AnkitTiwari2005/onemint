@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,13 +9,13 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'SWP Calculator — Systematic Withdrawal Plan Calculator India',
+  title: 'SWP Calculator â€” Systematic Withdrawal Plan Calculator India',
   description: 'Free SWP Calculator India. Calculate how long your mutual fund corpus lasts with monthly withdrawals. Plan your retirement income with Systematic Withdrawal Plans.',
   alternates: { canonical: `${SITE_URL}/tools/swp` },
   openGraph: {
     type: 'website',
     url: `${SITE_URL}/tools/swp`,
-    title: 'SWP Calculator — Systematic Withdrawal Plan Calculator India',
+    title: 'SWP Calculator â€” Systematic Withdrawal Plan Calculator India',
     description: 'Free SWP Calculator India. Calculate how long your mutual fund corpus lasts with monthly withdrawals. Plan your retirement income with Systematic Withdrawal Plans.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'SWP Calculator | OneMint' }],
   },

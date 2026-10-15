@@ -1,0 +1,47 @@
+▲ Next.js 16.3.5 (webpack)
+- Environments: .env.local
+⚠ Warning: Next.js ignored package-lock.json in C:\Users\ankit because it is outside the current Git repository (C:\Users\ankit\OneDrive\Desktop\ONEMINT-REAL\onemint).
+ To use this directory, set `outputFileTracingRoot` in your Next.js config.
+
+✓ Running next.config.mjs took 34ms
+Warning: Custom Cache-Control headers detected for the following routes:
+  - /_next/static/:path*
+
+Setting a custom Cache-Control header can break Next.js development behavior.
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+⚠ Compiled with warnings in 3.8s
+
+./node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+A Node.js API is used (process.cwd at line: 1044) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+./node_modules/next/dist/esm/server/request/connection.js
+./node_modules/next/dist/esm/server/web/exports/index.js
+./node_modules/next/dist/esm/api/server.js
+
+./node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+A Node.js API is used (process.cwd at line: 1044) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/next/dist/esm/server/app-render/dynamic-rendering.js
+./node_modules/next/dist/esm/server/request/connection.js
+./node_modules/next/dist/esm/server/web/exports/index.js
+./node_modules/next/dist/esm/api/server.js
+
+✓ Compiled successfully in 39.8s
+  Running TypeScript ...
+.next/types/app/articles/[slug]/page.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import("C:/Users/ankit/OneDrive/Desktop/ONEMINT-REAL/onemint/src/app/articles/[slug]/page"), "default" | "viewport" | "revalidate" | "prefetch" | "metadata" | "config" | ... 10 more ... | "generateViewport", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'headingId' is incompatible with index signature.
+    Type '(text: string) => string' is not assignable to type 'never'.
+Failed to type check.
+

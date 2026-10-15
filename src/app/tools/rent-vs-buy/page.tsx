@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Rent vs Buy Calculator India — Should You Buy or Rent a Home?',
+  title: 'Rent vs Buy Calculator India â€” Should You Buy or Rent a Home?',
   description: 'Free Rent vs Buy Calculator India. Compare the true financial cost of renting vs buying a home. Includes property appreciation, tax benefits, opportunity cost, and EMI analysis.',
   alternates: { canonical: `${SITE_URL}/tools/rent-vs-buy` },
   openGraph: {

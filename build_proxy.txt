@@ -1,0 +1,279 @@
+▲ Next.js 16.3.5 (Turbopack)
+- Environments: .env.local
+⚠ Warning: Next.js ignored package-lock.json in C:\Users\ankit because it is outside the current Git repository (C:\Users\ankit\OneDrive\Desktop\ONEMINT-REAL\onemint).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.mjs took 35ms
+Warning: Custom Cache-Control headers detected for the following routes:
+  - /_next/static/:path*
+
+Setting a custom Cache-Control header can break Next.js development behavior.
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.3s
+  Running TypeScript ...
+  Finished TypeScript in 4.6s ...
+  Collecting page data using 15 workers ...
+⚠ The Edge Runtime is deprecated. You can use the "nodejs" runtime instead. Learn more: https://nextjs.org/docs/messages/edge-runtime-deprecated
+⚠ Using edge runtime on a page currently disables static generation for that page
+  Generating static pages using 15 workers (0/122) ...
+  Generating static pages using 15 workers (30/122) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 15 workers (60/122) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 15 workers (91/122) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[GA4] Token refresh failed: 400 {
+  "error": "invalid_grant",
+  "error_description": "Bad Request"
+}
+✓ Generating static pages using 15 workers (122/122) in 3.4s
+  Finalizing page optimization ...
+
+Route (app)                       Revalidate  Expire
+┌ ○ /                                     1m      1y
+├ ○ /_not-found
+├ ○ /about                                1h      1y
+├ ○ /admin
+├ ○ /admin/analytics
+├ ○ /admin/applications
+├ ○ /admin/articles
+├ ƒ /admin/articles/[id]/edit
+├ ○ /admin/articles/new
+├ ○ /admin/authors
+├ ○ /admin/categories
+├ ○ /admin/comments
+├ ○ /admin/enquiries
+├ ○ /admin/glossary
+├ ○ /admin/login
+├ ○ /admin/messages
+├ ○ /admin/newsletter
+├ ○ /admin/series
+├ ○ /admin/settings
+├ ○ /admin/suggestions
+├ ○ /admin/trash
+├ ○ /advertise
+├ ƒ /api/admin/ai
+├ ƒ /api/admin/analytics
+├ ƒ /api/admin/analytics/oauth
+├ ƒ /api/admin/applications
+├ ƒ /api/admin/articles
+├ ƒ /api/admin/articles/[id]
+├ ƒ /api/admin/auth/login
+├ ƒ /api/admin/auth/logout
+├ ƒ /api/admin/authors
+├ ƒ /api/admin/categories
+├ ƒ /api/admin/comments
+├ ƒ /api/admin/dashboard
+├ ƒ /api/admin/enquiries
+├ ƒ /api/admin/glossary
+├ ƒ /api/admin/messages
+├ ƒ /api/admin/newsletter
+├ ƒ /api/admin/newsletter/send
+├ ƒ /api/admin/notify-article
+├ ƒ /api/admin/series
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/stats
+├ ƒ /api/admin/suggestions
+├ ƒ /api/admin/trash
+├ ƒ /api/admin/trash/[type]/[id]
+├ ƒ /api/admin/upload
+├ ƒ /api/advertise
+├ ƒ /api/apply
+├ ○ /api/articles/public                  1m      1y
+├ ƒ /api/articles/view
+├ ƒ /api/comments
+├ ƒ /api/comments/react
+├ ƒ /api/contact
+├ ƒ /api/cron/newsletter
+├ ƒ /api/feedback
+├ ○ /api/glossary                         1h      1y
+├ ƒ /api/likes
+├ ƒ /api/market-data
+├ ƒ /api/news-sitemap
+├ ƒ /api/push/send
+├ ƒ /api/push/subscribe
+├ ƒ /api/search
+├ ƒ /api/search/index
+├ ƒ /api/subscribe
+├ ƒ /api/suggest
+├ ƒ /api/sync
+├ ƒ /api/upload
+├ ƒ /api/vote
+├ ƒ /articles
+├ ƒ /articles/[slug]
+├ ● /author/[slug]
+├ ○ /contact
+├ ○ /contribute
+├ ○ /cookies
+├ ○ /disclaimer
+├ ○ /editorial-policy
+├ ○ /glossary                             1h      1y
+├ ○ /icon.png
+├ ○ /maintenance
+├ ƒ /news-sitemap.xml
+├ ○ /newsletter
+├ ○ /press
+├ ○ /privacy-policy
+├ ○ /robots.txt
+├ ○ /saved
+├ ○ /search
+├ ○ /series                               1h      1y
+├ ƒ /series/[slug]
+├ ○ /sitemap.xml                          1h      1y
+├ ○ /suggest
+├ ƒ /tag/[slug]
+├ ○ /tags                                 1m      1y
+├ ○ /terms
+├ ○ /tools
+├ ƒ /tools/[slug]
+├ ○ /tools/bmi
+├ ○ /tools/calories
+├ ○ /tools/car-loan
+├ ○ /tools/compare
+├ ○ /tools/education-loan
+├ ○ /tools/epf
+├ ○ /tools/financial-health
+├ ○ /tools/freelance-rate
+├ ○ /tools/gratuity
+├ ○ /tools/health-insurance
+├ ○ /tools/home-loan
+├ ○ /tools/income-tax
+├ ○ /tools/loan-prepayment
+├ ○ /tools/lumpsum
+├ ○ /tools/mf-returns
+├ ○ /tools/nps
+├ ○ /tools/ppf
+├ ○ /tools/rent-vs-buy
+├ ○ /tools/sip
+├ ○ /tools/step-up-sip
+├ ○ /tools/swp
+├ ○ /tools/take-home-salary
+├ ○ /tools/water-intake
+├ ○ /topics                               1m      1y
+└   /topics/[slug]
+  ├ ● /topics/personal-finance            1m      1y
+  ├ ● /topics/technology-ai               1m      1y
+  ├ ● /topics/health-wellness             1m      1y
+  └ ● [+9 more paths]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

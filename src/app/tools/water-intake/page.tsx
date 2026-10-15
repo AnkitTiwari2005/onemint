@@ -1,4 +1,4 @@
-// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -9,7 +9,7 @@ import ToolClient from './ToolClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Daily Water Intake Calculator — How Much Water Should You Drink?',
+  title: 'Daily Water Intake Calculator â€” How Much Water Should You Drink?',
   description: 'Free Water Intake Calculator India. Calculate your daily hydration needs based on weight, activity level, and climate. Essential during Indian summers. Stay optimally hydrated.',
   alternates: { canonical: `${SITE_URL}/tools/water-intake` },
   openGraph: {
