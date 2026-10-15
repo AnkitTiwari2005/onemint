@@ -1,27 +1,86 @@
 /**
  * Google Analytics 4 Data API v1beta — server-side service
- * Uses OAuth 2.0 refresh-token grant for secure server-to-server access.
+ * Uses Service Account JWT auth (RS256) for permanent server-to-server access.
  * Access tokens are cached in memory for their lifetime (~1 h).
+ * Zero external dependencies — uses Node.js built-in Web Crypto API (crypto.subtle).
  * Docs: https://developers.google.com/analytics/devguides/reporting/data/v1
  */
 
 import { getCleanEnv } from '@/lib/env';
 
 const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID ?? '';
-const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
-const GA4_API_BASE = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}`;
-
+const TOKEN_ENDPOINT  = 'https://oauth2.googleapis.com/token';
+const GA4_SCOPE       = 'https://www.googleapis.com/auth/analytics.readonly';
+const GA4_API_BASE    = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}`;
 
 /** In-memory access-token cache — survives across warm serverless invocations */
 let _cachedToken: { token: string; expiresAt: number } | null = null;
 
-/** Returns a valid access token, refreshing when necessary. */
-export async function getAccessToken(): Promise<string | null> {
-  const clientId     = getCleanEnv('GA4_CLIENT_ID');
-  const clientSecret = getCleanEnv('GA4_CLIENT_SECRET');
-  const refreshToken = getCleanEnv('GA4_REFRESH_TOKEN');
+// ── JWT helpers (Web Crypto API — built into Node 18+) ────────────────────────
 
-  if (!clientId || !clientSecret || !refreshToken) return null;
+/** Base64url-encode a Uint8Array (no padding). */
+function b64url(data: Uint8Array): string {
+  return Buffer.from(data).toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+/** Encode a plain object as base64url JSON. */
+function b64urlJson(obj: Record<string, unknown>): string {
+  return b64url(new TextEncoder().encode(JSON.stringify(obj)));
+}
+
+/**
+ * Build and sign a JWT for the Google OAuth2 token endpoint.
+ * Uses RS256 (RSA-SHA256) with the service account's private key.
+ */
+async function buildJWT(clientEmail: string, privateKeyPem: string): Promise<string> {
+  // Strip PEM armour and decode the DER bytes
+  const pemBody = privateKeyPem
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s+/g, '');
+  const keyBytes = Uint8Array.from(Buffer.from(pemBody, 'base64'));
+
+  // Import the private key into Web Crypto
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    keyBytes,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+
+  const now = Math.floor(Date.now() / 1000);
+  const header  = b64urlJson({ alg: 'RS256', typ: 'JWT' });
+  const payload = b64urlJson({
+    iss: clientEmail,
+    scope: GA4_SCOPE,
+    aud: TOKEN_ENDPOINT,
+    iat: now,
+    exp: now + 3600,
+  });
+
+  const signingInput = `${header}.${payload}`;
+  const sigBytes = new Uint8Array(
+    await crypto.subtle.sign(
+      'RSASSA-PKCS1-v1_5',
+      cryptoKey,
+      new TextEncoder().encode(signingInput),
+    ),
+  );
+
+  return `${signingInput}.${b64url(sigBytes)}`;
+}
+
+// ── Public token getter ───────────────────────────────────────────────────────
+
+/**
+ * Returns a valid GA4 access token, refreshing via Service Account JWT when necessary.
+ * The service account JSON is stored base64-encoded in GA4_SERVICE_ACCOUNT_KEY.
+ */
+export async function getAccessToken(): Promise<string | null> {
+  const saKeyB64 = getCleanEnv('GA4_SERVICE_ACCOUNT_KEY');
+  if (!saKeyB64) return null;
 
   // Serve from cache with a 60-second safety buffer
   if (_cachedToken && Date.now() < _cachedToken.expiresAt - 60_000) {
@@ -29,43 +88,45 @@ export async function getAccessToken(): Promise<string | null> {
   }
 
   try {
-    const res = await fetch(TOKEN_ENDPOINT, {
+    // Decode the base64 service account JSON
+    const saJson = JSON.parse(Buffer.from(saKeyB64, 'base64').toString('utf8')) as {
+      client_email: string;
+      private_key: string;
+      token_uri?: string;
+    };
+
+    const jwt = await buildJWT(saJson.client_email, saJson.private_key);
+
+    const res = await fetch(saJson.token_uri ?? TOKEN_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: 'refresh_token',
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt,
       }),
       signal: AbortSignal.timeout(6_000),
     });
 
     if (!res.ok) {
-      console.error('[GA4] Token refresh failed:', res.status, await res.text());
+      console.error('[GA4] Token fetch failed:', res.status, await res.text());
       return null;
     }
 
-    const json = await res.json();
+    const json = await res.json() as { access_token: string; expires_in?: number };
     _cachedToken = {
       token: json.access_token,
       expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
     };
     return _cachedToken.token;
   } catch (e) {
-    console.error('[GA4] Token refresh error:', e);
+    console.error('[GA4] Token error:', e);
     return null;
   }
 }
 
 /** Returns true when all required GA4 env vars are present. */
 export function isGA4Configured(): boolean {
-  return !!(
-    getCleanEnv('GA4_CLIENT_ID') &&
-    getCleanEnv('GA4_CLIENT_SECRET') &&
-    getCleanEnv('GA4_REFRESH_TOKEN') &&
-    process.env.GA4_PROPERTY_ID
-  );
+  return !!(getCleanEnv('GA4_SERVICE_ACCOUNT_KEY') && process.env.GA4_PROPERTY_ID);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

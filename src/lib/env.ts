@@ -54,12 +54,11 @@ export const ENV = {
   // Admin session cookie name
   ADMIN_SESSION_COOKIE: 'onemint_admin_session',
 
-  // Google Analytics 4 (server-side Data API)
+  // Google Analytics 4 (server-side Data API — Service Account JWT auth)
   // GA4_PROPERTY_ID must be set — no hardcoded fallback to prevent silent misconfiguration
   GA4_PROPERTY_ID: process.env.GA4_PROPERTY_ID || '',
-  GA4_CLIENT_ID: getCleanEnv('GA4_CLIENT_ID'),
-  GA4_CLIENT_SECRET: getCleanEnv('GA4_CLIENT_SECRET'),
-  GA4_REFRESH_TOKEN: getCleanEnv('GA4_REFRESH_TOKEN'),
+  // Base64-encoded service account JSON key (permanent, no expiry unlike OAuth refresh tokens)
+  GA4_SERVICE_ACCOUNT_KEY: getCleanEnv('GA4_SERVICE_ACCOUNT_KEY'),
   // Public measurement ID for the gtag snippet in layout.tsx
   GA4_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || 'G-64VNWTB5ME',
 
