@@ -340,7 +340,7 @@ export default function EditArticlePage() {
                         {previewTitle} | OneMint
                       </div>
                       <div style={{ fontSize: 10, color: '#006621', fontFamily: 'Arial, sans-serif', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        onemint.in › articles{slugPreview ? ' › ' + slugPreview : ''}
+                        onemint.com › articles{slugPreview ? ' › ' + slugPreview : ''}
                       </div>
                       <div style={{ fontSize: 11, color: '#545454', fontFamily: 'Arial, sans-serif', lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                         {previewDesc}

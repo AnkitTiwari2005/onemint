@@ -7,7 +7,7 @@
  *
  * Add these redirect URIs in Google Cloud Console → Credentials → OAuth client:
  *   http://localhost:3000/api/admin/analytics/oauth
- *   https://www.onemint.in/api/admin/analytics/oauth
+ *   https://www.onemint.com/api/admin/analytics/oauth
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getCleanEnv } from '@/lib/env';

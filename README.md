@@ -2,7 +2,7 @@
 
 > India's knowledge platform for personal finance, technology, and health.
 
-**Live:** [www.onemint.in](https://www.onemint.in)
+**Live:** [www.onemint.com](https://www.onemint.com)
 
 ---
 
@@ -77,7 +77,7 @@ TYPESENSE_ADMIN_API_KEY
 NEXT_PUBLIC_TYPESENSE_SEARCH_KEY
 NEXT_PUBLIC_TYPESENSE_HOST
 
-NEXT_PUBLIC_SITE_URL=https://www.onemint.in
+NEXT_PUBLIC_SITE_URL=https://www.onemint.com
 ```
 
 > **Hostinger hPanel note:** hPanel's env var editor inserts a literal `\` before every `$` in secret values. All secrets are read via `getCleanEnv()` in `src/lib/env.ts` which strips this automatically.

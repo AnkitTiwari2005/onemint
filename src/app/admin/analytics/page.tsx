@@ -484,7 +484,7 @@ body{font-family:'Inter',-apple-system,sans-serif;background:#fff;color:#0F172A;
       <div class="c-line"></div>
       <div class="c-foot">
         <div class="c-gen">Generated on <strong>${generatedAt} IST</strong></div>
-        <div class="c-disc">Data sourced from Google Analytics 4 &middot; onemint.in</div>
+        <div class="c-disc">Data sourced from Google Analytics 4 &middot; onemint.com</div>
       </div>
     </div>
   </div>
@@ -579,7 +579,7 @@ ${data.topArticles.length > 0 ? `
 <div class="sec">
   <div class="pfooter">
     <div>OneMint Analytics &middot; <strong>${label}</strong> &middot; Generated ${generatedAt} IST</div>
-    <div>Confidential &middot; Not for external distribution &middot; onemint.in</div>
+    <div>Confidential &middot; Not for external distribution &middot; onemint.com</div>
   </div>
   <div class="wm">OneMint &mdash; India&rsquo;s Most Trusted Knowledge Platform</div>
 </div>

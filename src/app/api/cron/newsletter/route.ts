@@ -14,8 +14,8 @@
  *   OR as query param: ?secret=<CRON_SECRET>
  *
  * Hostinger Cron Job setup (hPanel → Cron Jobs):
- *   Monday:  30 8 * * 1  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.in/api/cron/newsletter?series=monday
- *   Sunday:  30 9 * * 0  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.in/api/cron/newsletter?series=sunday
+ *   Monday:  30 8 * * 1  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.com/api/cron/newsletter?series=monday
+ *   Sunday:  30 9 * * 0  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.com/api/cron/newsletter?series=sunday
  */
 
 import { NextRequest, NextResponse } from 'next/server';
