@@ -6,7 +6,7 @@ import { getArticlesByCategory } from '@/data/articles';
 import { JsonLd } from '@/components/JsonLd';
 import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata = {
   title: 'All Topics',

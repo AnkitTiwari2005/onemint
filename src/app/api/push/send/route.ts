@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
   const payload = JSON.stringify({
     title,
     body: msgBody,
-    url:  url  || 'https://www.onemint.in',
-    icon: icon || 'https://www.onemint.in/logo.png',
+    url:  url  || 'https://www.onemint.com',
+    icon: icon || 'https://www.onemint.com/logo.png',
   });
 
   // ── Send to all subscribers ────────────────────────────────────────────────

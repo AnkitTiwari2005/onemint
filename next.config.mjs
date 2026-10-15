@@ -36,17 +36,31 @@ const nextConfig = {
   },
 
   // ── Canonical domain enforcement ────────────────────────────────────────
-  // Permanently redirect all non-www traffic to the www canonical.
-  // Covers: http://onemint.in, https://onemint.in → https://www.onemint.in
-  // Google follows 301s, consolidates PageRank to www, and stops reporting
-  // the non-www variants as separate "page with redirect" entries in GSC.
+  // Primary canonical: www.onemint.com
+  // All onemint.in traffic (www and non-www) permanently 301 → www.onemint.com
+  // onemint.com (non-www) → www.onemint.com
   async redirects() {
     return [
+      // onemint.in (non-www) → www.onemint.com
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'onemint.in' }],
-        destination: 'https://www.onemint.in/:path*',
-        permanent: true, // 301 — tells Google to update its index permanently
+        destination: 'https://www.onemint.com/:path*',
+        permanent: true,
+      },
+      // www.onemint.in → www.onemint.com
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.onemint.in' }],
+        destination: 'https://www.onemint.com/:path*',
+        permanent: true,
+      },
+      // onemint.com (non-www) → www.onemint.com
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'onemint.com' }],
+        destination: 'https://www.onemint.com/:path*',
+        permanent: true,
       },
       // Permanent 301 redirects for 10 cleaned/untruncated slugs
       {

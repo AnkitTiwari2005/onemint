@@ -55,7 +55,7 @@ function extractToc(markdown: string) {
   return items;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 /**
  * Fetch the series that contains this article slug (if any).

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Car Loan EMI Calculator',
   description: 'Free Car Loan EMI Calculator. Calculate your monthly car loan EMI, total interest, and repayment schedule for any loan amount and tenure.',

@@ -35,7 +35,7 @@ import { articles as staticArticles } from '@/data/articles';
 // Force dynamic — must reflect freshly published articles
 export const dynamic = 'force-dynamic';
 
-const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').replace(/\/$/, '');
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com').replace(/\/$/, '');
 // Must match the exact publication name registered in Google Publisher Center
 const PUBLICATION_NAME = 'OneMint';
 const PUBLICATION_LANGUAGE = 'en';

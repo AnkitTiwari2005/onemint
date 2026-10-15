@@ -214,7 +214,7 @@ export async function middleware(req: NextRequest) {
 
   // ── Canonical domain guard ─────────────────────────────────────────────────
   if (host.endsWith('.vercel.app')) {
-    const prodUrl = new URL(req.nextUrl.pathname + req.nextUrl.search, 'https://www.onemint.in');
+    const prodUrl = new URL(req.nextUrl.pathname + req.nextUrl.search, 'https://www.onemint.com');
     return NextResponse.redirect(prodUrl, { status: 308 });
   }
 

@@ -1,4 +1,4 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page � no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import Link from 'next/link';
@@ -6,7 +6,7 @@ import { Calculator, HeartPulse, Briefcase, IndianRupee, Home, TrendingUp, Spark
 import { JsonLd } from '@/components/JsonLd';
 import { buildItemList, buildBreadcrumbs } from '@/lib/jsonld';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata = {
   title: 'Tools & Calculators',

@@ -4,7 +4,7 @@ import { Hash } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
 import { articles as staticArticles } from '@/data/articles';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Browse All Tags',

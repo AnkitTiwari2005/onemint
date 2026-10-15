@@ -63,7 +63,7 @@ export default function DisclaimerPage() {
           and informational purposes only.</strong>
         </p>
         <p>
-          Nothing on OneMint.in should be construed as:
+          Nothing on OneMint.com should be construed as:
         </p>
         <ul>
           <li>Investment advice or a recommendation to buy, sell, or hold any security</li>
@@ -97,7 +97,7 @@ export default function DisclaimerPage() {
 
         <h2 id="sebi">3. SEBI Disclaimer</h2>
         <p>
-          OneMint.in is not a SEBI-registered research analyst or investment advisor. The views expressed
+          OneMint.com is not a SEBI-registered research analyst or investment advisor. The views expressed
           in our financial articles are those of the authors and are based on publicly available information.
           They should not be treated as research reports under SEBI (Research Analysts) Regulations, 2014.
         </p>

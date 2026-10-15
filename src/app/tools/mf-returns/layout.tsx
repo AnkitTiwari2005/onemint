@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Mutual Fund Returns Calculator — CAGR & Absolute Returns',
   description: 'Free Mutual Fund Returns Calculator. Calculate absolute returns, CAGR, and XIRR for your mutual fund investments. Compare fund performance.',

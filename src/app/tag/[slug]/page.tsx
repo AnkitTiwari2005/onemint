@@ -5,7 +5,7 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { Hash, ArrowLeft } from 'lucide-react';
 import { fetchPublishedArticles, toArticle } from '@/lib/articles';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ISR: tag pages rebuild at most once per hour. Tag counts don't need
 // sub-minute freshness — 60s was the root cause of the 6x ISR writes overage.

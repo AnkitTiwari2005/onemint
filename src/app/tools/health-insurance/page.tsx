@@ -1,4 +1,4 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -6,10 +6,10 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Health Insurance Calculator India â€” How Much Cover Do You Need?',
+  title: 'Health Insurance Calculator India — How Much Cover Do You Need?',
   description: 'Free Health Insurance Needs Calculator India. Find out exactly how much health insurance cover your family needs based on age, city, income, and medical history risk factors.',
   alternates: { canonical: `${SITE_URL}/tools/health-insurance` },
   openGraph: {

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'EPF Calculator — PF Corpus at Retirement',
   description: 'Free EPF Calculator. Calculate your Employees Provident Fund corpus at retirement with contributions, employer match and interest compounding.',

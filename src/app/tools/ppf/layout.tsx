@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'PPF Calculator — Public Provident Fund Returns',
   description: 'Free PPF Calculator. Calculate your Public Provident Fund maturity amount, interest earned, and year-wise breakdown for up to 15 years.',

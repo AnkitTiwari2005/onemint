@@ -77,6 +77,6 @@ export const ENV = {
   NVIDIA_API_KEY: getCleanEnv('NVIDIA_API_KEY'),
 
   // Site
-  SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.in',
+  SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.com',
 };
 

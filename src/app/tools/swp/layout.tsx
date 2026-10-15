@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'SWP Calculator — Systematic Withdrawal Plan',
   description: 'Free SWP Calculator. Calculate how long your mutual fund corpus lasts with monthly withdrawals. Plan your retirement income with precision.',

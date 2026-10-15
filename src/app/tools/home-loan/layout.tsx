@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Home Loan EMI Calculator',
   description: 'Free Home Loan EMI Calculator. Calculate your monthly EMI, total interest payable, and amortisation schedule for any home loan amount.',

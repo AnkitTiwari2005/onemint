@@ -1,10 +1,10 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
 import { AlertTriangle } from 'lucide-react';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -85,7 +85,7 @@ export default function TermsPage() {
       <div className="article-body">
         <h2 id="acceptance">1. Acceptance of Terms</h2>
         <p>
-          By accessing or using the OneMint website (<strong>onemint.in</strong>), you agree to comply
+          By accessing or using the OneMint website (<strong>onemint.com</strong>), you agree to comply
           with and be bound by these Terms of Service and our Privacy Policy. If you do not agree to
           these terms, please do not use our website. These terms apply to all visitors, readers, and
           anyone who accesses or uses OneMint.

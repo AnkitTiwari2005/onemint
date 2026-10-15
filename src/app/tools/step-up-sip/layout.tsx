@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Step-Up SIP Calculator — Annual SIP Increase Returns',
   description: 'Free Step-Up SIP Calculator. Calculate returns when you increase your SIP amount annually. See how 10% annual step-up accelerates wealth creation.',

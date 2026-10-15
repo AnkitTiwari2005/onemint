@@ -1,8 +1,8 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 /**
- * Suggest page â€” Server Component wrapper.
+ * Suggest page — Server Component wrapper.
  * Interactive UI is in SuggestContent.tsx ('use client').
  * This server component exists solely to export metadata.
  */
@@ -12,7 +12,7 @@ import SuggestContent from './SuggestContent';
 import { JsonLd } from '@/components/JsonLd';
 import { buildBreadcrumbs } from '@/lib/jsonld';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Suggest a Topic',
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
     title: 'Suggest a Topic | OneMint',
     description:
       'Vote on topics you want OneMint to cover, or suggest something new. Our editorial team reviews the top suggestions every week.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Suggest a Topic â€” OneMint' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Suggest a Topic — OneMint' }],
   },
-  robots: { index: false, follow: true }, // community page â€” no indexing needed
+  robots: { index: false, follow: true }, // community page — no indexing needed
 };
 
 export default function SuggestPage() {

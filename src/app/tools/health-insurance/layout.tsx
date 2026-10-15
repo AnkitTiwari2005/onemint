@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Health Insurance Calculator — How Much Cover Do You Need?',
   description: 'Free Health Insurance Calculator India. Find out how much health insurance cover you need based on your age, city, family size, and income.',

@@ -6,7 +6,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'SIP Calculator — Monthly Mutual Fund Returns Calculator India',

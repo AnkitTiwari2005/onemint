@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'NPS Calculator — National Pension System Returns',
   description: 'Free NPS Calculator. Estimate your National Pension System corpus and monthly pension at retirement. India-specific, 100% free.',

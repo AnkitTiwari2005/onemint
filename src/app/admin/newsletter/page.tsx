@@ -144,7 +144,7 @@ export default function AdminNewsletterPage() {
               <textarea
                 value={htmlBody}
                 onChange={e => setHtmlBody(e.target.value)}
-                placeholder={`<p>Hi {{contact.FIRSTNAME}},</p>\n<p>This week on OneMint…</p>\n<p><a href="https://www.onemint.in">Read more →</a></p>`}
+                placeholder={`<p>Hi {{contact.FIRSTNAME}},</p>\n<p>This week on OneMint…</p>\n<p><a href="https://www.onemint.com">Read more →</a></p>`}
                 rows={12}
                 style={{ width: '100%', padding: '12px 14px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface-alt)', fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
               />

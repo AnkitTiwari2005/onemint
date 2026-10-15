@@ -10,7 +10,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { JsonLd } from '@/components/JsonLd';
 import { buildPerson, buildBreadcrumbs } from '@/lib/jsonld';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ISR: author profiles rarely change — cache for 1 hour.
 // generateStaticParams (below) pre-builds known author slugs at deploy time.

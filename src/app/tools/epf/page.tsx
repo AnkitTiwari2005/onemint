@@ -1,4 +1,4 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -6,16 +6,16 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'EPF Calculator â€” Employee Provident Fund Corpus Calculator India',
+  title: 'EPF Calculator — Employee Provident Fund Corpus Calculator India',
   description: 'Free EPF Calculator India. Calculate your Employee Provident Fund corpus at retirement. Uses current EPFO interest rate of 8.25%. Includes employer & employee contributions.',
   alternates: { canonical: `${SITE_URL}/tools/epf` },
   openGraph: {
     type: 'website',
     url: `${SITE_URL}/tools/epf`,
-    title: 'EPF Calculator â€” Employee Provident Fund Corpus Calculator India',
+    title: 'EPF Calculator — Employee Provident Fund Corpus Calculator India',
     description: 'Free EPF Calculator India. Calculate your Employee Provident Fund corpus at retirement. Uses current EPFO interest rate of 8.25%. Includes employer & employee contributions.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'EPF Calculator | OneMint' }],
   },

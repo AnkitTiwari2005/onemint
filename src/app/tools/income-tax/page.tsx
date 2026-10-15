@@ -6,7 +6,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Income Tax Calculator FY 2025-26 — Old vs New Tax Regime Comparison',

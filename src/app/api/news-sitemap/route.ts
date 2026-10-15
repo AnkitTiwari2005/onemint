@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').replace(/\/$/, '');
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com').replace(/\/$/, '');
 
 export async function GET() {
   return NextResponse.redirect(`${BASE}/news-sitemap.xml`, { status: 301 });

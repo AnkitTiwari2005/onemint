@@ -11,7 +11,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ISR: category pages rebuild every 60 seconds in the background.
 // generateStaticParams (below) pre-builds all known categories at deploy time.

@@ -4,7 +4,7 @@ export const revalidate = false;
 import type { Metadata } from 'next';
 
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -84,7 +84,7 @@ export default function PrivacyPolicyPage() {
           <h2 id="introduction" style={{ scrollMarginTop: 90 }}>1. Introduction</h2>
           <p>
             OneMint (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) operates the website at{' '}
-            <strong>www.onemint.in</strong> — India&rsquo;s trusted platform for knowledge on personal
+            <strong>www.onemint.com</strong> — India&rsquo;s trusted platform for knowledge on personal
             finance, technology, health, career, and more. This Privacy Policy applies to all users who
             visit or interact with our website. By using OneMint, you agree to the collection and use
             of information described in this policy.

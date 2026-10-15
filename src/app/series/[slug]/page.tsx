@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { SeriesDetailClient } from '@/components/SeriesDetailClient';
 import type { SeriesArticleItem } from '@/components/SeriesDetailClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ISR: series can be created from the admin panel at any time.
 // dynamicParams=true renders new slugs on first request then caches them.

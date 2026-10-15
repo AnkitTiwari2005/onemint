@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'BMI Calculator for Indians — Body Mass Index',
   description: 'Free BMI Calculator adjusted for Indian body types. Calculate your Body Mass Index, BMR (Basal Metabolic Rate), and understand what your numbers mean.',

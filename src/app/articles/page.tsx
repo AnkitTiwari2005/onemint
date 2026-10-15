@@ -6,7 +6,7 @@ import ArticlesClientShell from './ArticlesClientShell';
 // ISR: cache the articles list for 60 seconds — new articles appear within 1 minute.
 export const revalidate = 60;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 const PAGE_SIZE = 24; // articles per crawlable page
 
 export async function generateMetadata({

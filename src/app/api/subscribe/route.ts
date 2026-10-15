@@ -59,7 +59,7 @@ async function sendWelcomeEmail(email: string, name: string): Promise<void> {
         </tr>
         <tr>
           <td style="background:#f3f4f6;padding:20px 40px;text-align:center;font-size:12px;color:#9ca3af;border-top:1px solid #e5e7eb">
-            <p style="margin:0">You subscribed at <a href="${ENV.SITE_URL}" style="color:#16A34A;text-decoration:none">onemint.in</a></p>
+            <p style="margin:0">You subscribed at <a href="${ENV.SITE_URL}" style="color:#16A34A;text-decoration:none">onemint.com</a></p>
             <p style="margin:8px 0 0">© ${new Date().getFullYear()} OneMint — All rights reserved</p>
           </td>
         </tr>

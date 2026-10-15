@@ -10,7 +10,7 @@ import {
   BookOpen, MessageSquare, ExternalLink, CheckCircle2, FileText
 } from 'lucide-react';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Editorial Policy — How OneMint Researches, Writes & Fact-Checks',

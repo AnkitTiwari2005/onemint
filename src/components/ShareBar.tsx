@@ -11,7 +11,7 @@ interface ShareBarProps {
 
 export function ShareBar({ title, slug }: ShareBarProps) {
   const { toast } = useToast();
-  const url = typeof window !== 'undefined' ? window.location.href : `https://onemint.in/articles/${slug}`;
+  const url = typeof window !== 'undefined' ? window.location.href : `https://onemint.com/articles/${slug}`;
 
   const shareNative = async () => {
     if (navigator.share) {

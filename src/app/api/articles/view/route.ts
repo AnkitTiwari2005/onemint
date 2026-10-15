@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
 
   // Lightweight bot filter: require a Referer header (browsers always send it)
   const referer = req.headers.get('referer') ?? '';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
-  if (!referer.includes('onemint.in') && !referer.includes('localhost')) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
+  if (!referer.includes('onemint.com') && !referer.includes('localhost')) {
     return NextResponse.json({ ok: false, reason: 'bot' });
   }
 

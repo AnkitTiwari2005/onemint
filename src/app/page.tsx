@@ -17,7 +17,7 @@ import { JsonLd } from '@/components/JsonLd';
 // New articles appear within 1 minute — zero per-request DB calls.
 export const revalidate = 60;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: "OneMint — India's Most Trusted Knowledge Platform",

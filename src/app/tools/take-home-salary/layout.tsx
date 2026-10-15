@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'In-Hand Salary Calculator — CTC to Take-Home Pay',
   description: 'Free Take-Home Salary Calculator India. Convert your CTC to monthly in-hand salary after PF, tax, and deductions. Accurate for FY 2024-25.',

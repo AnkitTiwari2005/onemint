@@ -1,4 +1,4 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -6,16 +6,16 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'BMI Calculator India â€” Body Mass Index & BMR Calculator',
+  title: 'BMI Calculator India — Body Mass Index & BMR Calculator',
   description: 'Free BMI & BMR Calculator for Indians. Calculate your Body Mass Index, Basal Metabolic Rate, and daily calorie needs. Uses Indian-specific BMI ranges recommended by ICMR.',
   alternates: { canonical: `${SITE_URL}/tools/bmi` },
   openGraph: {
     type: 'website',
     url: `${SITE_URL}/tools/bmi`,
-    title: 'BMI Calculator India â€” Body Mass Index & BMR Calculator',
+    title: 'BMI Calculator India — Body Mass Index & BMR Calculator',
     description: 'Free BMI & BMR Calculator for Indians. Calculate your Body Mass Index, Basal Metabolic Rate, and daily calorie needs. Uses Indian-specific BMI ranges recommended by ICMR.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'BMI Calculator | OneMint' }],
   },

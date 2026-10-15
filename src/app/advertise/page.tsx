@@ -4,7 +4,7 @@ export const revalidate = false;
 import type { Metadata } from 'next';
 import { AdvertiseForm } from '@/components/AdvertiseForm';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Advertise with OneMint',

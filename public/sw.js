@@ -45,9 +45,9 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Focus an existing tab if already open on onemint.in
+      // Focus an existing tab if already open on onemint.com
       for (const client of windowClients) {
-        if (client.url.includes('onemint.in') && 'focus' in client) {
+        if (client.url.includes('onemint.com') && 'focus' in client) {
           client.navigate(targetUrl);
           return client.focus();
         }

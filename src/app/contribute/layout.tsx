@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 // Contribute page is a 'use client' interactive form.
 // This server layout provides the canonical URL and metadata
 // since client components cannot export metadata in Next.js App Router.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Write for OneMint — Contribute an Article',

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Gratuity Calculator',
   description: 'Free Gratuity Calculator India. Calculate your gratuity payout based on your last drawn salary and years of service under the Gratuity Act.',

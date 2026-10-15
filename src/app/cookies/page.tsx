@@ -1,4 +1,4 @@
-﻿// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -36,7 +36,7 @@ export default function CookiePolicyPage() {
 
       <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.8 }}>
         <p style={{ marginBottom: 20 }}>
-          This Cookie Policy explains how OneMint (&quot;we,&quot; &quot;our,&quot; &quot;us&quot;) uses cookies and similar technologies when you visit onemint.in. By using our site, you consent to the use of cookies as described in this policy. You can change your preferences at any time using our Cookie Consent banner.
+          This Cookie Policy explains how OneMint (&quot;we,&quot; &quot;our,&quot; &quot;us&quot;) uses cookies and similar technologies when you visit onemint.com. By using our site, you consent to the use of cookies as described in this policy. You can change your preferences at any time using our Cookie Consent banner.
         </p>
 
         <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 600, color: 'var(--color-ink)', marginTop: 36, marginBottom: 12 }}>What Are Cookies?</h2>
@@ -84,7 +84,7 @@ export default function CookiePolicyPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
           {[
             { browser: 'Google Chrome', steps: 'Open Chrome → click the three-dot menu (⋮) → Settings → Privacy and security → Cookies and other site data → See all cookies and site data → search for "onemint" → click the trash icon.' },
-            { browser: 'Mozilla Firefox', steps: 'Open Firefox → click the menu (☰) → Settings → Privacy & Security → Cookies and Site Data → Manage Data → search for "onemint.in" → Remove Selected.' },
+            { browser: 'Mozilla Firefox', steps: 'Open Firefox → click the menu (☰) → Settings → Privacy & Security → Cookies and Site Data → Manage Data → search for "onemint.com" → Remove Selected.' },
             { browser: 'Apple Safari', steps: 'Open Safari → Preferences → Privacy → Manage Website Data → search for "onemint" → Remove. On iPhone: Settings → Safari → Advanced → Website Data → search for "onemint" → swipe left to delete.' },
           ].map((b) => (
             <div key={b.browser} style={{ background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '16px 20px' }}>

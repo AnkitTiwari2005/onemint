@@ -1,4 +1,4 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -6,16 +6,16 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Car Loan EMI Calculator â€” Auto Loan Monthly Instalment India',
+  title: 'Car Loan EMI Calculator — Auto Loan Monthly Instalment India',
   description: 'Free Car Loan EMI Calculator India. Calculate your monthly car loan EMI, total interest payable, and complete amortization schedule. Compare rates from major Indian banks.',
   alternates: { canonical: `${SITE_URL}/tools/car-loan` },
   openGraph: {
     type: 'website',
     url: `${SITE_URL}/tools/car-loan`,
-    title: 'Car Loan EMI Calculator â€” Auto Loan Monthly Instalment India',
+    title: 'Car Loan EMI Calculator — Auto Loan Monthly Instalment India',
     description: 'Free Car Loan EMI Calculator India. Calculate your monthly car loan EMI, total interest payable, and complete amortization schedule. Compare rates from major Indian banks.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Car Loan EMI Calculator | OneMint' }],
   },

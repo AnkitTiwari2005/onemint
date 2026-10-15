@@ -4,7 +4,7 @@
  * <script type="application/ld+json"> by the <JsonLd> component.
  */
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 const SITE_NAME = 'OneMint';
 const LOGO_URL = `${SITE}/logo.png`;
 

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Rent vs Buy Calculator — Should You Buy a Home in India?',
   description: 'Free Rent vs Buy Calculator for India. Analyse the real financial cost of renting vs buying a house based on your city, income, and investment return assumptions.',

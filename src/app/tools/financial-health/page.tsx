@@ -1,4 +1,4 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
@@ -6,10 +6,10 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildWebApplication, buildBreadcrumbs } from '@/lib/jsonld';
 import ToolClient from './ToolClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
-  title: 'Financial Health Quiz India â€” Check Your Financial Fitness Score',
+  title: 'Financial Health Quiz India — Check Your Financial Fitness Score',
   description: 'Free Financial Health Quiz India. Assess your financial fitness in 5 minutes. Get a personalised score and actionable recommendations on savings, insurance, investments, and debt.',
   alternates: { canonical: `${SITE_URL}/tools/financial-health` },
   openGraph: {

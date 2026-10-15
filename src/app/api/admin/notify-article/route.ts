@@ -5,7 +5,7 @@ import { ENV, getCleanEnv } from '@/lib/env';
 // ── Configuration ────────────────────────────────────────────────────────────
 const NOTIFY_TO_EMAIL = 'shivskukreja@gmail.com';
 const NOTIFY_TO_NAME  = 'Shiv';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ── HTML Email Template ───────────────────────────────────────────────────────
 // All styles are inline — required for email client compatibility.
@@ -179,7 +179,7 @@ function buildEmailHtml(p: {
                          style="color:rgba(255,255,255,0.55);text-decoration:none;">OneMint Admin</a>
                       &nbsp;·&nbsp;
                       <a href="${SITE_URL}"
-                         style="color:rgba(255,255,255,0.55);text-decoration:none;">onemint.in</a>
+                         style="color:rgba(255,255,255,0.55);text-decoration:none;">onemint.com</a>
                     </p>
                   </td>
                 </tr>

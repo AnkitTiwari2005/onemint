@@ -5,7 +5,7 @@ import { BookOpen, ArrowRight } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
 import SeriesProgressClient from '@/components/SeriesProgressClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export async function generateMetadata(): Promise<Metadata> {
   const allSeries = await fetchSeries();

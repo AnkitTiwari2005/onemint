@@ -9,7 +9,7 @@ import { buildCollectionPage, buildBreadcrumbs } from '@/lib/jsonld';
 // ISR: glossary terms change infrequently — cache for 1 hour.
 export const revalidate = 3600;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata: Metadata = {
   title: 'Financial Glossary',

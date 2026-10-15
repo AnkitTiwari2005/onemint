@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 export const metadata: Metadata = {
   title: 'Income Tax Calculator — Old vs New Regime 2024-25',
   description: 'Free Income Tax Calculator India. Compare Old vs New tax regime for FY 2024-25. Find out which regime saves you more tax instantly.',

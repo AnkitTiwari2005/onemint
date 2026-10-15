@@ -9,7 +9,7 @@ import { buildAboutPage, buildBreadcrumbs } from '@/lib/jsonld';
 // ISR: author team data changes rarely — cache for 1 hour.
 export const revalidate = 3600;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata = {
   title: 'About OneMint — Knowledge Platform for Personal Finance, Tech & Health',

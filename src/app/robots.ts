@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.com';
 
 export default function robots(): MetadataRoute.Robots {
   return {

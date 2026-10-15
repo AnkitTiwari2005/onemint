@@ -5,7 +5,7 @@ import { categories as staticCategories } from '@/data/categories';
 import { authors as staticAuthors } from '@/data/authors';
 import { series as staticSeries } from '@/data/series';
 
-const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in').replace(/\/$/, '');
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com').replace(/\/$/, '');
 
 // Revalidate sitemap every hour — prevents DB hammering on every crawler request.
 // New articles/authors appear within 1 hour without a redeploy.

@@ -6,7 +6,7 @@
 
 const LOGO_URL =
   'https://raw.githubusercontent.com/AnkitTiwari2005/articles/7f621a61e7d4c2a6685a9acfb6834a775734ceb4/logo.png';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
