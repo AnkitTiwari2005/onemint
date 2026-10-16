@@ -116,12 +116,14 @@ export function Header({ onSearchOpen }: HeaderProps) {
           <div className="flex items-center justify-between h-full">
             {/* Logo */}
             <Link href="/" className="flex items-center group" aria-label="OneMint Home">
-              <div className="relative w-[140px] h-[36px] transition-transform duration-300 group-hover:scale-105">
+              <div className="relative w-[140px] h-[36px] transition-transform duration-300 group-hover:scale-105" style={{ width: 140, height: 36, maxWidth: 140, maxHeight: 36 }}>
                 <Image
                   src="/logo.png"
                   alt="OneMint"
-                  fill
-                  className="object-contain object-left"
+                  width={140}
+                  height={36}
+                  className="object-contain object-left w-[140px] h-[36px]"
+                  style={{ width: 140, height: 36, objectFit: 'contain' }}
                   priority
                 />
               </div>

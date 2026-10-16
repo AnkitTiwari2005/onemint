@@ -117,25 +117,17 @@ const nextConfig = {
   },
 
   // ── Static asset caching ──────────────────────────────────────────────────
-  // Next.js content-hashes all JS/CSS chunks — safe to cache for 1 year.
-  // Fonts and images are also immutable once deployed.
-  // This tells Vercel's edge CDN + browser cache to hold these assets
-  // and serve them instantly without re-fetching on every page load.
+  // NOTE: Do NOT set Cache-Control on /_next/static/ here.
+  // Next.js 16 standalone server handles these headers internally with
+  // content-hashed immutable caching. Overriding them via next.config
+  // causes CSS/JS to fail on hard refresh (Next.js 16 build warning confirms this).
   async headers() {
     return [
       {
-        // JS & CSS bundles — content-hashed filenames, safe to cache forever
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        // Public folder: images, fonts, og-image.png, robots.txt, etc.
-        source: '/:path((?!api/).*)',
+        // Public folder: images, fonts, og-image — Vary for compression negotiation.
+        // Explicitly excludes /_next/ and /api/ to avoid interfering with
+        // Next.js internal static asset serving.
+        source: '/:path((?!_next|api).*)',
         headers: [
           {
             key: 'Vary',
@@ -144,7 +136,7 @@ const nextConfig = {
         ],
       },
       {
-        // Fonts specifically — immutable, cache aggressively
+        // Fonts — immutable, cache aggressively (content never changes for a given filename)
         source: '/fonts/:path*',
         headers: [
           {
@@ -154,7 +146,7 @@ const nextConfig = {
         ],
       },
       {
-        // Static images in /public — long cache, but not immutable (could be replaced)
+        // Static images in /public — long cache, not immutable (files can be replaced)
         source: '/:path*.{jpg,jpeg,png,gif,svg,webp,avif,ico}',
         headers: [
           {
@@ -164,10 +156,16 @@ const nextConfig = {
         ],
       },
       {
-        // ── Security headers ─ applied to every HTML page (not API routes) ─────────
-        // Excludes /api/* to avoid interfering with server-to-server JSON responses.
-        source: '/((?!api/).*)',
+        // ── Security & caching headers ─ applied to every HTML page (not API or static assets) ───
+        // Excludes /api/*, /_next/*, /static/*, /favicon.ico so static bundles and APIs aren't affected.
+        source: '/((?!api|_next|static|favicon.ico).*)',
         headers: [
+          {
+            // Forces CDN & browser to revalidate HTML with origin before serving from cache.
+            // Prevents edge CDNs from holding stale HTML pointing to dead CSS/JS hashes.
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
           {
             // Prevent site from being embedded in iframes (clickjacking defence)
             key: 'X-Frame-Options',

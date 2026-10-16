@@ -1,5 +1,5 @@
 // Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
-export const revalidate = false;
+export const revalidate = 60;
 
 import type { Metadata } from 'next';
 import Link from 'next/link';

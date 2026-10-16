@@ -82,12 +82,14 @@ export function Footer() {
           {/* Brand + Newsletter */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center group mb-4">
-              <div className="relative w-[130px] h-[32px] transition-transform duration-300 group-hover:scale-105">
+              <div className="relative w-[130px] h-[32px] transition-transform duration-300 group-hover:scale-105" style={{ width: 130, height: 32, maxWidth: 130, maxHeight: 32 }}>
                 <Image
                   src="/logo.png"
                   alt="OneMint"
-                  fill
-                  className="object-contain object-left grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                  width={130}
+                  height={32}
+                  className="object-contain object-left w-[130px] h-[32px] grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                  style={{ width: 130, height: 32, objectFit: 'contain' }}
                 />
               </div>
             </Link>

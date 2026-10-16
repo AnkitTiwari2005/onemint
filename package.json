@@ -9,7 +9,7 @@
     "prebuild": "npx tsx scripts/generate-redirect-map.ts || true",
     "dev": "next dev",
     "build": "next build --webpack",
-    "postbuild": "cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
+    "postbuild": "node scripts/postbuild-css.js && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
     "start": "node .next/standalone/server.js",
     "lint": "eslint"
   },
