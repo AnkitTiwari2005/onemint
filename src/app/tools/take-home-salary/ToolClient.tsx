@@ -113,7 +113,7 @@ export default function TakeHomeSalaryPage() {
                   : 'bg-[var(--color-surface)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-alt)]'
               }`}
             >
-              {r === 'new' ? '✦ New Regime' : 'Old Regime'}
+              {r === 'new' ? 'New Regime' : 'Old Regime'}
             </button>
           ))}
         </div>

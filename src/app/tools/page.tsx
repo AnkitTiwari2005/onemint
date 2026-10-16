@@ -28,9 +28,12 @@ const toolCategories = [
     color: 'var(--color-cat-finance-light)',
     tools: [
       { name: 'SIP Calculator', desc: 'Calculate your mutual fund returns', slug: 'sip', tag: 'Popular' },
+      { name: 'Goal SIP Calculator', desc: 'How much SIP to reach your goal?', slug: 'goal-sip', tag: 'New' },
       { name: 'Lumpsum Calculator', desc: 'One-time investment returns', slug: 'lumpsum' },
       { name: 'Step-up SIP', desc: 'Increase SIP amount annually', slug: 'step-up-sip' },
+      { name: 'FD Calculator', desc: 'Fixed deposit maturity & interest', slug: 'fd-calculator', tag: 'New' },
       { name: 'Mutual Fund Returns', desc: 'CAGR & Absolute returns', slug: 'mf-returns' },
+      { name: 'Inflation Calculator', desc: 'Future value of your money', slug: 'inflation-calculator', tag: 'New' },
       { name: 'SWP Calculator', desc: 'Systematic Withdrawal Plan', slug: 'swp' },
     ]
   },
@@ -40,7 +43,7 @@ const toolCategories = [
     color: 'var(--color-cat-lifestyle-light)',
     tools: [
       { name: 'Home Loan EMI', desc: 'Calculate monthly installments', slug: 'home-loan' },
-      { name: 'Rent vs Buy', desc: 'Which makes financial sense?', slug: 'rent-vs-buy', tag: 'New' },
+      { name: 'Rent vs Buy', desc: 'Which makes financial sense?', slug: 'rent-vs-buy' },
       { name: 'Car Loan EMI', desc: 'Auto loan calculations', slug: 'car-loan' },
       { name: 'Prepayment Calculator', desc: 'Save on loan interest', slug: 'loan-prepayment' },
     ]
@@ -48,9 +51,11 @@ const toolCategories = [
   {
     title: 'Tax & Retirement',
     icon: <IndianRupee className="text-[var(--color-accent-gold)]" />,
-    color: '#FFF8E7', // soft gold
+    color: 'var(--color-accent-gold-light)',
     tools: [
       { name: 'Income Tax (Old vs New)', desc: 'Find the better regime', slug: 'income-tax', tag: 'Popular' },
+      { name: 'HRA Exemption', desc: 'Section 10(13A) tax exemption', slug: 'hra-calculator', tag: 'New' },
+      { name: 'Retirement Corpus', desc: 'How much do you need to retire?', slug: 'retirement-corpus', tag: 'New' },
       { name: 'NPS Calculator', desc: 'National Pension System returns', slug: 'nps' },
       { name: 'PPF Calculator', desc: 'Public Provident Fund', slug: 'ppf' },
       { name: 'EPF Calculator', desc: 'Provident Fund corpus', slug: 'epf' },
@@ -143,8 +148,8 @@ export default function ToolsHubPage() {
                         {tool.tag && (
                           <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             tool.tag === 'Popular' ? 'bg-[var(--color-accent-light)] text-[var(--color-accent)]' :
-                            tool.tag === 'New' ? 'bg-green-100 text-green-700' :
-                            'bg-orange-100 text-orange-700'
+                            tool.tag === 'New' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' :
+                            'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400'
                           }`}>
                             {tool.tag}
                           </span>

@@ -48,6 +48,7 @@
   --color-cat-sports-light: #E6F3F0;
   --color-cat-entertainment-light: #F3E6ED;
   --color-cat-travel-light: #E6F3F3;
+  --color-accent-gold-light: #FFF3D0;
 
   /* ---- Shadows ---- */
   --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
@@ -115,6 +116,7 @@
   --color-cat-sports-light: #1A362E;
   --color-cat-entertainment-light: #361A22;
   --color-cat-travel-light: #1A3636;
+  --color-accent-gold-light: #2E2600;
 
   --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1);
   --shadow-card-hover: 0 8px 25px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.15);
