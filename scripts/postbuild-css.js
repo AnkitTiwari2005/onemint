@@ -19,14 +19,5 @@ if (fs.existsSync(cssDir)) {
       fs.copyFileSync(mainCss, dest);
       console.log(`[postbuild-css] Mirrored legacy CSS alias: ${legacy}`);
     }
-
-    // Also mirror to public/_next/static/css for direct static serving fallback
-    const pubCssDir = path.join(__dirname, '..', 'public', '_next', 'static', 'css');
-    fs.mkdirSync(pubCssDir, { recursive: true });
-    for (const legacy of legacyHashes) {
-      fs.copyFileSync(mainCss, path.join(pubCssDir, legacy));
-    }
-    fs.copyFileSync(mainCss, path.join(pubCssDir, cssFiles[0]));
-    console.log(`[postbuild-css] Mirrored CSS bundles to public/_next/static/css`);
   }
 }
