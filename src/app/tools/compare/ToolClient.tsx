@@ -37,7 +37,7 @@ function sipVsLumpsum(monthly: number, lumpsum: number, rate: number, years: num
 }
 
 function oldVsNewTax(income: number) {
-  // Old regime slabs (FY 2024-25)
+  // Old regime slabs (FY 2025-26) — unchanged from FY 2024-25
   function oldTax(inc: number) {
     const stdDed = 50000;
     const i = Math.max(0, inc - stdDed - 150000); // assume 1.5L 80C
@@ -47,17 +47,18 @@ function oldVsNewTax(income: number) {
     if (i > 250000) tax += (Math.min(i, 500000) - 250000) * 0.05;
     return Math.round(tax * 1.04); // 4% cess
   }
-  // New regime slabs (FY 2024-25)
+  // New regime slabs (FY 2025-26 — Budget 2025)
   function newTax(inc: number) {
     const stdDed = 75000;
     const i = Math.max(0, inc - stdDed);
-    if (i <= 700000) return 0; // rebate
+    if (i <= 1200000) return 0; // Section 87A rebate: no tax up to ₹12L
     let tax = 0;
-    if (i > 1500000) tax += (i - 1500000) * 0.3;
-    if (i > 1200000) tax += (Math.min(i, 1500000) - 1200000) * 0.2;
-    if (i > 1000000) tax += (Math.min(i, 1200000) - 1000000) * 0.15;
-    if (i > 700000) tax += (Math.min(i, 1000000) - 700000) * 0.1;
-    if (i > 400000) tax += (Math.min(i, 700000) - 400000) * 0.05;
+    if (i > 2400000) tax += (i - 2400000) * 0.3;
+    if (i > 2000000) tax += (Math.min(i, 2400000) - 2000000) * 0.25;
+    if (i > 1600000) tax += (Math.min(i, 2000000) - 1600000) * 0.2;
+    if (i > 1200000) tax += (Math.min(i, 1600000) - 1200000) * 0.15;
+    if (i > 800000) tax += (Math.min(i, 1200000) - 800000) * 0.1;
+    if (i > 400000) tax += (Math.min(i, 800000) - 400000) * 0.05;
     return Math.round(tax * 1.04);
   }
   return { old: oldTax(income), new: newTax(income) };
@@ -218,7 +219,7 @@ export default function CompareToolsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
             {[
               { label: 'Old Tax Regime', tax: taxResult.old, color: '#DC2626', note: 'Includes ₹50K std. ded. + ₹1.5L 80C' },
-              { label: 'New Tax Regime', tax: taxResult.new, color: 'var(--color-accent)', note: 'Includes ₹75K std. ded., no 80C' },
+              { label: 'New Tax Regime', tax: taxResult.new, color: 'var(--color-accent)', note: 'Includes ₹75K std. ded., no tax up to ₹12L' },
             ].map((r) => (
               <div key={r.label} style={{ background: 'var(--color-surface)', border: `1px solid ${r.color}`, borderTop: `4px solid ${r.color}`, borderRadius: 12, padding: 24, textAlign: 'center' }}>
                 <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 8 }}>{r.label}</p>
@@ -239,9 +240,9 @@ export default function CompareToolsPage() {
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 24 }}>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 12 }}>Key differences</h3>
             <ul style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-secondary)', lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
-              <li>New regime is default from FY 2024-25. Higher standard deduction (₹75,000 vs ₹50,000).</li>
+              <li>New regime is default from FY 2025-26. Standard deduction ₹75,000. No tax up to ₹12L income (Section 87A rebate).</li>
               <li>Old regime allows 80C, HRA, home loan interest, 80D, LTA deductions. New regime does not.</li>
-              <li>If your total deductions exceed ~₹3.75L, the old regime is likely better for higher incomes.</li>
+              <li>If your total deductions exceed ~₹3.75L, the old regime may still be better for high incomes.</li>
             </ul>
           </div>
         </div>
