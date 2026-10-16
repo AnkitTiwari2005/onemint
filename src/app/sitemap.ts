@@ -19,6 +19,8 @@ const TOOL_SLUGS = [
   'income-tax', 'take-home-salary', 'gratuity',
   'rent-vs-buy', 'freelance-rate',
   'bmi', 'calories', 'water-intake', 'health-insurance',
+  'fd-calculator', 'goal-sip', 'hra-calculator',
+  'inflation-calculator', 'retirement-corpus',
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -16,7 +16,7 @@ export const metadata = {
     type: 'website',
     url: `${SITE_URL}/tools`,
     title: 'Free Financial Tools & Calculators | OneMint',
-    description: 'Free, data-driven calculators for personal finance, health, and career planning in India. SIP, EMI, Tax, BMI and 20+ more.',
+    description: 'Free, data-driven calculators for personal finance, health, and career planning in India. SIP, EMI, Tax, BMI and 28+ more.',
     images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'OneMint Tools & Calculators' }],
   },
 };
@@ -111,7 +111,7 @@ export default function ToolsHubPage() {
             Tools & Calculators
           </h1>
           <p className="text-lg text-[var(--color-ink-secondary)] max-w-2xl mx-auto mb-8">
-            Stop guessing. Use our 20+ free, data-driven calculators to make informed decisions about your money, health, and career.
+            Stop guessing. Use our 28+ free, data-driven calculators to make informed decisions about your money, health, and career.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <span className="text-sm font-semibold text-[var(--color-ink)] bg-[var(--color-surface)] px-4 py-2 rounded-full border border-[var(--color-border)] shadow-sm flex items-center gap-1.5">
