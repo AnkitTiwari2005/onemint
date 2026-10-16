@@ -54,18 +54,7 @@ export async function POST(req: NextRequest) {
     const senderName = process.env.BREVO_SENDER_NAME || 'OneMint';
     const listId = ENV.BREVO_LIST_ID;
 
-    // Build the Brevo campaign payload
-    // Using sendSmtpEmail with listIds sends to all contacts in that list
-    const _payload: Record<string, unknown> = {
-      sender: { name: senderName, email: senderEmail },
-      subject: subject.trim(),
-      htmlContent: htmlContent.trim(),
-      ...(previewText?.trim() ? { previewText: previewText.trim() } : {}),
-      // Send to entire Brevo list if configured, otherwise to all contacts
-      ...(listId
-        ? { listIds: [listId] }
-        : { emailTo: ['all'] }),
-    };
+
 
     // Create campaign via Brevo Email Campaigns API
     const campaignRes = await fetch('https://api.brevo.com/v3/emailCampaigns', {

@@ -21,7 +21,9 @@ export default function AdminSeriesPage() {
   const [editing, setEditing] = useState<Series | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saved, setSaved] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_saving, setSaving] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [toastMsg, setToastMsg] = useState('');

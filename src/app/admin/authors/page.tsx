@@ -49,6 +49,7 @@ export default function AdminAuthorsPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadAuthors(); }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _persist = (list: Author[]) => {
     setAuthors(list);
     setSaved(true);
