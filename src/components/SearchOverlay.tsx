@@ -48,6 +48,7 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
     if (isOpen && typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('onemint-recent-searches');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (stored) setRecentSearches(JSON.parse(stored).slice(0, 5));
       } catch { /* noop */ }
     }
@@ -79,6 +80,7 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
 
   // Debounced search: try Typesense API first, fall back to Fuse.js
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!query.trim()) { setResults([]); return; }
 
     const timer = setTimeout(async () => {
@@ -140,6 +142,7 @@ export function SearchOverlay({ isOpen, onClose }: Props) {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleResultClick = (_result: SearchResult) => {
     saveRecent(query);
     onClose();

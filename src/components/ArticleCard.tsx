@@ -34,7 +34,7 @@ export function ArticleCard({ article, variant = 'standard', index = 0, priority
     : undefined;
 
   if (variant === 'hero') return <HeroCard article={article} category={category} author={author} priority={priority} />;
-  if (variant === 'compact') return <CompactCard article={article} category={category} index={index} />;
+  if (variant === 'compact') return <CompactCard article={article} category={category} />;
 
   // Standard Card
   return (
@@ -196,11 +196,9 @@ function HeroCard({
 function CompactCard({
   article,
   category,
-  index,
 }: {
   article: Article;
   category: ReturnType<typeof getCategoryById>;
-  index: number;
 }) {
   return (
     <Link

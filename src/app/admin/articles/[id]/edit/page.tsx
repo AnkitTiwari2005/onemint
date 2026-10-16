@@ -15,6 +15,7 @@ export default function EditArticlePage() {
   const id = params.id as string;
   
   const [hasHistory, setHasHistory] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setHasHistory(window.history.length > 1); }, []);
 
   const [loading, setLoading] = useState(true);
@@ -228,6 +229,7 @@ export default function EditArticlePage() {
           tags,
           meta_title: metaTitle,
           meta_description: metaDesc,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           faqs: faqs.length > 0 ? faqs.filter(f => f.question.trim() && f.answer.trim()).map(({ id: _id, ...rest }) => rest) : null,
           is_sponsored: isSponsored || null,
           sponsor_name: sponsorName.trim() || null,

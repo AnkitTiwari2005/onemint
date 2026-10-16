@@ -27,13 +27,16 @@ export function CookieBanner() {
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie_consent_v2');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!consent) setVisible(true);
   }, []);
 
   const save = (accepted: boolean, p: Prefs) => {
     localStorage.setItem('cookie_consent_v2', JSON.stringify({ accepted, prefs: p }));
     // Propagate to GA4: disable analytics if user declined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).gtag('consent', 'update', {
         analytics_storage: p.analytics ? 'granted' : 'denied',
         ad_storage: p.advertising ? 'granted' : 'denied',

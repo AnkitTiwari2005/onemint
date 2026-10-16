@@ -25,6 +25,7 @@ export function SeriesBanner({ articleSlug, series }: SeriesBannerProps) {
     try {
       const stored = localStorage.getItem(`series_progress_${series.id}`);
       const completed: string[] = stored ? JSON.parse(stored) : [];
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCompletedCount(completed.filter((s) => series.articleSlugs.includes(s)).length);
     } catch {
       setCompletedCount(0);

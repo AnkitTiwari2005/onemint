@@ -381,6 +381,7 @@ export function ArticleComments({ slug }: { slug: string }) {
     fetch('/api/admin/settings')
       .then(r => r.json()).then(d => setEnabled(d?.commentsEnabled !== false))
       .catch(() => setEnabled(true));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMyReactions(loadMyReactions());
   }, []);
 

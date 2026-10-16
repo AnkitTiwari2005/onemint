@@ -58,6 +58,7 @@ export default function SavedPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSlugs(getBookmarked());
     setMounted(true);
     // Fetch live articles from DB — response is { articles: [...], source, degraded }

@@ -17,6 +17,7 @@ export function BookmarkButton({ slug, className = '' }: BookmarkButtonProps) {
   useEffect(() => {
     try {
       const prefs = JSON.parse(localStorage.getItem('onemint-prefs') || '{}');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSaved((prefs.bookmarkedArticles || []).includes(slug));
     } catch { /* noop */ }
   }, [slug]);

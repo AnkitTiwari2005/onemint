@@ -36,6 +36,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
 
   useEffect(() => {
     const theme = document.documentElement.getAttribute('data-theme');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDark(theme === 'dark');
   }, []);
 

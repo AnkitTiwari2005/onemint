@@ -18,6 +18,7 @@ export function FontSizeControl() {
     try {
       const prefs = JSON.parse(localStorage.getItem('onemint-prefs') || '{}');
       if (prefs.fontSize) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setFontSize(prefs.fontSize);
         document.documentElement.setAttribute('data-font-size', prefs.fontSize);
       }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThumbsUp, ThumbsDown, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, CheckCircle2 } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
 const DISLIKE_REASONS = [
@@ -19,7 +19,8 @@ type DislikeReason = typeof DISLIKE_REASONS[number];
 
 export function ArticleFeedback({ slug }: { slug?: string }) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
-  const [liked, setLiked] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showReasons, setShowReasons] = useState(false);
   const [selectedReason, setSelectedReason] = useState<DislikeReason | null>(null);

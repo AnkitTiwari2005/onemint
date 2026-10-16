@@ -91,7 +91,9 @@ export default function NotFoundClient({ articles = [] }: NotFoundClientProps) {
 
   // ── GA4 tracking ─────────────────────────────────────────────────────────
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).gtag('event', 'page_not_found', {
         page_location: window.location.href,
         page_path: pathname ?? window.location.pathname,

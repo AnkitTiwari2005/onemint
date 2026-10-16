@@ -17,7 +17,7 @@
  */
 
 import { supabaseAdmin } from './supabase';
-import { getTopPages, extractDimension, extractMetric } from './ga4';
+import { getTopPages, extractDimension } from './ga4';
 
 // ── Cache keys ────────────────────────────────────────────────────────────────
 const MOST_READ_KEY = 'most_read_weekly';

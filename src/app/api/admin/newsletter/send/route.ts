@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Build the Brevo campaign payload
     // Using sendSmtpEmail with listIds sends to all contacts in that list
-    const payload: Record<string, unknown> = {
+    const _payload: Record<string, unknown> = {
       sender: { name: senderName, email: senderEmail },
       subject: subject.trim(),
       htmlContent: htmlContent.trim(),

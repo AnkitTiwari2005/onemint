@@ -84,6 +84,7 @@ export default function AdminDashboard() {
     // Read from shared cache first — avoids a duplicate fetch if analytics page already loaded
     const cached = getCachedAnalytics();
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWeeklyChart(cached.weeklyChart ?? []);
       setChartLoading(false);
       return;

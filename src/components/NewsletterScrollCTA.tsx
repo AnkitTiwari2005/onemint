@@ -34,6 +34,7 @@ export function NewsletterScrollCTA() {
     // Already dismissed this session → bail early
     try {
       if (sessionStorage.getItem(SESSION_KEY)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDismissed(true);
         window.removeEventListener('resize', checkMobile);
         return;

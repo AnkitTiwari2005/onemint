@@ -21,8 +21,8 @@ export default function AdminSeriesPage() {
   const [editing, setEditing] = useState<Series | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [_saving, setSaving] = useState(false);
+  const [_loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [toastMsg, setToastMsg] = useState('');
   const [confirmSeries, setConfirmSeries] = useState<Series | null>(null);

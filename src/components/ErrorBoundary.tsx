@@ -31,7 +31,9 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error(`[ErrorBoundary] ${this.props.componentName ?? 'Unknown'}:`, error, info.componentStack);
     // Fire GA4 event so broken components show up in analytics
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).gtag('event', 'component_error', {
         component: this.props.componentName ?? 'Unknown',
         error_message: error.message?.slice(0, 100),

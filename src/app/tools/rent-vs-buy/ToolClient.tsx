@@ -69,7 +69,7 @@ export default function RentVsBuyPage() {
       // Rent net worth: invested corpus − cumulative rent paid
       const totalRentPaid = Array.from({ length: y }, (_, i) => monthlyRent * Math.pow(1 + rentIncrease / 100, i) * 12)
         .reduce((a, b) => a + b, 0);
-      const rentNetWorthY = rentInvestCorpus - totalRentPaid;
+      const _rentNetWorthY = rentInvestCorpus - totalRentPaid;
 
       currentRent = Math.round(currentRent * (1 + rentIncrease / 100));
       data.push({

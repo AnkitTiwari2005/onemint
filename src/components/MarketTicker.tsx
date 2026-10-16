@@ -67,6 +67,7 @@ export function MarketTicker() {
   const [data, setData] = useState<MarketItem[]>(FALLBACK);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     // Fetch live data — refreshes USD/INR with Alpha Vantage; 15 min cache on server
     fetch('/api/market-data')

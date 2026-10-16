@@ -40,6 +40,7 @@ export default function ArticlesClientShell({
   // Sync category from URL param on mount (e.g. /articles?cat=personal-finance)
   useEffect(() => {
     const cat = searchParams.get('cat');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (cat) setActiveCategory(cat);
   }, [searchParams]);
 

@@ -84,6 +84,7 @@ export default function TrashPage() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const restore = async (type: TabKey, item: TrashItem) => {

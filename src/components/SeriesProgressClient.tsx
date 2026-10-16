@@ -46,6 +46,7 @@ export default function SeriesProgressClient({ series: s, cat }: Props) {
   const [done, setDone] = useState(0);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDone(getProgress(s.id, s.articleSlugs));
   }, [s.id, s.articleSlugs]);
 

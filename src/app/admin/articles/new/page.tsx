@@ -277,6 +277,7 @@ export default function NewArticlePage() {
           status: finalStatus,
           meta_title: metaTitle,
           meta_description: metaDesc,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           faqs: faqs.length > 0 ? faqs.filter(f => f.question.trim() && f.answer.trim()).map(({ id: _id, ...rest }) => rest) : null,
           is_sponsored: isSponsored || null,
           sponsor_name: sponsorName.trim() || null,

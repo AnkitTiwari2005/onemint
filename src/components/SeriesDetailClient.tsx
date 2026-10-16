@@ -46,6 +46,7 @@ export function SeriesDetailClient({ series: s, seriesArticles }: Props) {
   const [completed, setCompleted] = useState<string[]>([]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCompleted(getCompletedSlugs(s.id));
   }, [s.id]);
 

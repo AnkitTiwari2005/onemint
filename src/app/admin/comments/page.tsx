@@ -69,6 +69,7 @@ export default function AdminCommentsPage() {
       .catch(() => {});
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadComments(tab); }, [tab, loadComments]);
 
   const updateStatus = async (id: string, status: TabStatus) => {

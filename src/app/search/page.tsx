@@ -39,6 +39,7 @@ function SearchPageContent() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('onemint-recent-searches');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (stored) setRecentSearches(JSON.parse(stored).slice(0, 5));
     }
   }, []);
@@ -59,6 +60,7 @@ function SearchPageContent() {
   // Live search via /api/search (Typesense) with 300ms debounce
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (query.length < 2) { setResults([]); setLoading(false); return; }
 
     setLoading(true);

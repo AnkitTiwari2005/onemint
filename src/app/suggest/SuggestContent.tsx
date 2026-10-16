@@ -49,6 +49,7 @@ export default function SuggestContent() {
   useEffect(() => {
     try {
       const stored: string[] = JSON.parse(localStorage.getItem('onemint_voted_suggestions') || '[]');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVotedIds(new Set(stored));
     } catch { /* ignore */ }
   }, []);
@@ -57,6 +58,7 @@ export default function SuggestContent() {
   useEffect(() => {
     if (!supabase) {
       // No DB connection — show seed data with a label
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions(SEED_SUGGESTIONS);
       setUsingSeedData(true);
       setSuggestionsLoaded(true);

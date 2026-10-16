@@ -57,6 +57,7 @@ export function ReadingProgressBar() {
     if (!slug) return;
     const saved = getProgressForSlug(slug);
     if (saved > 15 && saved < 95) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResumePercent(Math.round(saved));
       // Small delay so the prompt doesn't flash immediately on load
       const t = setTimeout(() => setShowResume(true), 1500);

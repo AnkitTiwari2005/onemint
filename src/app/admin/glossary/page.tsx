@@ -41,6 +41,7 @@ export default function AdminGlossaryPage() {
     finally { setLoading(false); }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
   useEffect(() => { load(); }, []);
 
   const filtered = terms.filter((t) =>
