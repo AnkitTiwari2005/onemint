@@ -14,7 +14,7 @@
 export default function RootLoading() {
   /* ── shimmer gradient used on every skeleton slab ── */
   const shimmer =
-    'linear-gradient(90deg, var(--color-surface-alt,#F2F0EB) 0%, var(--color-surface-hover,#ECEAE3) 50%, var(--color-surface-alt,#F2F0EB) 100%)';
+    'linear-gradient(90deg, var(--color-surface-alt,#F2F0EB) 0%, var(--color-border-strong,#C8C6BC) 50%, var(--color-surface-alt,#F2F0EB) 100%)';
 
   /* ── shared slab style ── */
   const slab = (
