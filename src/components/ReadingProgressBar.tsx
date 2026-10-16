@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, useScroll, useSpring, useMotionValueEvent } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
@@ -65,7 +65,7 @@ export function ReadingProgressBar() {
   }, [slug]);
 
   // Throttled save on scroll
-  const lastSaveRef = { current: 0 };
+  const lastSaveRef = useRef(0);
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
     if (!slug) return;
     const now = Date.now();

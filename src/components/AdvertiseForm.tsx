@@ -60,7 +60,7 @@ export function AdvertiseForm() {
         </div>
         <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-[var(--color-ink)] mb-2">Enquiry received!</h3>
         <p className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">
-          We'll respond with a custom media kit within 2 business days.
+          We&apos;ll respond with a custom media kit within 2 business days.
         </p>
       </div>
     );

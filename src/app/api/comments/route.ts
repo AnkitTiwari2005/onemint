@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const commentList = comments || [];
 
     // Aggregate reaction counts for all fetched comments in one query
-    let reactions: Record<string, Record<string, number>> = {};
+    const reactions: Record<string, Record<string, number>> = {};
     if (commentList.length > 0) {
       const ids = commentList.map(c => c.id);
       const { data: reactionRows } = await supabaseAdmin
