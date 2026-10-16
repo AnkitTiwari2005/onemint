@@ -153,13 +153,14 @@ export default function IncomeTaxPage() {
                   <button
                     key={r}
                     onClick={() => setRegime(r)}
-                    className={`flex-1 py-3 text-sm font-semibold transition-all font-[family-name:var(--font-ui)] ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold transition-all font-[family-name:var(--font-ui)] ${
                       regime === r
                         ? 'bg-[var(--color-accent)] text-white'
                         : 'bg-[var(--color-surface)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-alt)]'
                     }`}
                   >
-                    {r === 'old' ? <><ScrollText size={14} /> Old Regime</> : <><Sparkles size={14} /> New Regime</>}
+                    {r === 'old' ? <ScrollText size={15} /> : <Sparkles size={15} />}
+                    {r === 'old' ? 'Old Regime' : 'New Regime'}
                   </button>
                 ))}
               </div>
