@@ -208,7 +208,7 @@ function isMaintenanceMode(): boolean {
   return process.env.MAINTENANCE_MODE === 'true';
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get('host') ?? '';
 
