@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: 'Suggest a Topic | OneMint',
     description:
       'Vote on topics you want OneMint to cover, or suggest something new. Our editorial team reviews the top suggestions every week.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Suggest a Topic — OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Suggest a Topic — OneMint' }],
   },
   robots: { index: false, follow: true }, // community page — no indexing needed
 };

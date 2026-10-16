@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/swp`,
     title: 'SWP Calculator — Systematic Withdrawal Plan Calculator India',
     description: 'Free SWP Calculator India. Calculate how long your mutual fund corpus lasts with monthly withdrawals. Plan your retirement income with Systematic Withdrawal Plans.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'SWP Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SWP Calculator | OneMint' }],
   },
 };
 

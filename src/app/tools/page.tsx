@@ -17,7 +17,7 @@ export const metadata = {
     url: `${SITE_URL}/tools`,
     title: 'Free Financial Tools & Calculators | OneMint',
     description: 'Free, data-driven calculators for personal finance, health, and career planning in India. SIP, EMI, Tax, BMI and 20+ more.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Tools & Calculators' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'OneMint Tools & Calculators' }],
   },
 };
 

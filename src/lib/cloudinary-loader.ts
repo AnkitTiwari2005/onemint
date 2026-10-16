@@ -28,7 +28,7 @@ export default function cloudinaryLoader({ src, width, quality }: LoaderParams):
   // If the src is already a Cloudinary URL, return it as-is to avoid double-wrapping.
   if (src.includes('res.cloudinary.com')) return src;
 
-  // Local / relative paths (e.g. /og-image.png from /public) — serve directly,
+  // Local / relative paths (e.g. /og-image.jpg from /public) — serve directly,
   // no need to route through Cloudinary since they're already edge-cached by Vercel.
   if (src.startsWith('/')) {
     return src;

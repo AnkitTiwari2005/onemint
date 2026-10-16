@@ -20,7 +20,7 @@ export const metadata = {
     url: `${SITE_URL}/about`,
     title: 'About OneMint',
     description: "A knowledge platform for personal finance, technology, health, and career. Expert-reviewed articles, free tools, zero spam.",
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'About OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'About OneMint' }],
   },
   twitter: {
     card: 'summary_large_image' as const,

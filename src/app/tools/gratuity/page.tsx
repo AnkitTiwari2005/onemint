@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/gratuity`,
     title: 'Gratuity Calculator India | OneMint',
     description: 'Free Gratuity Calculator India 2024. Calculate your gratuity amount under the Payment of Gratuity Act. See how basic salary and years of service determine your gratuity payout.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Gratuity Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Gratuity Calculator | OneMint' }],
   },
 };
 

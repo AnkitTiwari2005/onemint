@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/compare`,
     title: 'Compare Financial Calculators | OneMint',
     description: 'Free financial calculator comparison tool by OneMint. Compare SIP vs lumpsum, old vs new tax regime, and multiple investment options side-by-side to make smarter money decisions.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Financial Calculator Comparison | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Financial Calculator Comparison | OneMint' }],
   },
 };
 

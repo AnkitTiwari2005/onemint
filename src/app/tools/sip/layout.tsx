@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/sip`,
     title: 'Free SIP Calculator | OneMint',
     description: 'Calculate the future value of your monthly SIP investments. India-specific, 100% free, no signup required.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
   },
 };
 

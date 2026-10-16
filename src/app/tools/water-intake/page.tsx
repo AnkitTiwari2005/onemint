@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/water-intake`,
     title: 'Water Intake Calculator | OneMint',
     description: 'Free Water Intake Calculator India. Calculate your daily hydration needs based on weight, activity level, and climate. Essential during Indian summers. Stay optimally hydrated.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Water Intake Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Water Intake Calculator | OneMint' }],
   },
 };
 

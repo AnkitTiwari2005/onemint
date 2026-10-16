@@ -94,7 +94,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: bio
         ? bio.slice(0, 155)
         : `Read all articles by ${name} on OneMint.`,
-      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${name} — OneMint` }],
+      images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: `${name} — OneMint` }],
     },
     twitter: {
       card: 'summary' as const,

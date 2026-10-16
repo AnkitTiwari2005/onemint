@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: 'Contact Us — OneMint',
     description:
       'Reach the OneMint editorial team for corrections, advertising, partnerships, or general enquiries.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Contact OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Contact OneMint' }],
   },
 };
 

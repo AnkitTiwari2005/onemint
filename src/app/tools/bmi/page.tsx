@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/bmi`,
     title: 'BMI Calculator India — Body Mass Index & BMR Calculator',
     description: 'Free BMI & BMR Calculator for Indians. Calculate your Body Mass Index, Basal Metabolic Rate, and daily calorie needs. Uses Indian-specific BMI ranges recommended by ICMR.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'BMI Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'BMI Calculator | OneMint' }],
   },
 };
 

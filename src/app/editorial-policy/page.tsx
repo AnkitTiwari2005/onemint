@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: 'Editorial Policy — OneMint',
     description:
       'How OneMint researches, fact-checks, and publishes expert-level content on personal finance, health, technology, and more.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Editorial Policy' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'OneMint Editorial Policy' }],
   },
 };
 

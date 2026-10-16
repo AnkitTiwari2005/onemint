@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/calories`,
     title: 'Calorie Calculator India | OneMint',
     description: 'Free Daily Calorie Calculator India. Calculate your TDEE and exact calorie needs for weight loss, maintenance, or muscle gain. Includes activity level and macronutrient breakdown.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Daily Calorie Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Daily Calorie Calculator | OneMint' }],
   },
 };
 

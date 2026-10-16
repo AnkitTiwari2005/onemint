@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/epf`,
     title: 'EPF Calculator — Employee Provident Fund Corpus Calculator India',
     description: 'Free EPF Calculator India. Calculate your Employee Provident Fund corpus at retirement. Uses current EPFO interest rate of 8.25%. Includes employer & employee contributions.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'EPF Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'EPF Calculator | OneMint' }],
   },
 };
 

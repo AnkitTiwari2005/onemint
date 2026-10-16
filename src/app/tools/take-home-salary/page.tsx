@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/take-home-salary`,
     title: 'In-Hand Salary Calculator India | OneMint',
     description: 'Free In-Hand Salary Calculator India FY 2024-25. Convert your CTC to exact monthly take-home pay. Includes PF, professional tax, income tax, and HRA deductions for all salary slabs.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'In-Hand Salary Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'In-Hand Salary Calculator | OneMint' }],
   },
 };
 

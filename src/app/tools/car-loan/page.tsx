@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/car-loan`,
     title: 'Car Loan EMI Calculator — Auto Loan Monthly Instalment India',
     description: 'Free Car Loan EMI Calculator India. Calculate your monthly car loan EMI, total interest payable, and complete amortization schedule. Compare rates from major Indian banks.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Car Loan EMI Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Car Loan EMI Calculator | OneMint' }],
   },
 };
 

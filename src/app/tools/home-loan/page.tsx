@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/home-loan`,
     title: 'Home Loan EMI Calculator — Monthly Instalment & Amortization Schedule',
     description: 'Free Home Loan EMI Calculator India. Calculate your monthly EMI, total interest payable, and view a complete year-by-year amortization schedule. Covers SBI, HDFC, ICICI rates.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Home Loan EMI Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Home Loan EMI Calculator | OneMint' }],
   },
 };
 

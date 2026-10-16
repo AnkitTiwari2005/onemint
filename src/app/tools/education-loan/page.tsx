@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/education-loan`,
     title: 'Education Loan EMI Calculator | OneMint',
     description: 'Free Education Loan EMI Calculator India. Calculate monthly EMI for your student loan. Compare loan amounts and repayment tenures to plan your education financing smartly.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Education Loan EMI Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Education Loan EMI Calculator | OneMint' }],
   },
 };
 

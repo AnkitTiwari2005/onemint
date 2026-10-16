@@ -17,7 +17,7 @@ export const metadata = {
     url: `${SITE_URL}/topics`,
     title: 'All Topics | OneMint',
     description: 'Explore our comprehensive guides and articles across personal finance, technology, health, career, and more.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Topics' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'OneMint Topics' }],
   },
 };
 

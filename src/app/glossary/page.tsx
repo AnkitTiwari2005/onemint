@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/glossary`,
     title: 'Financial Glossary | OneMint',
     description: 'Demystifying finance, one term at a time. Search our comprehensive dictionary of financial jargon, acronyms, and concepts.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Financial Glossary' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'OneMint Financial Glossary' }],
   },
 };
 

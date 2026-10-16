@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/nps`,
     title: 'NPS Calculator — National Pension System Returns & Pension Estimate',
     description: 'Free NPS Calculator India. Calculate your National Pension System corpus and monthly pension at retirement. Includes Tier 1 tax benefits under Section 80CCD.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'NPS Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'NPS Calculator | OneMint' }],
   },
 };
 

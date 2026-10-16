@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/mf-returns`,
     title: 'Mutual Fund Returns Calculator — CAGR & Absolute Returns',
     description: 'Free Mutual Fund Returns Calculator India. Calculate CAGR (Compound Annual Growth Rate) and absolute returns on any mutual fund investment. Instant, no signup required.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Mutual Fund Returns Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Mutual Fund Returns Calculator | OneMint' }],
   },
 };
 

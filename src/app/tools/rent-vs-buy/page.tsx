@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/rent-vs-buy`,
     title: 'Rent vs Buy Calculator India | OneMint',
     description: 'Free Rent vs Buy Calculator India. Compare the true financial cost of renting vs buying a home. Includes property appreciation, tax benefits, opportunity cost, and EMI analysis.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Rent vs Buy Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Rent vs Buy Calculator | OneMint' }],
   },
 };
 

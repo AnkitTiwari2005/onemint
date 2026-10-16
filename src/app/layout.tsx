@@ -93,7 +93,7 @@ export const metadata: Metadata = {
     description: "Expert articles on personal finance, technology, health, and careers. Free tools & calculators for better money decisions. Zero spam.",
     images: [
       {
-        url: 'https://www.onemint.com/og-image.png',
+        url: 'https://www.onemint.com/og-image.jpg',
         width: 1200,
         height: 630,
         alt: "OneMint — Personal Finance, Technology & Health for India",
@@ -103,7 +103,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "@one_mint_",
-    images: ["https://www.onemint.com/og-image.png"],
+    images: ["https://www.onemint.com/og-image.jpg"],
   },
   robots: {
     index: true,

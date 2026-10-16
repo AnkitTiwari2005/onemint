@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/freelance-rate`,
     title: 'Freelance Rate Calculator India | OneMint',
     description: 'Free Freelance Rate Calculator India. Calculate your minimum hourly or daily rate as a freelancer based on income goals, expenses, and working hours. Never undercharge again.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Freelance Rate Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Freelance Rate Calculator | OneMint' }],
   },
 };
 

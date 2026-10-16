@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/financial-health`,
     title: 'Financial Health Quiz India | OneMint',
     description: 'Free Financial Health Quiz India. Assess your financial fitness in 5 minutes. Get a personalised score and actionable recommendations on savings, insurance, investments, and debt.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Financial Health Quiz | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Financial Health Quiz | OneMint' }],
   },
 };
 

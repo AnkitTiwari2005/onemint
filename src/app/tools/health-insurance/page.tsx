@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/health-insurance`,
     title: 'Health Insurance Calculator India | OneMint',
     description: 'Free Health Insurance Needs Calculator India. Find out exactly how much health insurance cover your family needs based on age, city, income, and medical history risk factors.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Health Insurance Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Health Insurance Calculator | OneMint' }],
   },
 };
 

@@ -119,7 +119,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: seoDesc,
       images: article.cover_image
         ? [{ url: article.cover_image, width: 1200, height: 630 }]
-        : [{ url: '/og-image.png', width: 1200, height: 630 }],
+        : [{ url: '/og-image.jpg', width: 1200, height: 630 }],
       publishedTime: article.published_at ?? undefined,
       // Renders as <meta property="article:author" content="https://…/author/…" />
       // Signals E-E-A-T authorship to crawlers and social platforms

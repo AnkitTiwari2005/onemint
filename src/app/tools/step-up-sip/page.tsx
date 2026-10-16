@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/step-up-sip`,
     title: 'Step-Up SIP Calculator — Annual SIP Increase & Corpus Growth',
     description: 'Free Step-Up SIP Calculator India. See how increasing your SIP by 10% every year dramatically grows your wealth. Calculate corpus with annual top-up SIP investments.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Step-Up SIP Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Step-Up SIP Calculator | OneMint' }],
   },
 };
 

@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
       publishedAt:  body.publishedAt,
     });
 
-    const senderEmail = process.env.BREVO_SENDER_EMAIL ?? '12328.uspc@gmail.com';
+    const senderEmail = process.env.BREVO_SENDER_EMAIL ?? 'contact@onemint.in';
     const senderName  = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
 
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -289,10 +289,10 @@ export async function POST(req: NextRequest) {
     }).catch(err => console.warn('[notify-article] Push send failed (non-critical):', err));
 
     // WhatsApp admin alert via Twilio (fire-and-forget)
-    const waTo   = process.env.TWILIO_WHATSAPP_TO;
-    const waFrom = process.env.TWILIO_WHATSAPP_FROM;
-    const twilioSid   = process.env.TWILIO_ACCOUNT_SID;
-    const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+    const waTo   = getCleanEnv('TWILIO_WHATSAPP_TO');
+    const waFrom = getCleanEnv('TWILIO_WHATSAPP_FROM');
+    const twilioSid   = getCleanEnv('TWILIO_ACCOUNT_SID');
+    const twilioToken = getCleanEnv('TWILIO_AUTH_TOKEN');
     if (waTo && waFrom && twilioSid && twilioToken) {
       const waMsg = `✅ *New article published on OneMint*\n\n*${title.trim()}*\n\n${articleUrl}`;
       fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {

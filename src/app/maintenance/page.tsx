@@ -1,13 +1,13 @@
-ï»¿// Static page â€” no data fetching. Build once at deploy time, serve as plain HTML forever.
+// Static page — no data fetching. Build once at deploy time, serve as plain HTML forever.
 export const revalidate = false;
 
 import type { Metadata } from 'next';
 import { Wrench } from 'lucide-react';
 
-// Maintenance pages must never be indexed â€” the content is temporary
+// Maintenance pages must never be indexed — the content is temporary
 // and "We'll be back soon" is meaningless to Google.
 export const metadata: Metadata = {
-  title: 'OneMint â€” Scheduled Maintenance',
+  title: 'OneMint — Scheduled Maintenance',
   robots: { index: false, follow: false },
 };
 

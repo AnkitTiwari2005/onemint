@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/loan-prepayment`,
     title: 'Loan Prepayment Calculator | OneMint',
     description: 'Free Loan Prepayment Calculator India. See how a one-time prepayment saves you lakhs in interest and cuts years off your loan. Works for home loans, car loans & personal loans.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Loan Prepayment Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Loan Prepayment Calculator | OneMint' }],
   },
 };
 

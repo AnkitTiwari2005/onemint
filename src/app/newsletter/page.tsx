@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: 'OneMint Newsletter — The Smartest Newsletter in India',
     description:
       'One email, 3× a week — money, tech, health and career. No jargon, no sponsored fluff, zero spam. Free forever.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'OneMint Newsletter' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'OneMint Newsletter' }],
   },
 };
 

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/tools/ppf`,
     title: 'PPF Calculator — Public Provident Fund Maturity & Returns Calculator',
     description: 'Free PPF Calculator India. Calculate Public Provident Fund maturity value at 7.1% p.a. (Q1 FY2026-27). EEE tax-free status — best guaranteed debt investment for Indians.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'PPF Calculator | OneMint' }],
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'PPF Calculator | OneMint' }],
   },
 };
 
