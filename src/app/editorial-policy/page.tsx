@@ -50,7 +50,7 @@ Our coverage spans personal finance, technology, health & wellness, career devel
 
 **How affiliate links work.** Some OneMint articles contain affiliate links. If a reader signs up for a product through one of these links, OneMint may earn a fee from the company, at no extra cost to the reader. Affiliate relationships do not influence what we write, what we conclude, or how we describe a company or product. We describe what companies say they offer and point out what readers should verify themselves. We label affiliate links in the text (for example "(affiliate link)") and disclose the relationship in the article. OneMint is not a SEBI-registered investment adviser or research analyst, and our articles are educational, not investment advice.
 
-**No advertiser influence.** Advertisers cannot request, preview, or alter any editorial content before or after publication. Our commercial team has no editorial input.
+**No advertiser influence.** Advertisers cannot alter our editorial conclusions. We may ask partners to confirm factual details such as fees and offer terms, but our commercial team and partners have no input into our editorial evaluations.
 
 **Editorial separation.** Editors and writers operate independently from commercial partnerships. Commercial considerations do not dictate our editorial conclusions, ratings, or what we advise readers to verify.`,
   },
@@ -66,7 +66,7 @@ Our coverage spans personal finance, technology, health & wellness, career devel
 
 **Domain review.** Personal finance content is cross-checked against SEBI/RBI guidelines. Health content is verified against ICMR/WHO guidelines. Technology content is verified against official documentation and peer-reviewed sources.
 
-**Disclosure of conflicts.** Authors and editors disclose any financial interest, past or present employment, or personal relationship with subjects covered in their articles.`,
+**Disclosure of conflicts.** Authors and editors disclose any financial interest, past or present employment, or personal relationship with subjects covered in their articles, and commercial relationships of the site are clearly disclosed.`,
   },
   {
     id: 'research',
@@ -76,7 +76,7 @@ Our coverage spans personal finance, technology, health & wellness, career devel
 
 **Primary sources first.** We cite original research, government notifications (RBI, SEBI, MCA, ICMR), peer-reviewed studies, and official statistics. Secondary sources are used only to cross-reference primary data.
 
-**Multiple source verification.** Any fact presented as true is corroborated by at least two independent, authoritative sources.
+**Multiple source verification.** Where possible, facts are corroborated by at least two independent, authoritative sources. For specific product terms, pricing, and fee structures, we verify directly against the provider's official published schedule of charges.
 
 **Data currency.** Financial data (interest rates, tax slabs, thresholds, limits) is verified against the most recent official circulars and budget notifications. Our tools reflect the current financial year unless stated otherwise.
 
