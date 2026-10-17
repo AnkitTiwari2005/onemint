@@ -38,6 +38,46 @@ const mdComponents = {
     const id = headingId(extractText(children));
     return <h3 id={id} {...props}>{children}</h3>;
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  a: ({ href, children, ...props }: any) => {
+    const text = extractText(children).toLowerCase();
+    const isAffiliate =
+      Boolean(href && (href.includes('onelink.me') || href.includes('paytmmoney.com') || href.includes('affiliate'))) ||
+      text.includes('affiliate');
+    const isExternal = Boolean(href && href.startsWith('http') && !href.includes('onemint.com') && !href.includes('onemint.in'));
+
+    if (isAffiliate) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="sponsored nofollow noopener"
+          {...props}
+        >
+          {children}
+        </a>
+      );
+    }
+
+    if (isExternal) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          {...props}
+        >
+          {children}
+        </a>
+      );
+    }
+
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  },
 };
 
 interface ArticleBodyClientProps {
