@@ -121,7 +121,7 @@ export default async function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { icon: <Target size={28} className="text-[var(--color-accent)]" />, title: 'Accuracy First', desc: 'Every claim is verified. We cite primary sources and update articles when facts change.' },
-              { icon: <Handshake size={28} className="text-[var(--color-accent)]" />, title: 'Reader Trust', desc: 'No sponsored content disguised as editorial. No affiliate bias. Our readers come first.' },
+              { icon: <Handshake size={28} className="text-[var(--color-accent)]" />, title: 'Reader Trust', desc: 'Advertising is labelled. Affiliate links are disclosed. Our readers come first.' },
               { icon: <Brain size={28} className="text-[var(--color-accent)]" />, title: 'Depth Over Clicks', desc: 'We write 2,000-word deep dives, not 300-word SEO filler. Quality always beats quantity.' },
             ].map((v) => (
               <div key={v.title} className="bg-[var(--color-surface)] rounded-2xl p-8 border border-[var(--color-border)] shadow-sm hover:shadow-[var(--shadow-card-hover)] transition-shadow">

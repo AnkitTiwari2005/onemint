@@ -42,15 +42,17 @@ Our coverage spans personal finance, technology, health & wellness, career devel
     id: 'independence',
     icon: <Shield size={22} className="text-[var(--color-accent)]" />,
     title: 'Editorial Independence',
-    content: `OneMint's editorial content is strictly independent from commercial considerations:
+    content: `OneMint maintains strict editorial independence, even where commercial or referral relationships exist:
 
-**No sponsored articles or paid guest posts.** OneMint does not accept paid editorial content, sponsored articles, or paid guest posts in any form. Every article on this site is independently commissioned, researched, and written by our editorial team. Advertisements are clearly labelled "Advertisement" and are physically separated from editorial content. Advertisers receive no editorial consideration in exchange for ad spend.
+**No paid guest posts or undisclosed sponsored content.** OneMint does not accept paid guest posts or publish undisclosed sponsored content. Every article on this site is independently commissioned, researched, and written by our editorial team. Advertisements are clearly labelled "Advertisement" and are physically separated from editorial content. Advertisers receive no editorial consideration in exchange for ad spend.
 
-**No affiliate bias.** When we recommend a product, service, or financial instrument, it is because our research supports that recommendation — not because we receive a commission. Any commercial relationships that could affect coverage are disclosed prominently.
+**Editorial integrity.** We decide what to cover based on reader interest and our research. Where a commercial relationship exists, we disclose it, and it does not determine whether our coverage of a product is positive or critical.
+
+**How affiliate links work.** Some OneMint articles contain affiliate links. If a reader signs up for a product through one of these links, OneMint may earn a fee from the company, at no extra cost to the reader. Affiliate relationships do not influence what we write, what we conclude, or how we describe a company or product. We describe what companies say they offer and point out what readers should verify themselves. We label affiliate links in the text (for example "(affiliate link)") and disclose the relationship in the article. OneMint is not a SEBI-registered investment adviser or research analyst, and our articles are educational, not investment advice.
 
 **No advertiser influence.** Advertisers cannot request, preview, or alter any editorial content before or after publication. Our commercial team has no editorial input.
 
-**Separation of church and state.** Editors and writers operate independently. Revenue concerns do not enter the editorial process.`,
+**Editorial separation.** Editors and writers operate independently from commercial partnerships. Commercial considerations do not dictate our editorial conclusions, ratings, or what we advise readers to verify.`,
   },
   {
     id: 'authorship',
@@ -183,7 +185,7 @@ export default function EditorialPolicyPage() {
             Our editorial standards exist to ensure that every article on OneMint is accurate, independent, and genuinely useful — not just well-ranked. This page explains exactly how we work.
           </p>
           <p className="mt-4 text-sm text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">
-            Last reviewed: July 2026 · Questions? <a href="mailto:editorial@onemint.in" className="text-[var(--color-accent)] hover:underline">editorial@onemint.in</a>
+            Last updated: October 17, 2026 · Questions? <a href="mailto:editorial@onemint.in" className="text-[var(--color-accent)] hover:underline">editorial@onemint.in</a>
           </p>
         </div>
       </header>
