@@ -14,7 +14,7 @@ export function JsonLd({ data }: JsonLdProps) {
     <script
       type="application/ld+json"
       // Safe: we fully control the data — it comes from our own builders
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/<\//g, '<\\/') }}
     />
   );
 }

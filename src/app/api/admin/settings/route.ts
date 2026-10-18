@@ -43,6 +43,12 @@ export async function GET() {
         settings[row.key] = row.value;
       }
     }
+
+    // Mask secrets in GET response — return a boolean indicator instead of the raw key
+    if (settings.newsletterApiKey) {
+      settings.newsletterApiKey = '••••••••' + String(settings.newsletterApiKey).slice(-4);
+    }
+
     return NextResponse.json(settings);
   } catch (err) {
     console.error('[Settings GET] Unexpected:', err);
@@ -68,7 +74,15 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const rows = Object.entries(body).map(([key, value]) => ({
+
+    // Filter out masked API key values — GET returns '••••••••xxxx' for the key.
+    // If the admin saves without changing the key, that masked value must NOT overwrite
+    // the real key stored in the DB. Skip any value that contains the bullet character.
+    const filteredBody = Object.fromEntries(
+      Object.entries(body).filter(([, value]) => !String(value).includes('•'))
+    );
+
+    const rows = Object.entries(filteredBody).map(([key, value]) => ({
       key,
       value,
       updated_at: new Date().toISOString(),
@@ -77,6 +91,7 @@ export async function PUT(req: NextRequest) {
     if (rows.length === 0) {
       return NextResponse.json({ success: true });
     }
+
 
     const { error } = await supabaseAdmin
       .from('site_settings')

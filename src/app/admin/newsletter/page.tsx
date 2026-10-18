@@ -87,8 +87,13 @@ export default function AdminNewsletterPage() {
   };
 
   const exportCSV = () => {
+    // Escape each cell: neutralise leading formula chars, escape embedded quotes
+    const csvCell = (v: unknown): string => {
+      const s = String(v ?? '').replace(/"/g, '""');
+      return /^[=+\-@\t\r]/.test(s) ? `"'${s}"` : `"${s}"`;
+    };
     const rows = [['Name', 'Email', 'Subscribed', 'Status'], ...subscribers.map((s) => [s.name || '', s.email, s.created_at.split('T')[0], s.status])];
-    const csv = rows.map((r) => r.map((v) => `"${v}"`).join(',')).join('\n');
+    const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'onemint-subscribers.csv'; a.click();

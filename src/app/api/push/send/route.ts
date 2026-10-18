@@ -21,7 +21,9 @@ import { getCleanEnv } from '@/lib/env';
 export async function POST(req: NextRequest) {
   // ── Auth (header only — never read the body for secrets) ─────────────────
   const secret = req.headers.get('x-cron-secret');
-  if (secret !== getCleanEnv('CRON_SECRET')) {
+  const expected = getCleanEnv('CRON_SECRET');
+  // Fail closed: reject if secret not configured OR if header doesn't match
+  if (!expected || secret !== expected) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
   }
 

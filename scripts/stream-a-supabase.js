@@ -2,6 +2,7 @@
  * Stream A — Supabase DB Operations
  * ===================================
  * Run: node scripts/stream-a-supabase.js
+ * Dry-run (preview only, no writes): node scripts/stream-a-supabase.js --dry-run
  *
  * Requires env vars in .env.local:
  *   NEXT_PUBLIC_SUPABASE_URL
@@ -12,6 +13,11 @@
  *   2. Delete 2 corrupt drafts
  *   3. Publish 6 pillar articles with staggered timestamps
  */
+
+const DRY_RUN = process.argv.includes('--dry-run');
+if (DRY_RUN) {
+  console.log('🔍 DRY-RUN mode — no writes will be made to the database.\n');
+}
 
 const path = require('path');
 const fs = require('fs');
@@ -121,6 +127,11 @@ async function run() {
   console.log('\n🚫 Archiving P0 articles…');
   let archivedCount = 0;
   for (const slug of P0_SLUGS) {
+    if (DRY_RUN) {
+      console.log(`   [DRY-RUN] Would archive: ${slug}`);
+      archivedCount++;
+      continue;
+    }
     try {
       await supabaseQuery('articles', 'PATCH',
         { status: 'archived', updated_at: new Date().toISOString() },
@@ -132,12 +143,17 @@ async function run() {
       console.warn(`   ⚠ Could not archive ${slug}: ${e.message}`);
     }
   }
-  console.log(`   → Archived ${archivedCount} articles`);
+  console.log(`   → ${DRY_RUN ? '[DRY-RUN] Would archive' : 'Archived'} ${archivedCount} articles`);
 
   // ── Step A.2: Delete corrupt drafts ───────────────────────────────────────
   console.log('\n🗑  Deleting corrupt drafts…');
   let deletedCount = 0;
   for (const slug of CORRUPT_SLUGS) {
+    if (DRY_RUN) {
+      console.log(`   [DRY-RUN] Would DELETE: ${slug}`);
+      deletedCount++;
+      continue;
+    }
     try {
       await supabaseQuery('articles', 'DELETE', null,
         `?slug=eq.${encodeURIComponent(slug)}`
@@ -148,12 +164,17 @@ async function run() {
       console.warn(`   ⚠ Could not delete ${slug}: ${e.message}`);
     }
   }
-  console.log(`   → Deleted ${deletedCount} drafts`);
+  console.log(`   → ${DRY_RUN ? '[DRY-RUN] Would delete' : 'Deleted'} ${deletedCount} drafts`);
 
   // ── Step A.3: Publish 6 pillar articles ───────────────────────────────────
   console.log('\n✨ Publishing pillar articles…');
   let publishedCount = 0;
   for (const { slug, published_at } of PILLAR_ARTICLES) {
+    if (DRY_RUN) {
+      console.log(`   [DRY-RUN] Would publish: ${slug} @ ${published_at}`);
+      publishedCount++;
+      continue;
+    }
     try {
       await supabaseQuery('articles', 'PATCH',
         { status: 'published', published_at, updated_at: new Date().toISOString() },
@@ -165,7 +186,8 @@ async function run() {
       console.warn(`   ⚠ Could not publish ${slug}: ${e.message}`);
     }
   }
-  console.log(`   → Published ${publishedCount} articles`);
+  console.log(`   → ${DRY_RUN ? '[DRY-RUN] Would publish' : 'Published'} ${publishedCount} articles`);
+
 
   // ── Final count ───────────────────────────────────────────────────────────
   console.log('\n📊 Verifying published article count…');

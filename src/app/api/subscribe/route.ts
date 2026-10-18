@@ -118,6 +118,16 @@ export async function POST(req: NextRequest) {
 
       isNewSubscriber = !existing;
 
+      // H3 fix: do NOT silently re-activate an opted-out subscriber.
+      // Return a specific status so the UI can show an appropriate message.
+      if (existing?.status === 'unsubscribed') {
+        return NextResponse.json(
+          { status: 'previously_unsubscribed', message: 'You have previously unsubscribed. Please contact us if you would like to re-subscribe.' },
+          { status: 200 }
+        );
+      }
+
+      // Only upsert if subscriber is new or already active
       const { error: dbError } = await supabaseAdmin
         .from('newsletter_subscribers')
         .upsert(

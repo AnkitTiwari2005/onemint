@@ -49,11 +49,8 @@ export default function RentVsBuyPage() {
 
     for (let y = 1; y <= HORIZON_YEARS; y++) {
       // Rent scenario: invest down payment + monthly savings vs EMI
-      const annualRent = currentRent * 12;
-      const monthlySavings = Math.max(0, emi - currentRent) / 12; // extra savings if rent < EMI
-      rentInvestCorpus = rentInvestCorpus * (1 + investmentReturn / 100) + annualRent * 0 + monthlySavings * 12;
-      // Actually: invest downpayment at return rate; invest difference between EMI and rent monthly
-      rentInvestCorpus = (rentInvestCorpus - monthlySavings * 12) * (1 + investmentReturn / 100) + monthlySavings * 12;
+      const monthlySavings = Math.max(0, emi - currentRent); // extra savings if rent < EMI
+      rentInvestCorpus = rentInvestCorpus * (1 + investmentReturn / 100) + monthlySavings * 12;
 
       // Buy scenario: property appreciates, loan reduces
       propertyValue = propertyValue * (1 + propertyAppreciation / 100);

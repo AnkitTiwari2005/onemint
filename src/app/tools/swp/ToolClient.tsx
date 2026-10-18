@@ -20,8 +20,11 @@ export default function SwpPage() {
     const monthlyRate = returnRate / 12 / 100;
     for (let y = 1; y <= years; y++) {
       for (let m = 1; m <= 12; m++) {
-        currentCorpus = currentCorpus * (1 + monthlyRate) - withdrawal;
-        totalWithdrawn += withdrawal;
+        const grown = currentCorpus * (1 + monthlyRate);
+        // Clamp: can't withdraw more than what's available
+        const actualWithdrawal = Math.min(Math.max(0, grown), withdrawal);
+        currentCorpus = grown - actualWithdrawal;
+        totalWithdrawn += actualWithdrawal;
       }
     }
     return { finalCorpus: Math.max(0, currentCorpus), totalWithdrawn };

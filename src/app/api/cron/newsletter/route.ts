@@ -19,6 +19,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { runNewsletter, type NewsletterResult } from '@/lib/newsletter-engine';
 import type { Series } from '@/lib/newsletter-templates';
 import { getCleanEnv } from '@/lib/env';
@@ -41,13 +42,16 @@ function isAuthorised(req: NextRequest): boolean {
     return false;
   }
 
-  // Check Authorization header
+  // Check Authorization header only — never accept secrets in query params
+  // (querystring secrets appear in server logs, CDN logs, and Referer headers)
   const authHeader = req.headers.get('authorization') ?? '';
-  if (authHeader === `Bearer ${secret}`) return true;
-
-  // Check query param for manual testing
-  const secretParam = req.nextUrl.searchParams.get('secret') ?? '';
-  if (secretParam === secret) return true;
+  const expected = `Bearer ${secret}`;
+  // Timing-safe comparison to prevent secret enumeration via timing attacks
+  try {
+    const a = Buffer.from(expected, 'utf8');
+    const b = Buffer.from(authHeader, 'utf8');
+    if (a.length === b.length && timingSafeEqual(a, b)) return true;
+  } catch { /* length mismatch handled above */ }
 
   return false;
 }

@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   try {
-    const [articles, authors, categories, series, suggestions, messages] = await Promise.all([
+    const [articles, authors, categories, series] = await Promise.all([
       supabaseAdmin
         .from('articles')
         .select('id, title, slug, status, deleted_at, created_at')
@@ -36,33 +36,20 @@ export async function GET() {
         .select('id, name, slug, deleted_at, created_at')
         .not('deleted_at', 'is', null)
         .order('deleted_at', { ascending: false }),
-
-      supabaseAdmin
-        .from('topic_suggestions')
-        .select('id, topic, email, votes, deleted_at, created_at')
-        .not('deleted_at', 'is', null)
-        .order('deleted_at', { ascending: false }),
-
-      supabaseAdmin
-        .from('contact_messages')
-        .select('id, name, email, subject, deleted_at, created_at')
-        .not('deleted_at', 'is', null)
-        .order('deleted_at', { ascending: false }),
     ]);
 
     return NextResponse.json({
-      articles:    articles.data    ?? [],
-      authors:     authors.data     ?? [],
-      categories:  categories.data  ?? [],
-      series:      series.data      ?? [],
-      suggestions: suggestions.data ?? [],
-      messages:    messages.data    ?? [],
+      articles:   articles.data   ?? [],
+      authors:    authors.data    ?? [],
+      categories: categories.data ?? [],
+      series:     series.data     ?? [],
     });
   } catch (err) {
     console.error('[Admin trash GET]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
 
 /**
  * DELETE /api/admin/trash — purge all items older than 30 days permanently.
@@ -76,14 +63,24 @@ export async function DELETE() {
   try {
     const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
+    const errors: string[] = [];
+
+
     await Promise.all([
-      supabaseAdmin.from('articles').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff),
-      supabaseAdmin.from('authors').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff),
-      supabaseAdmin.from('categories').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff),
-      supabaseAdmin.from('series').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff),
-      supabaseAdmin.from('topic_suggestions').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff),
-      supabaseAdmin.from('contact_messages').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff),
+      supabaseAdmin.from('articles').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff)
+        .then(({ error }) => { if (error) errors.push(`articles: ${error.message}`); }),
+      supabaseAdmin.from('authors').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff)
+        .then(({ error }) => { if (error) errors.push(`authors: ${error.message}`); }),
+      supabaseAdmin.from('categories').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff)
+        .then(({ error }) => { if (error) errors.push(`categories: ${error.message}`); }),
+      supabaseAdmin.from('series').delete().not('deleted_at', 'is', null).lt('deleted_at', cutoff)
+        .then(({ error }) => { if (error) errors.push(`series: ${error.message}`); }),
     ]);
+
+    if (errors.length > 0) {
+      console.error('[Admin trash purge] Partial failure:', errors);
+      return NextResponse.json({ success: false, errors }, { status: 207 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -91,3 +88,4 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

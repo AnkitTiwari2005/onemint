@@ -32,8 +32,9 @@ export default function RetirementCorpusPage() {
     const annualExpensesAtRetirement = monthlyExpensesAtRetirement * 12;
 
     // Corpus needed at retirement (Present Value of an annuity for retirementDuration years)
-    // Using post-retirement real return rate
-    const r = postRetirementReturn / 100;
+    // Using real (inflation-adjusted) post-retirement return rate
+    // Formula: real_r = (1 + nominal) / (1 + inflation) - 1
+    const r = (1 + postRetirementReturn / 100) / (1 + inflationRate / 100) - 1;
     const n = retirementDuration;
     // PV = PMT * [1 - (1+r)^-n] / r  (annual annuity)
     const corpusNeeded = r > 0

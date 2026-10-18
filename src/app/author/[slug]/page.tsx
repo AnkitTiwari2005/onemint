@@ -23,11 +23,8 @@ interface DbAuthor {
   role?: string;
   bio?: string;
   avatar?: string;
-  email?: string;
   twitter?: string;
   linkedin?: string;
-  whatsapp?: string;
-  phone?: string;
   joined_date?: string;
   expertise_tags?: string[] | null;
 }
@@ -46,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let name = '', bio = '', id = '';
   if (supabaseAdmin) {
     const { data } = await supabaseAdmin
-      .from('authors').select('id, name, bio').eq('slug', slug).maybeSingle();
+      .from('authors').select('id, name, bio').eq('slug', slug).is('deleted_at', null).maybeSingle();
     if (data) { id = data.id; name = data.name; bio = data.bio ?? ''; }
   }
   if (!name) {
@@ -112,8 +109,9 @@ export default async function AuthorPage({ params }: Props) {
   if (supabaseAdmin) {
     const { data } = await supabaseAdmin
       .from('authors')
-      .select('id, name, slug, role, bio, avatar, email, twitter, linkedin, whatsapp, phone, joined_date, expertise_tags')
+      .select('id, name, slug, role, bio, avatar, twitter, linkedin, joined_date, expertise_tags')
       .eq('slug', slug)
+      .is('deleted_at', null)
       .maybeSingle();
     dbAuthor = data ?? null;
   }

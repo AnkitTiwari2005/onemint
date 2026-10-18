@@ -378,9 +378,9 @@ export function ArticleComments({ slug }: { slug: string }) {
   // ── Load ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    fetch('/api/admin/settings')
-      .then(r => r.json()).then(d => setEnabled(d?.commentsEnabled !== false))
-      .catch(() => setEnabled(true));
+    fetch('/api/settings')
+      .then(r => r.json()).then(d => setEnabled(d?.commentsEnabled === true))
+      .catch(() => setEnabled(false));
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMyReactions(loadMyReactions());
   }, []);

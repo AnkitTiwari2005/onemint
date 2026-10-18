@@ -50,6 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           .from('articles')
           .select('slug, updated_at, featured')
           .eq('status', 'published')
+          .is('deleted_at', null)
           .then(({ data }) => data)
       : null;
 
@@ -81,28 +82,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // ── Categories ────────────────────────────────────────────────────────────
-  // Only include categories that have ≥1 published article — empty category pages
-  // waste crawl budget and signal thin content to Google.
+  // Only include categories that have ≥5 published articles — thin category pages
+  // waste crawl budget and signal low-quality content to Google.
+  const MIN_CATEGORY_ARTICLES = 5;
   let categoryPages: MetadataRoute.Sitemap;
   try {
     if (supabaseAdmin) {
-      // Query category_id directly — safer than joining 'categories' table
-      // which may return an object (many-to-one) instead of an array.
+      // Count published articles per category_id
       const { data: articlesWithCats } = await supabaseAdmin
         .from('articles')
         .select('category_id')
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .is('deleted_at', null);
 
       if (articlesWithCats && articlesWithCats.length > 0) {
-        // Collect unique category IDs that have at least one published article
-        const activeCatIds = new Set<string>(
-          articlesWithCats
-            .map((row: { category_id: string | null }) => row.category_id)
-            .filter((id): id is string => !!id)
-        );
-        // Map IDs → slugs using staticCategories (matches by id OR slug)
+        // Count articles per category
+        const catArticleCounts: Record<string, number> = {};
+        for (const row of articlesWithCats as { category_id: string | null }[]) {
+          if (row.category_id) {
+            catArticleCounts[row.category_id] = (catArticleCounts[row.category_id] || 0) + 1;
+          }
+        }
+        // Only include categories that meet the minimum threshold
         const activeCategories = staticCategories.filter(
-          c => activeCatIds.has(c.id) || activeCatIds.has(c.slug)
+          c => (catArticleCounts[c.id] ?? catArticleCounts[c.slug] ?? 0) >= MIN_CATEGORY_ARTICLES
         );
         categoryPages = activeCategories.map((c) => ({
           url: `${BASE}/topics/${c.slug}`,
@@ -111,16 +114,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.8,
         }));
       } else {
-        // DB available but no published articles yet — fall back to all static categories.
-        categoryPages = staticCategories.map((c) => ({
-          url: `${BASE}/topics/${c.slug}`,
-          lastModified: new Date(),
-          changeFrequency: 'daily' as const,
-          priority: 0.8,
-        }));
+        // DB available but no published articles yet — omit all categories
+        categoryPages = [];
       }
     } else {
-      // No DB — use all static categories (static data is always populated).
+      // No DB — fall back to all static categories
       categoryPages = staticCategories.map((c) => ({
         url: `${BASE}/topics/${c.slug}`,
         lastModified: new Date(),
@@ -136,6 +134,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
   }
+
 
 
   // ── Authors ───────────────────────────────────────────────────────────────
@@ -187,7 +186,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let tagPages: MetadataRoute.Sitemap;
   try {
     const dbTags = supabaseAdmin
-      ? await supabaseAdmin.from('articles').select('tags').eq('status', 'published').then(({ data }) => data)
+      ? await supabaseAdmin.from('articles').select('tags').eq('status', 'published').is('deleted_at', null).then(({ data }) => data)
       : null;
     if (dbTags && dbTags.length > 0) {
       const tagCounts: Record<string, number> = {};
@@ -236,6 +235,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           .from('series')
           .select('slug, updated_at, article_slugs')
           .eq('status', 'published')
+          .is('deleted_at', null)
           .then(({ data }) => data)
       : null;
 

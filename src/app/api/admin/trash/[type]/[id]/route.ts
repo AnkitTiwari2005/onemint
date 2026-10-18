@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 const TABLE_MAP: Record<string, string> = {
-  articles:    'articles',
-  authors:     'authors',
-  categories:  'categories',
-  series:      'series',
-  suggestions: 'topic_suggestions',
-  messages:    'contact_messages',
+  articles:   'articles',
+  authors:    'authors',
+  categories: 'categories',
+  series:     'series',
 };
 
 /**

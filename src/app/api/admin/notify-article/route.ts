@@ -3,8 +3,9 @@ import { ENV, getCleanEnv } from '@/lib/env';
 
 
 // ── Configuration ────────────────────────────────────────────────────────────
-const NOTIFY_TO_EMAIL = 'shivskukreja@gmail.com';
-const NOTIFY_TO_NAME  = 'Shiv';
+// Set NOTIFY_EMAIL in env vars (e.g. contact@onemint.in) — never hardcode personal emails in source.
+const NOTIFY_TO_EMAIL = process.env.NOTIFY_EMAIL || 'contact@onemint.in';
+const NOTIFY_TO_NAME  = process.env.NOTIFY_NAME  || 'OneMint Team';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 // ── HTML Email Template ───────────────────────────────────────────────────────

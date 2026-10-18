@@ -38,9 +38,14 @@ function SearchPageContent() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('onemint-recent-searches');
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (stored) setRecentSearches(JSON.parse(stored).slice(0, 5));
+      try {
+        const stored = localStorage.getItem('onemint-recent-searches');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (stored) setRecentSearches(JSON.parse(stored).slice(0, 5));
+      } catch {
+        // Ignore corrupted localStorage data — just show no recent searches
+        localStorage.removeItem('onemint-recent-searches');
+      }
     }
   }, []);
 

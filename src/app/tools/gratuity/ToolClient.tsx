@@ -13,12 +13,15 @@ export default function GratuityPage() {
   const [yearsOfService, setYearsOfService] = useState(10);
 
   const result = useMemo(() => {
+    const isEligible = yearsOfService >= 5;
+    if (!isEligible) {
+      return { gratuity: 0, taxExempt: 0, taxable: 0, isEligible: false };
+    }
     // Gratuity = (Basic + DA) × 15/26 × Years of Service
     const gratuity = Math.round((basicDa * 15 / 26) * yearsOfService);
     const taxExempt = Math.min(gratuity, TAX_EXEMPT_LIMIT);
     const taxable = Math.max(0, gratuity - TAX_EXEMPT_LIMIT);
-    const isEligible = yearsOfService >= 5;
-    return { gratuity, taxExempt, taxable, isEligible };
+    return { gratuity, taxExempt, taxable, isEligible: true };
   }, [basicDa, yearsOfService]);
 
   const inputs = (
@@ -56,9 +59,15 @@ export default function GratuityPage() {
 
       <div className="text-center py-4 border-b border-[var(--color-border)]">
         <p className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] mb-1">Gratuity Amount</p>
-        <p className="text-4xl font-bold font-[family-name:var(--font-display)] text-[var(--color-cat-finance)]">
-          ₹{formatIndianNumber(result.gratuity)}
-        </p>
+        {result.isEligible ? (
+          <p className="text-4xl font-bold font-[family-name:var(--font-display)] text-[var(--color-cat-finance)]">
+            ₹{formatIndianNumber(result.gratuity)}
+          </p>
+        ) : (
+          <p className="text-lg font-semibold font-[family-name:var(--font-ui)] text-[var(--color-ink-secondary)]">
+            — (not yet eligible)
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

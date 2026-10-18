@@ -81,9 +81,6 @@ export const metadata: Metadata = {
   // Each page (especially articles) sets its own relevant keywords and the
   // correct author name. Inheriting generic site-level keywords on every page
   // is a quality signal issue for search engines.
-  alternates: {
-    canonical: SITE_URL,
-  },
   openGraph: {
     type: "website",
     locale: "en_IN",
@@ -159,8 +156,6 @@ export default function RootLayout({
         {/* PWA manifest + Apple meta */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo.png" />
-        {/* RSS autodiscovery — enables feed readers and Google News to find the feed */}
-        <link rel="alternate" type="application/rss+xml" title="OneMint — Latest Articles" href="/feed.xml" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="OneMint" />
@@ -169,6 +164,22 @@ export default function RootLayout({
         {/* JSON-LD: WebSite (enables Sitelinks Search Box) + Organization */}
         <JsonLd data={buildWebSite()} />
         <JsonLd data={buildOrganization()} />
+        {/* Consent Mode v2 — default-deny before any measurement scripts load */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                analytics_storage: 'denied',
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                wait_for_update: 500
+              });
+            `,
+          }}
+        />
         {/* Google Analytics 4 — page-view tracking */}
         {/* ID driven by NEXT_PUBLIC_GA4_MEASUREMENT_ID env var */}
         <script

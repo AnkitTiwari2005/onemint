@@ -1,6 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
-import { ENV } from '@/lib/env';
+import { ENV, getCleanEnv } from '@/lib/env';
+
+/**
+ * Verify the admin HMAC session token server-side (Node.js runtime).
+ * Mirrors the Edge-runtime check in proxy.ts — defence-in-depth so this
+ * route is protected even if the proxy bypass is misconfigured.
+ */
+async function requireAdminAuth(): Promise<NextResponse | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ENV.ADMIN_SESSION_COOKIE)?.value;
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const [nonce, expiry, sig] = parts;
+
+    const expiryMs = parseInt(expiry, 10);
+    if (isNaN(expiryMs) || Date.now() > expiryMs) {
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
+    }
+
+    const secret = getCleanEnv('ADMIN_SESSION_SECRET');
+    if (!secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const payload = `${nonce}:${expiry}`;
+    const computedHex = createHmac('sha256', secret).update(payload).digest('hex');
+
+    const a = Buffer.from(computedHex, 'utf8');
+    const b = Buffer.from(sig, 'utf8');
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    return null; // auth passed
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+}
 
 /** Send a welcome-to-the-team email to a new author */
 async function sendAuthorWelcomeEmail(name: string, email: string, slug: string): Promise<void> {
@@ -78,6 +118,8 @@ async function sendAuthorWelcomeEmail(name: string, email: string, slug: string)
 }
 
 export async function GET() {
+  const authError = await requireAdminAuth();
+  if (authError) return authError;
   try {
     if (!supabaseAdmin) return NextResponse.json([], { status: 503 });
     const { data, error } = await supabaseAdmin
@@ -102,6 +144,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = await requireAdminAuth();
+  if (authError) return authError;
   try {
     if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 503 });
     const body = await req.json();
@@ -141,6 +185,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const authError = await requireAdminAuth();
+  if (authError) return authError;
   try {
     if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 503 });
     const body = await req.json();
@@ -165,6 +211,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const authError = await requireAdminAuth();
+  if (authError) return authError;
   try {
     if (!supabaseAdmin) return NextResponse.json({ error: 'DB not configured' }, { status: 503 });
     const { id } = await req.json();

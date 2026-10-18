@@ -14,9 +14,11 @@ export default function MfReturnsPage() {
       const [final, setFinal] = useState(250000);
       const [years, setYears] = useState(5);
       
+      const isLoss = final < initial;
       const absoluteReturn = ((final - initial) / initial) * 100;
       const cagr = (Math.pow(final / initial, 1 / years) - 1) * 100;
-      const chartDataObj = [{ name: 'Invested', value: initial }, { name: 'Gains', value: final - initial }];
+      // Clamp gains to 0 for chart — a negative-value slice breaks Recharts PieChart
+      const chartDataObj = [{ name: 'Invested', value: initial }, { name: isLoss ? 'Loss' : 'Gains', value: Math.max(0, final - initial) }];
       
       const inputs = (
         <div className="space-y-6">
@@ -25,10 +27,16 @@ export default function MfReturnsPage() {
           <SliderInput label="Time Period" value={years} min={1} max={30} step={1} suffix=" Yr" onChange={setYears} />
         </div>
       );
+      const returnColor = isLoss ? 'text-red-600' : 'text-green-600';
       const results = (
         <div className="space-y-6 text-center">
-          <div><p className="text-sm text-[var(--color-ink-secondary)] mb-1">Absolute Return</p><p className="text-4xl font-bold text-green-600">{absoluteReturn.toFixed(1)}%</p></div>
-          <div><p className="text-sm text-[var(--color-ink-secondary)] mb-1">CAGR</p><p className="text-4xl font-bold text-[var(--color-accent)]">{cagr.toFixed(1)}%</p></div>
+          {isLoss && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+              Final value is less than initial investment — this represents a loss.
+            </div>
+          )}
+          <div><p className="text-sm text-[var(--color-ink-secondary)] mb-1">Absolute Return</p><p className={`text-4xl font-bold ${returnColor}`}>{absoluteReturn.toFixed(1)}%</p></div>
+          <div><p className="text-sm text-[var(--color-ink-secondary)] mb-1">CAGR</p><p className={`text-4xl font-bold ${isLoss ? 'text-red-600' : 'text-[var(--color-accent)]'}`}>{cagr.toFixed(1)}%</p></div>
         </div>
       );
     

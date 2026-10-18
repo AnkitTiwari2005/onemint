@@ -12,7 +12,7 @@ import { Briefcase } from 'lucide-react';
 
 const EPF_INTEREST = 8.25;
 const EMPLOYEE_RATE = 0.12;
-const EMPLOYER_RATE = 0.0367; // 3.67% goes to EPF, rest to EPS
+// Note: employer EPF rate = 3.67% (rest of 12% goes to EPS). Used in formula below.
 
 export default function EPFPage() {
   const [basicSalary, setBasicSalary] = useState(30000);
@@ -32,7 +32,11 @@ export default function EPFPage() {
 
     for (let y = 1; y <= yearsToRetire; y++) {
       const empMonthly = Math.round(currentSalary * EMPLOYEE_RATE);
-      const erMonthly = Math.round(currentSalary * EMPLOYER_RATE);
+      // Employer contribution: 12% total. 8.33% goes to EPS, capped at ₹15,000 wage (max ₹1,250/mo).
+      // The rest (12% − EPS portion) goes to EPF.
+      const epsWageCap = 15000;
+      const epsContrib = Math.min(0.0833 * Math.min(currentSalary, epsWageCap), 1250);
+      const erMonthly = Math.round(currentSalary * 0.12 - epsContrib);
       let yearInterest = 0;
 
       for (let m = 1; m <= 12; m++) {

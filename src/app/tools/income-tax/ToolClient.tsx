@@ -89,9 +89,18 @@ export default function IncomeTaxPage() {
     const oldTaxWithCess = Math.round(oldResult.tax * 1.04);
     const newTaxWithCess = Math.round(newResult.tax * 1.04);
 
-    // New regime rebate u/s 87A — Budget 2025 raised nil-tax ceiling from ₹7L to ₹12L
-    // Zero tax if net taxable income (after std deduction) ≤ ₹12L
-    const newTaxFinal = taxableNew <= 1200000 ? 0 : newTaxWithCess;
+    // New regime rebate u/s 87A — Budget 2025 raised nil-tax ceiling from ₹7L to ₹12L.
+    // Zero tax if net taxable income ≤ ₹12L.
+    // Marginal relief: when taxable income exceeds ₹12L, cap the tax at
+    // (taxable − 12,00,000) so the taxpayer never pays more tax than the
+    // extra income earned above the nil-tax limit.
+    let newTaxFinal: number;
+    if (taxableNew <= 1200000) {
+      newTaxFinal = 0;
+    } else {
+      const marginalRelief = Math.max(0, newTaxWithCess - (taxableNew - 1200000));
+      newTaxFinal = Math.max(0, newTaxWithCess - marginalRelief);
+    }
     // Old regime 87A rebate: no tax up to ₹5L taxable income
     const oldTaxFinal = taxableOld <= 500000 ? 0 : oldTaxWithCess;
 

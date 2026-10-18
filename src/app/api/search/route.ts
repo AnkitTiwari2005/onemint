@@ -57,7 +57,9 @@ export async function GET(req: NextRequest) {
   // ── 2. Supabase fallback: simple ilike search on title/excerpt ─────────────
   if (supabaseAdmin) {
     try {
-      const pattern = `%${q}%`;
+      // Sanitize: strip PostgREST operator characters to prevent filter injection
+      const sanitizedQ = q.replace(/[(),%]/g, ' ').trim().slice(0, 200);
+      const pattern = `%${sanitizedQ}%`;
       const { data } = await supabaseAdmin
         .from('articles')
         .select(

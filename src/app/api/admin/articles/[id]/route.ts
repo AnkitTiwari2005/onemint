@@ -75,9 +75,19 @@ export async function PATCH(
       if (key in body) updates[key] = body[key];
     }
 
-    // Auto-set published_at when publishing for the first time
-    if (body.status === 'published' && !body.published_at) {
-      updates.published_at = new Date().toISOString();
+    // Auto-set published_at only when publishing for the first time (DB value is NULL).
+    // We intentionally do NOT trust body.published_at — the edit page never sends it —
+    // so we must check the existing row to avoid overwriting the original publish date.
+    if (body.status === 'published') {
+      const { data: existing } = await supabaseAdmin
+        .from('articles')
+        .select('published_at')
+        .eq('id', id)
+        .single();
+      if (!existing?.published_at) {
+        updates.published_at = new Date().toISOString();
+      }
+      // else: article already has a publish date — leave it untouched
     }
 
     const { data, error } = await supabaseAdmin

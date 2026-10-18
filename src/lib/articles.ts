@@ -107,10 +107,12 @@ async function fetchPublishedArticlesUncached(): Promise<{
         return { articles: [], source: 'db', degraded: false };
       }
       if (error) {
-        console.error('[fetchPublishedArticles] DB error:', error.message);
+        console.error('[articles] DB error:', error.message);
+        throw new Error(`[articles] DB fetch failed: ${error.message}`);
       }
     } catch (err) {
       console.error('[fetchPublishedArticles] Unexpected:', err);
+      throw err;
     }
   }
 

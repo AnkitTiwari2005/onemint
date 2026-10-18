@@ -8,7 +8,8 @@ import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/admin';
+  const raw = searchParams.get('redirect') || '';
+  const redirectTo = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/admin';
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');

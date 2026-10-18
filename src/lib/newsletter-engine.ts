@@ -12,6 +12,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { getAccessToken } from '@/lib/ga4';
 import { buildNewsletterHtml, type Series, type ArticleCard } from '@/lib/newsletter-templates';
 import { ENV } from '@/lib/env';
+import { generateUnsubscribeToken } from '@/lib/unsubscribe';
 
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -259,6 +260,26 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
   let sent = 0;
 
   const sendOne = async (email: string, name?: string | null) => {
+    // Generate a signed per-subscriber unsubscribe URL and inject it into the HTML.
+    // Falls back gracefully if secret not set — leaves a mailto: fallback.
+    let personalizedHtml = html;
+    try {
+      const token = generateUnsubscribeToken(email);
+      const unsubUrl = `${ENV.SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, unsubUrl);
+    } catch (err) {
+      console.warn('[Newsletter] Could not generate unsubscribe token:', err);
+      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.in?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
+    }
+
+    // List-Unsubscribe for RFC 8058 / Gmail / Apple Mail one-click
+    let listUnsubscribeHeader: string | undefined;
+    try {
+      const token = generateUnsubscribeToken(email);
+      const unsubUrl = `${ENV.SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+      listUnsubscribeHeader = `<${unsubUrl}>`;
+    } catch { /* skip header if token fails */ }
+
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method:  'POST',
       headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
@@ -266,21 +287,29 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
         sender:      { name: senderName, email: senderMail },
         to:          [{ email, ...(name ? { name } : {}) }],
         subject,
-        htmlContent: html,
+        htmlContent: personalizedHtml,
+        ...(listUnsubscribeHeader ? {
+          headers: {
+            'List-Unsubscribe': listUnsubscribeHeader,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
+        } : {}),
       }),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      console.error(`[Newsletter] Brevo rejected send to ${email}:`, JSON.stringify(body));
+      const errMsg = `[Newsletter] Brevo rejected send to subscriber: ${JSON.stringify(body)}`;
+      console.error(errMsg);
+      throw new Error(errMsg);
     }
   };
 
   for (let i = 0; i < subs.length; i += BATCH_SIZE) {
     const batch = subs.slice(i, i + BATCH_SIZE);
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       batch.map(s => sendOne(s.email as string, s.name as string | null))
     );
-    sent += batch.length;
+    sent += results.filter(r => r.status === 'fulfilled').length;
   }
 
   return sent;
@@ -316,6 +345,17 @@ async function logIssue(series: Series, slugs: string[], count: number): Promise
     article_slugs:    slugs,
     subscriber_count: count,
   });
+}
+
+/** Insert a sentinel log row BEFORE sending to prevent concurrent cron double-sends. */
+async function logIssueEarly(series: Series): Promise<number | null> {
+  if (!supabaseAdmin) return null;
+  const { data } = await supabaseAdmin
+    .from('newsletter_log')
+    .insert({ series, article_slugs: [], subscriber_count: 0 })
+    .select('id')
+    .single();
+  return (data as { id?: number } | null)?.id ?? null;
 }
 
 // ── Public — main entry point ─────────────────────────────────────────────────
@@ -414,10 +454,27 @@ export async function runNewsletter(
   const subject = subjectMap[series];
 
   // ── 8. Send (skip in preview mode) ──────────────────────────────────────
+  // Insert sentinel log row before sending to prevent concurrent runs
+  let sentinelLogId: number | null = null;
+  if (!preview) {
+    sentinelLogId = await logIssueEarly(series);
+  }
+
   let subscriberCount = 0;
   if (!preview) {
     subscriberCount = await sendToSubscribers(subject, html);
-    await logIssue(series, articles.map(a => a.slug), subscriberCount);
+    // Update the sentinel row with real data, or insert fresh if sentinel failed
+    if (sentinelLogId && supabaseAdmin) {
+      await supabaseAdmin
+        .from('newsletter_log')
+        .update({
+          article_slugs: articles.map(a => a.slug),
+          subscriber_count: subscriberCount,
+        })
+        .eq('id', sentinelLogId);
+    } else {
+      await logIssue(series, articles.map(a => a.slug), subscriberCount);
+    }
   }
 
   return {

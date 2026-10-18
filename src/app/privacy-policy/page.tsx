@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/privacy-policy` },
 };
 
-const EFFECTIVE_DATE = 'August 28, 2026';
+const EFFECTIVE_DATE = 'October 18, 2026';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
           <ul>
             <li>
               <strong>Email address:</strong> When you subscribe to our newsletter, contact us via the
-              contact form, or suggest article topics.
+              contact form, suggest article topics, or submit an advertising enquiry.
             </li>
             <li>
               <strong>Name:</strong> Optionally provided in contact forms or newsletter sign-ups.
@@ -111,9 +111,17 @@ export default function PrivacyPolicyPage() {
               Topic&rdquo; feature.
             </li>
             <li>
-              <strong>Comments:</strong> When you use the Giscus commenting system (powered by GitHub
-              Discussions), your GitHub username and comment content are subject to GitHub&rsquo;s
-              privacy policy.
+              <strong>Comments:</strong> When you leave a comment on an article, your display name
+              and comment content are stored in our database (Supabase). Comments are public.
+            </li>
+            <li>
+              <strong>Web Push subscription:</strong> If you opt in to browser push notifications,
+              your browser&rsquo;s push endpoint URL is stored on our servers. You can unsubscribe
+              at any time through your browser settings.
+            </li>
+            <li>
+              <strong>Advertising enquiries:</strong> If you submit an enquiry through our Advertise
+              page, your name, email, company, and message are stored in our database.
             </li>
           </ul>
 
@@ -138,16 +146,21 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>Local preferences:</strong> Theme (light/dark), bookmark list, and font size
-              preferences are stored in your browser&rsquo;s localStorage — this data stays on your
-              device and is never transmitted to our servers.
+              preferences are stored in your browser&rsquo;s <strong>localStorage</strong> — this
+              data stays on your device and is never transmitted to our servers.
+            </li>
+            <li>
+              <strong>IP address (rate limiting):</strong> When you react to an article (likes,
+              emoji reactions) or post a comment, your IP address is used temporarily in memory
+              to prevent spam and duplicate counts. It is not stored in our database.
             </li>
           </ul>
 
           <h3>Cookies</h3>
           <ul>
             <li>
-              <strong>Functional cookies:</strong> The <code>onemint-prefs</code> cookie stores your
-              preferences (theme, font size). Valid for 1 year.
+              <strong>Consent cookie:</strong> The <code>onemint-cookie-consent</code> cookie
+              records whether you have accepted or declined cookies. Valid for 1 year.
             </li>
             <li>
               <strong>Analytics cookies:</strong> We use Google Analytics to
@@ -278,15 +291,22 @@ export default function PrivacyPolicyPage() {
               .
             </li>
             <li>
-              <strong>Giscus / GitHub:</strong> Comment system powered by GitHub Discussions. Subject to{' '}
+              <strong>Supabase:</strong> Our primary database and backend service. Stores comments,
+              newsletter subscriptions, contact messages, and other user-submitted data. Data may
+              be hosted on AWS infrastructure in the EU or US region. See{' '}
               <a
-                href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement"
+                href="https://supabase.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                GitHub&rsquo;s Privacy Statement
+                Supabase&rsquo;s Privacy Policy
               </a>
               .
+            </li>
+            <li>
+              <strong>Typesense:</strong> Search engine used to power the site&rsquo;s article
+              search. Search queries are processed by Typesense servers. No personal data is
+              stored in Typesense.
             </li>
           </ul>
 
@@ -338,9 +358,11 @@ export default function PrivacyPolicyPage() {
 
           <h2 id="childrens-privacy" style={{ scrollMarginTop: 90 }}>8. Children&rsquo;s Privacy</h2>
           <p>
-            OneMint is not intended for children under the age of 13. We do not knowingly collect
-            personal information from children under 13. If we become aware that a child under 13 has
-            provided us personal data, we will delete it immediately. If you are a parent or guardian
+            OneMint is not directed at individuals under the age of 18. Under India&rsquo;s Digital
+            Personal Data Protection (DPDP) Act 2023, processing personal data of persons under 18
+            requires verifiable parental consent. We do not knowingly collect personal information
+            from minors. If we become aware that a person under 18 has provided us personal data
+            without parental consent, we will delete it immediately. If you are a parent or guardian
             and believe your child has submitted information to us, please contact us at{' '}
             <a href="mailto:contact@onemint.in">contact@onemint.in</a>.
           </p>

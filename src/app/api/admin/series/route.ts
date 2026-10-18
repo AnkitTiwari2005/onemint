@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       category_id: body.categoryId || body.category_id || null,
       article_slugs: body.articleSlugs || body.article_slugs || [],
       total_read_time: body.totalReadTime || body.total_read_time || 0,
-      status: body.status || 'active',
+      status: body.status || 'draft',
     }]).select().single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data, { status: 201 });

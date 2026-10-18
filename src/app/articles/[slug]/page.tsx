@@ -64,11 +64,14 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 async function fetchSeriesForArticle(slug: string): Promise<SeriesBannerData | null> {
   if (!supabaseAdmin) return null;
   try {
+    // Use .limit(1) instead of .maybeSingle() — an article may belong to multiple series
+    // and .maybeSingle() throws PGRST116 when >1 row is returned.
     const { data } = await supabaseAdmin
       .from('series')
       .select('id, slug, name, article_slugs')
       .contains('article_slugs', [slug])
-      .maybeSingle();
+      .limit(1)
+      .then(({ data, error }) => ({ data: data?.[0] ?? null, error }));
     if (!data) return null;
     return {
       id: String(data.id),

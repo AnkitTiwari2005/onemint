@@ -2,6 +2,19 @@ import Link from 'next/link';
 import { Hammer, ArrowLeft, Bell } from 'lucide-react';
 import { Metadata } from 'next';
 
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return [
+    'sip','step-up-sip','lumpsum','swp','ppf','epf','nps','mf-returns',
+    'home-loan','car-loan','education-loan','loan-prepayment','income-tax',
+    'take-home-salary','gratuity','rent-vs-buy','freelance-rate','bmi',
+    'calories','water-intake','health-insurance','fd-calculator','goal-sip',
+    'hra-calculator','inflation-calculator','retirement-corpus',
+    'financial-health','compare',
+  ].map(slug => ({ slug }));
+}
+
 export const metadata: Metadata = {
   title: 'Tool in Development | OneMint',
   description: 'This calculator is currently being built by our financial experts.',

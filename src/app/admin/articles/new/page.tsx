@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bold, Italic, Heading2, Heading3, Link as LinkIcon, Image, Quote, List, ListOrdered, Code, Eye, Edit3, Save, Globe, X, Loader2, Search, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ImageUpload } from '@/components/ImageUpload';
+import ReactMarkdown from 'react-markdown';
 
 // Static config — no closures, no refs — defined once at module level
 const TOOLBAR_CONFIG: { icon: LucideIcon; title: string; type: 'wrap' | 'line'; token: string; after?: string }[] = [
@@ -29,7 +30,8 @@ function calcReadTime(text: string) {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-function mdToHtml(md: string): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _mdToHtml(md: string): string {
   const lines = md.split('\n');
   const out: string[] = [];
   let inCode = false;
@@ -48,34 +50,34 @@ function mdToHtml(md: string): string {
     if (inCode) { codeLines.push(line); continue; }
 
     // Headings
-    const h4 = line.match(/^#### (.+)$/); if (h4) { out.push(`<h4 style="font-size:16px;margin:20px 0 8px">${inline(h4[1])}</h4>`); continue; }
-    const h3 = line.match(/^### (.+)$/);  if (h3) { out.push(`<h3 style="font-size:18px;margin:24px 0 10px">${inline(h3[1])}</h3>`); continue; }
-    const h2 = line.match(/^## (.+)$/);   if (h2) { out.push(`<h2 style="font-size:22px;margin:28px 0 12px">${inline(h2[1])}</h2>`); continue; }
-    const h1 = line.match(/^# (.+)$/);    if (h1) { out.push(`<h1 style="font-size:28px;margin:32px 0 14px">${inline(h1[1])}</h1>`); continue; }
+    const h4 = line.match(/^#### (.+)$/); if (h4) { out.push(`<h4 style="font-size:16px;margin:20px 0 8px">${_inline(h4[1])}</h4>`); continue; }
+    const h3 = line.match(/^### (.+)$/);  if (h3) { out.push(`<h3 style="font-size:18px;margin:24px 0 10px">${_inline(h3[1])}</h3>`); continue; }
+    const h2 = line.match(/^## (.+)$/);   if (h2) { out.push(`<h2 style="font-size:22px;margin:28px 0 12px">${_inline(h2[1])}</h2>`); continue; }
+    const h1 = line.match(/^# (.+)$/);    if (h1) { out.push(`<h1 style="font-size:28px;margin:32px 0 14px">${_inline(h1[1])}</h1>`); continue; }
 
     // HR
     if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) { out.push('<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">'); continue; }
 
     // Blockquote
-    const bq = line.match(/^> (.+)$/); if (bq) { out.push(`<blockquote style="border-left:3px solid #9ca3af;margin:16px 0;padding:8px 16px;color:#6b7280;font-style:italic">${inline(bq[1])}</blockquote>`); continue; }
+    const bq = line.match(/^> (.+)$/); if (bq) { out.push(`<blockquote style="border-left:3px solid #9ca3af;margin:16px 0;padding:8px 16px;color:#6b7280;font-style:italic">${_inline(bq[1])}</blockquote>`); continue; }
 
     // Unordered list
-    const ul = line.match(/^[-*+] (.+)$/); if (ul) { out.push(`<li style="margin:4px 0 4px 20px;list-style-type:disc">${inline(ul[1])}</li>`); continue; }
+    const ul = line.match(/^[-*+] (.+)$/); if (ul) { out.push(`<li style="margin:4px 0 4px 20px;list-style-type:disc">${_inline(ul[1])}</li>`); continue; }
 
     // Ordered list
-    const ol = line.match(/^\d+\. (.+)$/); if (ol) { out.push(`<li style="margin:4px 0 4px 20px;list-style-type:decimal">${inline(ol[1])}</li>`); continue; }
+    const ol = line.match(/^\d+\. (.+)$/); if (ol) { out.push(`<li style="margin:4px 0 4px 20px;list-style-type:decimal">${_inline(ol[1])}</li>`); continue; }
 
     // Empty line — paragraph break
     if (!line.trim()) { out.push('<br>'); continue; }
 
     // Normal paragraph
-    out.push(`<p style="margin:0 0 12px;line-height:1.7">${inline(line)}</p>`);
+    out.push(`<p style="margin:0 0 12px;line-height:1.7">${_inline(line)}</p>`);
   }
 
   return out.join('\n');
 }
 
-function inline(text: string): string {
+function _inline(text: string): string {
   return text
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:6px">')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2563eb;text-decoration:underline">$1</a>')
@@ -363,7 +365,13 @@ export default function NewArticlePage() {
                 style={{ width: '100%', minHeight: 480, padding: '16px', border: 'none', background: 'transparent', fontFamily: 'var(--font-mono)', fontSize: 13, lineHeight: 1.8, color: 'var(--color-ink)', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
               />
             ) : (
-              <div className="article-body" style={{ minHeight: 480, padding: '16px 20px' }} dangerouslySetInnerHTML={{ __html: mdToHtml(body) || '<p style="color:var(--color-ink-tertiary)">Nothing to preview yet…</p>' }} />
+              <div className="article-body" style={{ minHeight: 480, padding: '16px 20px' }}>
+                {body ? (
+                  <ReactMarkdown>{body}</ReactMarkdown>
+                ) : (
+                  <p style={{ color: 'var(--color-ink-tertiary)' }}>Nothing to preview yet…</p>
+                )}
+              </div>
             )}
           </div>
 

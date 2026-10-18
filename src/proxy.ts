@@ -177,7 +177,8 @@ async function verifyToken(token: string): Promise<boolean> {
     if (parts.length !== 3) return false;
     const [nonce, expiry, sig] = parts;
 
-    if (Date.now() > parseInt(expiry, 10)) return false;
+    const expiryMs = parseInt(expiry, 10);
+    if (isNaN(expiryMs) || Date.now() > expiryMs) return false;
 
     const payload = `${nonce}:${expiry}`;
     const encoder = new TextEncoder();
@@ -232,7 +233,7 @@ export async function proxy(req: NextRequest) {
 
   // ── Admin auth bypass ──────────────────────────────────────────────────────
   if (pathname === '/admin/login') return NextResponse.next();
-  if (pathname.startsWith('/api/admin/auth')) return NextResponse.next();
+  if (pathname === '/api/admin/auth/login' || pathname === '/api/admin/auth/logout') return NextResponse.next();
 
   // ── Maintenance mode ───────────────────────────────────────────────────────
   const isAdminRoute    = pathname.startsWith('/admin');

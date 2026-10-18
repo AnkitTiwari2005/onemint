@@ -18,16 +18,23 @@ function calcIncomeTax(taxableIncome: number, regime: TaxRegime): number {
 
   if (regime === 'new') {
     // FY 2025-26 — Budget 2025 new regime slabs
-    // 87A rebate: no tax if income after std deduction ≤ ₹12L
+    // Full slab computation for all income bands.
+    // For income ≤ ₹12L: 87A rebate = 0 tax.
+    // For income > ₹12L: compute full slab tax across ALL bands, add 4% cess,
+    //   then apply marginal relief post-cess so tax never exceeds (taxable − ₹12L).
+    //   This matches the income-tax/ToolClient.tsx approach (the authoritative tool).
     if (taxableIncome <= 1200000) return 0;
     let tax = 0;
-    if (taxableIncome > 2400000) tax += (taxableIncome - 2400000) * 0.3;
+    if (taxableIncome > 2400000) tax += (taxableIncome - 2400000) * 0.30;
     if (taxableIncome > 2000000) tax += (Math.min(taxableIncome, 2400000) - 2000000) * 0.25;
-    if (taxableIncome > 1600000) tax += (Math.min(taxableIncome, 2000000) - 1600000) * 0.2;
+    if (taxableIncome > 1600000) tax += (Math.min(taxableIncome, 2000000) - 1600000) * 0.20;
     if (taxableIncome > 1200000) tax += (Math.min(taxableIncome, 1600000) - 1200000) * 0.15;
-    if (taxableIncome > 800000)  tax += (Math.min(taxableIncome, 1200000) - 800000) * 0.1;
-    if (taxableIncome > 400000)  tax += (Math.min(taxableIncome, 800000) - 400000) * 0.05;
-    return Math.round(tax * 1.04); // 4% cess
+    if (taxableIncome > 800000)  tax += (Math.min(taxableIncome, 1200000) - 800000)  * 0.10;
+    if (taxableIncome > 400000)  tax += (Math.min(taxableIncome, 800000) - 400000)   * 0.05;
+    const taxWithCess = Math.round(tax * 1.04);
+    // Marginal relief (post-cess): final tax cannot exceed (taxable − ₹12L)
+    const marginalRelief = Math.max(0, taxWithCess - (taxableIncome - 1200000));
+    return Math.max(0, taxWithCess - marginalRelief);
   } else {
     // Old regime FY 2025-26 — unchanged from prior year
     // 87A rebate: no tax if income ≤ ₹5L
@@ -61,8 +68,11 @@ export default function TakeHomeSalaryPage() {
     const employeeEpf = basic * 0.12;
     const professionalTax = 2400; // ₹200/month statutory maximum
 
-    // Taxable income calculation
-    const stdDeduction = 75000; // ₹75K for both regimes FY 2025-26
+    // Taxable income calculation — standard deduction differs by regime:
+    // New regime: ₹75,000 (Budget 2024). Old regime: ₹50,000.
+    const stdDeductionNew = 75000;
+    const stdDeductionOld = 50000;
+    const stdDeduction = regime === 'new' ? stdDeductionNew : stdDeductionOld;
     let taxableIncome = Math.max(0, grossSalary - stdDeduction);
 
     if (regime === 'old') {

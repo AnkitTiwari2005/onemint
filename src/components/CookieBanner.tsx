@@ -33,13 +33,13 @@ export function CookieBanner() {
 
   const save = (accepted: boolean, p: Prefs) => {
     localStorage.setItem('cookie_consent_v2', JSON.stringify({ accepted, prefs: p }));
-    // Propagate to GA4: disable analytics if user declined
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).gtag('consent', 'update', {
+    // Propagate to GA4 Consent Mode v2 — update all four consent signals
+    if (typeof window !== 'undefined' && typeof (window as Window & { gtag?: (...args: unknown[]) => void }).gtag === 'function') {
+      (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('consent', 'update', {
         analytics_storage: p.analytics ? 'granted' : 'denied',
         ad_storage: p.advertising ? 'granted' : 'denied',
+        ad_user_data: p.advertising ? 'granted' : 'denied',
+        ad_personalization: p.advertising ? 'granted' : 'denied',
       });
     }
     setVisible(false);
