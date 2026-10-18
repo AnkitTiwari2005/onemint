@@ -161,10 +161,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const authorRecord = author as Record<string, unknown> | null;
   const authorSameAs: string[] = [];
   if (authorRecord?.twitter && typeof authorRecord.twitter === 'string') {
+    const rawTwitter = authorRecord.twitter.trim();
     authorSameAs.push(
-      authorRecord.twitter.startsWith('http')
-        ? authorRecord.twitter
-        : `https://twitter.com/${authorRecord.twitter}`
+      rawTwitter.startsWith('http')
+        ? rawTwitter
+        : `https://twitter.com/${rawTwitter.replace(/^@/, '')}`
     );
   }
   if (authorRecord?.linkedin && typeof authorRecord.linkedin === 'string') {
@@ -182,14 +183,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     ...(category ? [{ name: category.name, url: `${SITE_URL}/topics/${category.slug}` }] : []),
     { name: article!.title, url: articleUrl },
   ];
+  const pubDate = article!.published_at || undefined;
+  const modDate = (article as unknown as Record<string, string>).updated_at || article!.published_at || undefined;
   const articleSchema = buildArticle({
     title: article!.title,
     description: article!.excerpt ?? '',
     url: articleUrl,
     imageUrl: article!.cover_image,
-    datePublished: article!.published_at ?? '2026-01-01T00:00:00.000Z',
-    // Use updated_at for freshness signal; fall back to published_at — never fabricate new Date()
-    dateModified: (article as unknown as Record<string, string>).updated_at || article!.published_at || '2026-01-01T00:00:00.000Z',
+    ...(pubDate ? { datePublished: pubDate } : {}),
+    ...(modDate ? { dateModified: modDate } : {}),
     authorName: author?.name ?? 'OneMint Editorial',
     authorUrl: author ? `${SITE_URL}/author/${author.slug}` : SITE_URL,
     authorSameAs,
@@ -342,7 +344,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 {author && (() => {
                   const a = author as unknown as Record<string, string>;
                   const links = [
-                    typeof a.twitter === 'string' && a.twitter && { label: 'Twitter', href: a.twitter.startsWith('http') ? a.twitter : `https://twitter.com/${a.twitter}`, icon: <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
+                    typeof a.twitter === 'string' && a.twitter && { label: 'Twitter', href: a.twitter.startsWith('http') ? a.twitter : `https://twitter.com/${a.twitter.trim().replace(/^@/, '')}`, icon: <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
                     typeof a.linkedin === 'string' && a.linkedin && { label: 'LinkedIn', href: a.linkedin.startsWith('http') ? a.linkedin : `https://linkedin.com/in/${a.linkedin}`, icon: <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
                   ].filter(Boolean) as { label: string; href: string; icon: React.ReactNode }[];
                   if (!links.length) return null;
@@ -376,7 +378,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 src={article!.cover_image}
                 alt={article!.title}
                 fill
-                sizes="((max-width: 768px) 100vw, 720px)"
+                sizes="(max-width: 768px) 100vw, 720px"
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                 priority
                 data-no-dim

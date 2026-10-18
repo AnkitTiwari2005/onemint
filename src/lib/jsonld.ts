@@ -91,8 +91,8 @@ export interface ArticleSchemaInput {
   description: string;
   url: string;
   imageUrl?: string | null;
-  datePublished: string;
-  dateModified: string;
+  datePublished?: string;
+  dateModified?: string;
   authorName: string;
   authorUrl: string;
   authorSameAs?: string[];
@@ -124,8 +124,8 @@ export function buildArticle(article: ArticleSchemaInput) {
           ],
         }
       : {}),
-    datePublished: article.datePublished,
-    dateModified: article.dateModified,
+    ...(article.datePublished ? { datePublished: article.datePublished } : {}),
+    ...(article.dateModified ? { dateModified: article.dateModified } : {}),
     ...(article.articleSection ? { articleSection: article.articleSection } : {}),
     author: {
       '@type': 'Person',
@@ -272,7 +272,8 @@ export interface PersonSchemaInput {
 export function buildPerson(author: PersonSchemaInput) {
   const sameAs: string[] = [];
   if (author.twitter) {
-    sameAs.push(author.twitter.startsWith('http') ? author.twitter : `https://twitter.com/${author.twitter}`);
+    const rawTwitter = author.twitter.trim();
+    sameAs.push(rawTwitter.startsWith('http') ? rawTwitter : `https://twitter.com/${rawTwitter.replace(/^@/, '')}`);
   }
   if (author.linkedin) {
     sameAs.push(author.linkedin.startsWith('http') ? author.linkedin : `https://linkedin.com/in/${author.linkedin}`);

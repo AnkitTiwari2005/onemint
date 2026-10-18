@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { Home } from 'lucide-react';
+
+const RentVsBuyChart = dynamic(() => import('./RentVsBuyChart'), {
+  ssr: false,
+  loading: () => <div className="h-[220px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 const HORIZON_YEARS = 10;
 
@@ -143,16 +145,7 @@ export default function RentVsBuyPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Net Worth Comparison Over 10 Years</h3>
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-          <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-            <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
-            <Tooltip formatter={rupeesFormatter} />
-            <Legend />
-            <Line type="monotone" dataKey="Rent & Invest" stroke="var(--color-cat-technology)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="Buy (Net Worth)" stroke="var(--color-cat-finance)" strokeWidth={2} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
+        <RentVsBuyChart data={chartData} />
       </div>
     </div>
   );

@@ -246,14 +246,8 @@ export async function proxy(req: NextRequest) {
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
     pathname.startsWith('/sitemap');
-  const isMaintenancePage = pathname === '/maintenance';
 
   if (isMaintenanceMode() && !isAdminRoute && !isApiRoute && !isExcludedFromMaintenance) {
-    if (isMaintenancePage) {
-      const res = NextResponse.next({ status: 503 });
-      res.headers.set('Retry-After', '3600');
-      return res;
-    }
     const res = NextResponse.rewrite(new URL('/maintenance', req.nextUrl.origin), { status: 503 });
     res.headers.set('Retry-After', '3600');
     return res;

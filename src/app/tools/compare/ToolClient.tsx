@@ -4,9 +4,18 @@
 import { useState, useMemo } from 'react';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
+import dynamic from 'next/dynamic';
 import { Scale } from 'lucide-react';
+
+const CompareSipLumpsumChart = dynamic(() => import('./CompareSipLumpsumChart'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
+
+const CompareFdDebtMfChart = dynamic(() => import('./CompareFdDebtMfChart'), {
+  ssr: false,
+  loading: () => <div className="h-[280px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 const COMPARISONS = [
   { id: 'sip-vs-lumpsum', label: 'SIP vs Lumpsum' },
@@ -185,16 +194,7 @@ export default function CompareToolsPage() {
 
           {/* Chart */}
           <div style={{ height: 300, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 16 }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-              <AreaChart data={sipResult.rows}>
-                <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
-                <Tooltip formatter={rupeesFormatter} />
-                <Legend />
-                <Area type="monotone" dataKey="SIP" stroke="var(--color-cat-finance)" fill="var(--color-cat-finance)" fillOpacity={0.15} strokeWidth={2} />
-                <Area type="monotone" dataKey="Lumpsum" stroke="var(--color-cat-technology)" fill="var(--color-cat-technology)" fillOpacity={0.15} strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <CompareSipLumpsumChart data={sipResult.rows} />
           </div>
 
           {/* Verdict */}
@@ -274,16 +274,7 @@ export default function CompareToolsPage() {
           </div>
 
           <div style={{ height: 280, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-              <AreaChart data={fdResult.rows}>
-                <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
-                <Tooltip formatter={rupeesFormatter} />
-                <Legend />
-                <Area type="monotone" dataKey="FD" stroke="#DC2626" fill="#DC2626" fillOpacity={0.1} strokeWidth={2} />
-                <Area type="monotone" dataKey="Debt MF" stroke="var(--color-accent)" fill="var(--color-accent)" fillOpacity={0.1} strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <CompareFdDebtMfChart data={fdResult.rows} />
           </div>
 
           <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 24 }}>

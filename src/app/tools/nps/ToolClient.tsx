@@ -4,9 +4,13 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { rupeesFormatter } from '@/lib/chartUtils';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import dynamic from 'next/dynamic';
 import { Shield } from 'lucide-react';
+
+const ToolPieChart = dynamic(() => import('@/components/tools/ToolPieChart'), {
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 type ChartDataPoint = { name: string; value: number };
 type SubscriberType = 'government' | 'private';
@@ -136,17 +140,7 @@ export default function NPSPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Corpus Distribution</h3>
       <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-          <PieChart>
-            <Pie data={chartData} cx="50%" cy="50%" innerRadius={55} outerRadius={78} paddingAngle={4} dataKey="value">
-              {chartData.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={rupeesFormatter} />
-            <Legend verticalAlign="bottom" height={36} />
-          </PieChart>
-        </ResponsiveContainer>
+        <ToolPieChart data={chartData} colors={COLORS} innerRadius={55} outerRadius={78} />
       </div>
     </div>
   );

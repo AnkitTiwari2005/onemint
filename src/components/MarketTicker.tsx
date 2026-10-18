@@ -7,23 +7,24 @@ import { cn } from '@/lib/cn';
 interface MarketItem {
   symbol: string;
   name: string;
-  value: number;
-  change: number;
+  value: number | null;
+  change: number | null;
   unit?: string;
 }
 
-// Static indicative baseline — shown instantly while live data loads
+// Neutral placeholder — shown until real data arrives from /api/market-data
 const FALLBACK: MarketItem[] = [
-  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: 24500.00, change: 0 },
-  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: 80500.00, change: 0 },
-  { symbol: 'GOLD',       name: 'Gold',        value: 93500,    change: 0, unit: '₹/10g' },
-  { symbol: 'USD/INR',    name: 'USD/INR',     value: 86.50,    change: 0 },
-  { symbol: 'BTC',        name: 'Bitcoin',     value: 8500000,  change: 0, unit: '₹' },
-  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: 52000.00, change: 0 },
-  { symbol: 'SILVER',     name: 'Silver',      value: 1080,     change: 0, unit: '₹/g' },
+  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: null, change: null },
+  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: null, change: null },
+  { symbol: 'GOLD',       name: 'Gold',        value: null, change: null, unit: '₹/10g' },
+  { symbol: 'USD/INR',    name: 'USD/INR',     value: null, change: null },
+  { symbol: 'BTC',        name: 'Bitcoin',     value: null, change: null, unit: '₹' },
+  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: null, change: null },
+  { symbol: 'SILVER',     name: 'Silver',      value: null, change: null, unit: '₹/g' },
 ];
 
-function formatValue(value: number, unit?: string): string {
+function formatValue(value: number | null, unit?: string): string {
+  if (value === null || value === undefined) return '—';
   if (unit === '₹' && value >= 100000) {
     return `₹${(value / 100000).toFixed(1)}L`;
   }
@@ -34,8 +35,8 @@ function formatValue(value: number, unit?: string): string {
 }
 
 function TickerItem({ item }: { item: MarketItem }) {
-  const isPositive = item.change > 0;
-  const isNeutral = item.change === 0;
+  const isPositive = item.change !== null && item.change > 0;
+  const isNeutral = item.change === null || item.change === 0;
   const Icon = isNeutral ? Minus : isPositive ? TrendingUp : TrendingDown;
 
   return (
@@ -44,8 +45,8 @@ function TickerItem({ item }: { item: MarketItem }) {
         {item.symbol}
       </span>
       <span className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]" style={{ fontVariantNumeric: 'tabular-nums' }}>
-        {item.unit && item.unit !== '₹' ? '' : ''}{formatValue(item.value, item.unit)}
-        {item.unit && item.unit !== '₹' ? ` ${item.unit}` : ''}
+        {formatValue(item.value, item.unit)}
+        {item.value !== null && item.unit && item.unit !== '₹' ? ` ${item.unit}` : ''}
       </span>
       <div className={cn(
         'flex items-center gap-1 text-xs font-semibold font-[family-name:var(--font-ui)]',
@@ -53,7 +54,7 @@ function TickerItem({ item }: { item: MarketItem }) {
       )}>
         <Icon size={11} />
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-          {isPositive ? '+' : ''}{item.change.toFixed(2)}%
+          {item.change !== null ? `${isPositive ? '+' : ''}${item.change.toFixed(2)}%` : '—'}
         </span>
       </div>
       {/* Separator dot */}

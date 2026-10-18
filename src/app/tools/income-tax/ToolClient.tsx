@@ -3,8 +3,13 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { formatIndianNumber } from '@/lib/utils';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import dynamic from 'next/dynamic';
 import { IndianRupee, Info, ArrowLeft, ScrollText, Sparkles, Lightbulb, CheckCircle2 } from 'lucide-react';
+
+const IncomeTaxChart = dynamic(() => import('./IncomeTaxChart'), {
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 type Regime = 'old' | 'new';
 
@@ -368,20 +373,7 @@ export default function IncomeTaxPage() {
             <div className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="font-semibold text-[var(--color-ink)] mb-4 font-[family-name:var(--font-heading)]">Old vs New Regime Comparison</h3>
               <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-                  <BarChart data={comparisonChart} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
-                    <XAxis type="number" hide />
-                    <YAxis type="category" dataKey="name" axisLine={false} tickLine={false}
-                      tick={{ fill: 'var(--color-ink)', fontSize: 13, fontWeight: 600 }} width={110} />
-                    <Tooltip formatter={(value) => [`₹ ${formatIndianNumber(Number(value))}`, 'Tax']}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
-                    <Bar dataKey="tax" radius={[0, 8, 8, 0]} barSize={40}>
-                      {comparisonChart.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <IncomeTaxChart data={comparisonChart} />
               </div>
               <p className="text-center text-sm font-semibold mt-4 font-[family-name:var(--font-ui)]">
                 {results.savings > 0 ? (

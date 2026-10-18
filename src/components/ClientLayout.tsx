@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import NextTopLoader from 'nextjs-toploader';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -97,22 +97,20 @@ export function ClientLayout({ children }: { children: ReactNode }) {
           This gives a clean professional feel with no overlap jerk and no
           dead-black gap — the old page disappears immediately, new page
           fades in smoothly. initial={false} prevents hydration FOIC. */}
-      <LazyMotion features={domAnimation}>
-        <AnimatePresence mode="wait" initial={false}>
-          <m.main
-            key={pathname}
-            id="main-content"
-            className="flex-1"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            data-motion="true"
-          >
-            {children}
-          </m.main>
-        </AnimatePresence>
-      </LazyMotion>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.main
+          key={pathname}
+          id="main-content"
+          className="flex-1"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          data-motion="true"
+        >
+          {children}
+        </motion.main>
+      </AnimatePresence>
       <Footer />
       <MobileBottomNav onSearchOpen={() => setSearchOpen(true)} />
       <CookieBanner />

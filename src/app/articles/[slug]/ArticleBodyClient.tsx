@@ -25,18 +25,18 @@ function extractText(children: React.ReactNode): string {
 }
 
 const mdComponents = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  h2: ({ children, ...props }: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  h2: ({ node: _node, children, ...props }: any) => {
     const id = headingId(extractText(children));
     return <h2 id={id} {...props}>{children}</h2>;
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  h3: ({ children, ...props }: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  h3: ({ node: _node, children, ...props }: any) => {
     const id = headingId(extractText(children));
     return <h3 id={id} {...props}>{children}</h3>;
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  a: ({ href, children, ...props }: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  a: ({ node: _node, href, children, ...props }: any) => {
     const text = extractText(children).toLowerCase();
     const isAffiliate =
       Boolean(href && (href.includes('onelink.me') || href.includes('paytmmoney.com') || href.includes('affiliate'))) ||

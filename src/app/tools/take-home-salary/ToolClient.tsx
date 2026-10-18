@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { Briefcase } from 'lucide-react';
+
+const TakeHomeChart = dynamic(() => import('./TakeHomeChart'), {
+  ssr: false,
+  loading: () => <div className="h-[220px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 import { cn } from '@/lib/cn';
 
 type TaxRegime = 'new' | 'old';
@@ -186,15 +188,6 @@ export default function TakeHomeSalaryPage() {
     { label: 'Annual In-Hand', value: result.annualInHand, type: 'result' },
   ];
 
-  const CHART_COLORS = [
-    'var(--color-cat-career)',
-    'var(--color-accent-warm)',
-    '#94a3b8',
-    '#64748b',
-    '#e2e8f0',
-    '#cbd5e1',
-  ];
-
   const chartData = [
     { name: 'In-Hand', value: result.annualInHand },
     { name: 'Income Tax', value: result.incomeTax },
@@ -271,18 +264,7 @@ export default function TakeHomeSalaryPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Where Your CTC Goes</h3>
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-          <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} layout="vertical">
-            <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={rupeesTickFormatter} width={60} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
-            <Tooltip formatter={rupeesFormatter} />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-              {chartData.map((_entry, index) => (
-                <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <TakeHomeChart data={chartData} />
       </div>
     </div>
   );

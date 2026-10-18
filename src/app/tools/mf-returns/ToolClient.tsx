@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
-import { formatIndianNumber } from '@/lib/utils';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import dynamic from 'next/dynamic';
 import { TrendingUp } from 'lucide-react';
 
-const COLORS = ['var(--color-accent)', 'var(--color-accent-warm)', '#cbd5e1'];
+const ToolPieChart = dynamic(() => import('@/components/tools/ToolPieChart'), {
+  ssr: false,
+  loading: () => <div className="h-[250px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 export default function MfReturnsPage() {
 
@@ -43,20 +45,7 @@ export default function MfReturnsPage() {
 
   const IconComponent = TrendingUp;
   const chart = chartDataObj && chartDataObj.length > 0 ? (
-    <div className="h-[250px] w-full">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-        <PieChart>
-          <Pie data={chartDataObj} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-            {chartDataObj.map((entry, index) => (
-              <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <RechartsTooltip formatter={(val: any) => '₹' + formatIndianNumber(Math.round(Number(val)))} />
-          <Legend verticalAlign="bottom" height={36} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
+    <ToolPieChart data={chartDataObj} />
   ) : null;
 
   return (

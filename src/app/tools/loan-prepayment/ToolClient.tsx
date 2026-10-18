@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { CreditCard } from 'lucide-react';
+
+const LoanPrepaymentChart = dynamic(() => import('./LoanPrepaymentChart'), {
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 type PrepaymentMode = 'reduce-tenure' | 'reduce-emi';
 
@@ -160,16 +162,7 @@ export default function LoanPrepaymentPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Original vs After Prepayment</h3>
       <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-          <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-            <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
-            <Tooltip formatter={rupeesFormatter} />
-            <Legend />
-            <Bar dataKey="Principal" fill="var(--color-cat-finance)" stackId="a" />
-            <Bar dataKey="Interest" fill="var(--color-accent-warm)" stackId="a" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <LoanPrepaymentChart data={chartData} />
       </div>
     </div>
   );

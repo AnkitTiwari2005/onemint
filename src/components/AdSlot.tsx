@@ -84,7 +84,7 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
   if (!PUB_ID || !slotId) return null;
 
 const MIN_HEIGHTS: Record<string, number> = {
-  auto: 90,
+  auto: 250,
   fluid: 250,
   rectangle: 250,
   autorelaxed: 280,

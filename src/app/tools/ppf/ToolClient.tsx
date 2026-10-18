@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { Landmark } from 'lucide-react';
+
+const PpfChart = dynamic(() => import('./PpfChart'), {
+  ssr: false,
+  loading: () => <div className="h-[220px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 const PPF_RATE = 7.1;
 
@@ -88,26 +90,7 @@ export default function PPFPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Corpus Growth Over Time</h3>
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-          <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="corpusGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-cat-finance)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="var(--color-cat-finance)" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="investGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-ink-tertiary)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="var(--color-ink-tertiary)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
-            <Tooltip formatter={rupeesFormatter} />
-            <Legend />
-            <Area type="monotone" dataKey="Invested" stroke="var(--color-ink-tertiary)" fill="url(#investGrad)" strokeWidth={2} />
-            <Area type="monotone" dataKey="Total Corpus" stroke="var(--color-cat-finance)" fill="url(#corpusGrad)" strokeWidth={2} />
-          </AreaChart>
-        </ResponsiveContainer>
+        <PpfChart data={chartData} />
       </div>
     </div>
   );

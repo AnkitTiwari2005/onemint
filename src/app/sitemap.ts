@@ -24,13 +24,10 @@ const TOOL_SLUGS = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const STABLE_POLICY_DATE = new Date('2026-04-15T00:00:00.000Z');
-  const STABLE_TOOL_DATE = new Date('2026-04-15T00:00:00.000Z');
-
   // ── Articles ─────────────────────────────────────────────────────────────
   const publishedSlugsSet = new Set<string>();
   let articlePages: MetadataRoute.Sitemap;
-  let latestArticleDate = STABLE_POLICY_DATE;
+  let latestArticleDate: Date | undefined = undefined;
 
   try {
     const dbArticles = supabaseAdmin
@@ -47,12 +44,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (a.slug) publishedSlugsSet.add(a.slug);
         if (a.updated_at) {
           const d = new Date(a.updated_at);
-          if (d > latestArticleDate) latestArticleDate = d;
+          if (!isNaN(d.getTime())) {
+            if (!latestArticleDate || d > latestArticleDate) latestArticleDate = d;
+          }
         }
       });
       articlePages = dbArticles.map((a) => ({
         url: `${BASE}/articles/${a.slug}`,
-        lastModified: a.updated_at ? new Date(a.updated_at) : STABLE_POLICY_DATE,
+        ...(a.updated_at && !isNaN(new Date(a.updated_at).getTime()) ? { lastModified: new Date(a.updated_at) } : {}),
         changeFrequency: 'monthly' as const,
         priority: a.featured ? 0.9 : 0.7,
       }));
@@ -61,12 +60,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (a.slug) publishedSlugsSet.add(a.slug);
         if (a.updatedAt) {
           const d = new Date(a.updatedAt);
-          if (d > latestArticleDate) latestArticleDate = d;
+          if (!isNaN(d.getTime())) {
+            if (!latestArticleDate || d > latestArticleDate) latestArticleDate = d;
+          }
         }
       });
       articlePages = staticArticles.map((a) => ({
         url: `${BASE}/articles/${a.slug}`,
-        lastModified: new Date(a.updatedAt),
+        ...(a.updatedAt && !isNaN(new Date(a.updatedAt).getTime()) ? { lastModified: new Date(a.updatedAt) } : {}),
         changeFrequency: 'monthly' as const,
         priority: a.featured ? 0.9 : 0.7,
       }));
@@ -76,35 +77,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (a.slug) publishedSlugsSet.add(a.slug);
       if (a.updatedAt) {
         const d = new Date(a.updatedAt);
-        if (d > latestArticleDate) latestArticleDate = d;
+        if (!isNaN(d.getTime())) {
+          if (!latestArticleDate || d > latestArticleDate) latestArticleDate = d;
+        }
       }
     });
     articlePages = staticArticles.map((a) => ({
       url: `${BASE}/articles/${a.slug}`,
-      lastModified: new Date(a.updatedAt),
+      ...(a.updatedAt && !isNaN(new Date(a.updatedAt).getTime()) ? { lastModified: new Date(a.updatedAt) } : {}),
       changeFrequency: 'monthly' as const,
       priority: a.featured ? 0.9 : 0.7,
     }));
   }
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE,                             lastModified: latestArticleDate, changeFrequency: 'daily',   priority: 1.0 },
-    { url: `${BASE}/articles`,               lastModified: latestArticleDate, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE}/topics`,                 lastModified: latestArticleDate, changeFrequency: 'weekly',  priority: 0.9 },
-    { url: `${BASE}/tools`,                  lastModified: STABLE_TOOL_DATE,  changeFrequency: 'weekly',  priority: 0.9 },
-    { url: `${BASE}/tools/compare`,          lastModified: STABLE_TOOL_DATE,  changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/tools/financial-health`, lastModified: STABLE_TOOL_DATE,  changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${BASE}/glossary`,               lastModified: STABLE_POLICY_DATE, changeFrequency: 'weekly',  priority: 0.8 },
-    { url: `${BASE}/tags`,                   lastModified: latestArticleDate, changeFrequency: 'weekly',  priority: 0.7 },
-    { url: `${BASE}/newsletter`,             lastModified: STABLE_POLICY_DATE, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE}/about`,                  lastModified: STABLE_POLICY_DATE, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE}/contact`,                lastModified: STABLE_POLICY_DATE, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/editorial-policy`,       lastModified: STABLE_POLICY_DATE, changeFrequency: 'yearly',  priority: 0.4 },
+    { url: BASE,                             ...(latestArticleDate ? { lastModified: latestArticleDate } : {}), changeFrequency: 'daily',   priority: 1.0 },
+    { url: `${BASE}/articles`,               ...(latestArticleDate ? { lastModified: latestArticleDate } : {}), changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${BASE}/topics`,                 ...(latestArticleDate ? { lastModified: latestArticleDate } : {}), changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${BASE}/tools`,                  changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${BASE}/tools/compare`,          changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/tools/financial-health`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/glossary`,               changeFrequency: 'weekly',  priority: 0.8 },
+    { url: `${BASE}/tags`,                   ...(latestArticleDate ? { lastModified: latestArticleDate } : {}), changeFrequency: 'weekly',  priority: 0.7 },
+    { url: `${BASE}/newsletter`,             changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/about`,                  changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/contact`,                changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE}/editorial-policy`,       changeFrequency: 'yearly',  priority: 0.4 },
     // /search intentionally excluded — pure client-side UI, no indexable content
-    { url: `${BASE}/privacy-policy`,         lastModified: STABLE_POLICY_DATE, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE}/terms`,                  lastModified: STABLE_POLICY_DATE, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE}/cookies`,                lastModified: STABLE_POLICY_DATE, changeFrequency: 'yearly',  priority: 0.3 },
-    { url: `${BASE}/disclaimer`,             lastModified: STABLE_POLICY_DATE, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/privacy-policy`,         changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/terms`,                  changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/cookies`,                changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/disclaimer`,             changeFrequency: 'yearly',  priority: 0.3 },
   ];
 
   // ── Categories ────────────────────────────────────────────────────────────
@@ -135,7 +138,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         );
         categoryPages = activeCategories.map((c) => ({
           url: `${BASE}/topics/${c.slug}`,
-          lastModified: latestArticleDate,
+          ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
           changeFrequency: 'daily' as const,
           priority: 0.8,
         }));
@@ -147,7 +150,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // No DB — fall back to all static categories
       categoryPages = staticCategories.map((c) => ({
         url: `${BASE}/topics/${c.slug}`,
-        lastModified: latestArticleDate,
+        ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
         changeFrequency: 'daily' as const,
         priority: 0.8,
       }));
@@ -155,13 +158,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     categoryPages = staticCategories.map((c) => ({
       url: `${BASE}/topics/${c.slug}`,
-      lastModified: latestArticleDate,
+      ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
       changeFrequency: 'daily' as const,
       priority: 0.8,
     }));
   }
-
-
 
   // ── Authors ───────────────────────────────────────────────────────────────
   // Only include authors with articleCount > 0 — empty author pages are thin content
@@ -179,7 +180,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const activeAuthors = (dbAuthors || []).filter((a: { id: string }) => authorIdCounts.has(a.id));
       authorPages = activeAuthors.map((a: { slug: string }) => ({
         url: `${BASE}/author/${a.slug}`,
-        lastModified: latestArticleDate,
+        ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
         changeFrequency: 'weekly' as const,
         priority: 0.6,
       }));
@@ -190,7 +191,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter(a => authorArticleCounts.has(a.id) || authorArticleCounts.has(a.slug))
         .map(a => ({
           url: `${BASE}/author/${a.slug}`,
-          lastModified: latestArticleDate,
+          ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
           changeFrequency: 'weekly' as const,
           priority: 0.6,
         }));
@@ -198,7 +199,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     authorPages = staticAuthors.map((a) => ({
       url: `${BASE}/author/${a.slug}`,
-      lastModified: latestArticleDate,
+      ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
       changeFrequency: 'weekly' as const,
       priority: 0.6,
     }));
@@ -223,7 +224,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter(([, count]) => count >= MIN_TAG_ARTICLES)
         .map(([tag]) => ({
           url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
-          lastModified: latestArticleDate,
+          ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
           changeFrequency: 'weekly' as const,
           priority: 0.6,
         }));
@@ -235,7 +236,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter(([, count]) => count >= MIN_TAG_ARTICLES)
         .map(([tag]) => ({
           url: `${BASE}/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`,
-          lastModified: latestArticleDate,
+          ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
           changeFrequency: 'weekly' as const,
           priority: 0.6,
         }));
@@ -246,7 +247,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const toolPages: MetadataRoute.Sitemap = TOOL_SLUGS.map((slug) => ({
     url: `${BASE}/tools/${slug}`,
-    lastModified: STABLE_TOOL_DATE,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));
@@ -272,7 +272,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
       seriesPages = activeSeries.map((s: { slug: string; updated_at: string | null }) => ({
         url: `${BASE}/series/${s.slug}`,
-        lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
+        ...(s.updated_at && !isNaN(new Date(s.updated_at).getTime()) ? { lastModified: new Date(s.updated_at) } : {}),
         changeFrequency: 'monthly' as const,
         priority: 0.7,
       }));
@@ -282,7 +282,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       seriesPages = activeStaticSeries.map(s => ({
         url: `${BASE}/series/${s.slug}`,
-        lastModified: new Date(),
         changeFrequency: 'monthly' as const,
         priority: 0.7,
       }));
@@ -295,7 +294,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (seriesPages.length > 0) {
     seriesHubPages = [{
       url: `${BASE}/series`,
-      lastModified: latestArticleDate,
+      ...(latestArticleDate ? { lastModified: latestArticleDate } : {}),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }];

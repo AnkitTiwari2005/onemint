@@ -3,8 +3,18 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import dynamic from 'next/dynamic';
 import { Home, Info, ArrowLeft } from 'lucide-react';
+
+const HomeLoanPieChart = dynamic(() => import('./HomeLoanPieChart'), {
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
+
+const HomeLoanBalanceChart = dynamic(() => import('./HomeLoanBalanceChart'), {
+  ssr: false,
+  loading: () => <div className="h-[250px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 export default function HomeLoanEMIPage() {
   const [loanAmount, setLoanAmount] = useState(5000000);
@@ -257,24 +267,7 @@ export default function HomeLoanEMIPage() {
             <div className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="font-semibold text-[var(--color-ink)] mb-4 font-[family-name:var(--font-heading)]">Payment Breakdown</h3>
               <div className="h-[200px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`₹ ${formatIndianNumber(Number(value))}`, '']} />
-                  </PieChart>
-                </ResponsiveContainer>
+                <HomeLoanPieChart data={pieData} />
               </div>
               <div className="flex justify-center gap-6 mt-2">
                 {pieData.map(item => (
@@ -290,24 +283,7 @@ export default function HomeLoanEMIPage() {
             <div className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="font-semibold text-[var(--color-ink)] mb-6 font-[family-name:var(--font-heading)]">Loan Balance Over Time</h3>
               <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="year" axisLine={false} tickLine={false}
-                      tick={{ fill: 'var(--color-ink-tertiary)', fontSize: 11 }} dy={10} minTickGap={30} />
-                    <YAxis axisLine={false} tickLine={false}
-                      tick={{ fill: 'var(--color-ink-tertiary)', fontSize: 11 }}
-                      tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} dx={-10} />
-                    <Tooltip formatter={(value) => [`₹ ${formatIndianNumber(Number(value))}`, '']}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }} />
-                    <Area type="monotone" dataKey="balance" stroke="var(--color-accent)" strokeWidth={2} fillOpacity={1} fill="url(#colorBalance)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <HomeLoanBalanceChart data={chartData} />
               </div>
             </div>
           </div>

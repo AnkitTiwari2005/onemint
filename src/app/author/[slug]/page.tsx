@@ -209,7 +209,7 @@ export default async function AuthorPage({ params }: Props) {
           {/* Social links */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {authorTwitter && (
-              <a href={authorTwitter.startsWith('http') ? authorTwitter : `https://twitter.com/${authorTwitter}`} target="_blank" rel="noopener noreferrer" title="Twitter/X"
+              <a href={authorTwitter.startsWith('http') ? authorTwitter : `https://twitter.com/${authorTwitter.trim().replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" title="Twitter/X"
                 style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink-secondary)', textDecoration: 'none' }}
                 className="hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-colors" aria-label="Twitter">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>

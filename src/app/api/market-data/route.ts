@@ -4,8 +4,8 @@ import { ENV } from '@/lib/env';
 interface MarketItem {
   symbol: string;
   name: string;
-  value: number;
-  change: number;
+  value: number | null;
+  change: number | null;
   unit?: string;
 }
 
@@ -13,25 +13,20 @@ interface MarketItem {
 let cache: { data: MarketItem[]; ts: number } | null = null;
 const CACHE_MS = 35 * 60 * 1000; // 35 minutes (reduces API calls to ~41/day, well within free tier)
 
-// Static fallback — always shown instantly while live data loads
+// Neutral fallback — shown when live data is unavailable or loading
 const FALLBACK: MarketItem[] = [
-  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: 24500.00, change: 0 },
-  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: 80500.00, change: 0 },
-  { symbol: 'GOLD',       name: 'Gold',        value: 93500,    change: 0, unit: '₹/10g' },
-  { symbol: 'USD/INR',    name: 'USD/INR',     value: 86.50,    change: 0 },
-  { symbol: 'BTC',        name: 'Bitcoin',     value: 8500000,  change: 0, unit: '₹' },
-  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: 52000.00, change: 0 },
-  { symbol: 'SILVER',     name: 'Silver',      value: 1080,     change: 0, unit: '₹/g' },
+  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: null, change: null },
+  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: null, change: null },
+  { symbol: 'GOLD',       name: 'Gold',        value: null, change: null, unit: '₹/10g' },
+  { symbol: 'USD/INR',    name: 'USD/INR',     value: null, change: null },
+  { symbol: 'BTC',        name: 'Bitcoin',     value: null, change: null, unit: '₹' },
+  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: null, change: null },
+  { symbol: 'SILVER',     name: 'Silver',      value: null, change: null, unit: '₹/g' },
 ];
 
 function getAlphaVantageKeys(): string[] {
-  const raw = ENV.ALPHAVANTAGE_KEY || '';
-  const parsed = raw.split(',').map(k => k.trim()).filter(Boolean);
-  const pool = ['9LZ7AKNHKOTRKQ35', 'UWGP3V0SV137RUQA', '6ETTHKO20IM8F49J'];
-  for (const k of pool) {
-    if (!parsed.includes(k)) parsed.push(k);
-  }
-  return parsed;
+  const raw = ENV.ALPHAVANTAGE_KEY || process.env.ALPHAVANTAGE_KEY || '';
+  return raw.split(',').map(k => k.trim()).filter(Boolean);
 }
 
 let keyIndex = 0;

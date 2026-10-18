@@ -139,9 +139,7 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
   if (!featured) {
     return (
       <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">
-        <h1 className="text-2xl font-bold text-center py-10 font-[family-name:var(--font-display)] text-[var(--color-ink)]">
-          OneMint — India&apos;s Most Trusted Knowledge Platform
-        </h1>
+        <h1 className="sr-only">OneMint — India&apos;s Most Trusted Knowledge Platform</h1>
         <MarketTicker />
       </div>
     );
@@ -149,6 +147,22 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">
+
+      {/* Visually-hidden H1 for SEO — gives the homepage a stable brand <h1>
+          without affecting visual design. Screen readers will announce it. */}
+      <h1
+        style={{
+          position: 'absolute',
+          clip: 'rect(0 0 0 0)',
+          clipPath: 'inset(50%)',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        OneMint — India&apos;s Most Trusted Knowledge Platform
+      </h1>
 
       {/* ── Market Ticker ──────────────────────────────────────────────── */}
       <MarketTicker />
@@ -180,9 +194,9 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
                     {featuredCategory.name}
                   </span>
                 )}
-                <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl lg:text-[40px] font-bold text-white leading-tight mb-3 animate-hero-title">
+                <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl lg:text-[40px] font-bold text-white leading-tight mb-3 animate-hero-title">
                   {featured.title}
-                </h1>
+                </h2>
                 <div className="flex flex-wrap items-center gap-3 text-white/75 text-sm font-[family-name:var(--font-ui)] animate-hero-meta">
                   {featuredAuthor && (
                     <>

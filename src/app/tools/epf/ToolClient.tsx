@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { rupeesFormatter, rupeesTickFormatter } from '@/lib/chartUtils';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { Briefcase } from 'lucide-react';
+
+const EpfChart = dynamic(() => import('./EpfChart'), {
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 const EPF_INTEREST = 8.25;
 const EMPLOYEE_RATE = 0.12;
@@ -35,7 +37,7 @@ export default function EPFPage() {
       // Employer contribution: 12% total. 8.33% goes to EPS, capped at ₹15,000 wage (max ₹1,250/mo).
       // The rest (12% − EPS portion) goes to EPF.
       const epsWageCap = 15000;
-      const epsContrib = Math.min(Math.round((8.3333 / 100) * Math.min(currentSalary, epsWageCap)), 1250);
+      const epsContrib = Math.min(0.0833 * Math.min(currentSalary, epsWageCap), 1250);
       const erMonthly = Math.round(currentSalary * 0.12 - epsContrib);
       let yearInterest = 0;
 
@@ -105,17 +107,7 @@ export default function EPFPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Contribution Breakdown</h3>
       <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-          <BarChart data={result.chartRows} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-            <XAxis dataKey="year" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
-            <Tooltip formatter={rupeesFormatter} />
-            <Legend />
-            <Bar dataKey="Employee" fill="var(--color-cat-finance)" stackId="a" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="Employer" fill="var(--color-cat-technology)" stackId="a" />
-            <Bar dataKey="Interest" fill="var(--color-accent-gold)" stackId="a" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <EpfChart data={result.chartRows} />
       </div>
     </div>
   ) : null;
