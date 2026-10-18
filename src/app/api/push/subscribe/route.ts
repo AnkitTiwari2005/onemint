@@ -31,8 +31,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { endpoint, keys } = body;
 
-    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+    if (!endpoint || typeof endpoint !== 'string' || !keys?.p256dh || !keys?.auth) {
       return NextResponse.json({ error: 'Invalid subscription payload' }, { status: 400 });
+    }
+
+    try {
+      const parsedEndpoint = new URL(endpoint);
+      if (parsedEndpoint.protocol !== 'https:') {
+        return NextResponse.json({ error: 'Endpoint must use HTTPS' }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: 'Invalid endpoint URL' }, { status: 400 });
     }
 
     if (!supabaseAdmin) {

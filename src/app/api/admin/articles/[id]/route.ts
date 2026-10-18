@@ -107,7 +107,7 @@ export async function PATCH(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-sync-secret': getCleanEnv('SYNC_SECRET') || getCleanEnv('ADMIN_PASSWORD_HASH'),
+          'x-sync-secret': getCleanEnv('SYNC_SECRET'),
         },
         body: JSON.stringify({ articleId: id }),
       }).catch((err) => console.error('[Sync trigger PATCH]', err));

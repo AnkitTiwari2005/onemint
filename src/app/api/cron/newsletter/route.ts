@@ -11,7 +11,7 @@
  * Auth:
  *   Set CRON_SECRET in env vars.
  *   Pass as: Authorization: Bearer <CRON_SECRET>
- *   OR as query param: ?secret=<CRON_SECRET>
+ *   (Query-param secrets are intentionally rejected to protect logs and Referer headers)
  *
  * Hostinger Cron Job setup (hPanel → Cron Jobs):
  *   Monday:  30 8 * * 1  → curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.onemint.com/api/cron/newsletter?series=monday

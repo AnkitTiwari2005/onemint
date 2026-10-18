@@ -150,6 +150,8 @@ export default function RootLayout({
         {/* Sync theme init — MUST be before body to prevent FOUC */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="icon" type="image/png" href="/icon.png" />
+        {/* RSS feed autodiscovery */}
+        <link rel="alternate" type="application/rss+xml" title="OneMint — Latest Articles" href="/feed.xml" />
         {/* PWA theme colors */}
         <meta name="theme-color" content="#F8F7F4" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />

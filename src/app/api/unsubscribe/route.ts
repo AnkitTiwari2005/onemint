@@ -23,7 +23,6 @@ export async function GET(req: NextRequest) {
 
   const siteUrl = ENV.SITE_URL;
   const errorUrl = `${siteUrl}/unsubscribe?error=1`;
-  const successUrl = `${siteUrl}/unsubscribe?success=1`;
 
   if (!token) {
     return NextResponse.redirect(errorUrl);
@@ -34,8 +33,53 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(errorUrl);
   }
 
+  // Safe GET: Do NOT mutate DB on GET. Redirect to the confirmation page.
+  // This prevents mail scanners, preview bots, and prefetch engines from silently unsubscribing users.
+  const confirmUrl = `${siteUrl}/unsubscribe?token=${encodeURIComponent(token)}&confirm=1`;
+  return NextResponse.redirect(confirmUrl);
+}
+
+// Support POST for both RFC 8058 one-click List-Unsubscribe-Post and browser confirmation form
+export async function POST(req: NextRequest) {
+  const siteUrl = ENV.SITE_URL;
+  const errorUrl = `${siteUrl}/unsubscribe?error=1`;
+  const successUrl = `${siteUrl}/unsubscribe?success=1`;
+
+  let token = req.nextUrl.searchParams.get('token') || '';
+
+  const contentType = req.headers.get('content-type') || '';
+  if (!token && contentType.includes('application/x-www-form-urlencoded')) {
+    try {
+      const formData = await req.formData();
+      token = (formData.get('token') as string) || '';
+    } catch {
+      // ignore form parsing error
+    }
+  } else if (!token && contentType.includes('application/json')) {
+    try {
+      const body = await req.json();
+      token = body?.token || '';
+    } catch {
+      // ignore json parsing error
+    }
+  }
+
+  const isBrowserForm = contentType.includes('application/x-www-form-urlencoded') || req.headers.get('accept')?.includes('text/html');
+
+  if (!token) {
+    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    return NextResponse.json({ error: 'Token required' }, { status: 400 });
+  }
+
+  const email = verifyUnsubscribeToken(token);
+  if (!email) {
+    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
+  }
+
   if (!supabaseAdmin) {
-    return NextResponse.redirect(errorUrl);
+    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
 
   const { error } = await supabaseAdmin
@@ -45,17 +89,16 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     console.error('[Unsubscribe] DB error:', error.message);
-    return NextResponse.redirect(errorUrl);
+    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    return NextResponse.json({ error: 'Failed to update subscription status' }, { status: 500 });
   }
 
-  console.log('[Unsubscribe] Successfully unsubscribed');
-  return NextResponse.redirect(successUrl);
-}
+  console.log('[Unsubscribe] Successfully unsubscribed recipient');
 
-// Support POST for RFC 8058 one-click List-Unsubscribe-Post
-export async function POST(req: NextRequest) {
-  // RFC 8058 sends: Content-Type: application/x-www-form-urlencoded
-  // Body: List-Unsubscribe=One-Click
-  // Token is in the URL query param
-  return GET(req);
+  if (isBrowserForm) {
+    return NextResponse.redirect(successUrl);
+  }
+
+  // RFC 8058 one-click expects a 200 response
+  return new NextResponse(null, { status: 200 });
 }

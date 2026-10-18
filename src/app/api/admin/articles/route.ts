@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-sync-secret': getCleanEnv('SYNC_SECRET') || getCleanEnv('ADMIN_PASSWORD_HASH'),
+          'x-sync-secret': getCleanEnv('SYNC_SECRET'),
         },
         body: JSON.stringify({ articleId: data.id }),
       }).catch((err) => console.error('[Sync trigger POST]', err));

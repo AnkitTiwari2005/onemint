@@ -104,10 +104,14 @@ function SearchPageContent() {
     if (!query.trim()) return;
     
     if (typeof window !== 'undefined') {
-      const prev = JSON.parse(localStorage.getItem('onemint-recent-searches') || '[]');
-      const next = [query, ...prev.filter((s: string) => s !== query)].slice(0, 10);
-      localStorage.setItem('onemint-recent-searches', JSON.stringify(next));
-      setRecentSearches(next.slice(0, 5));
+      try {
+        const prev = JSON.parse(localStorage.getItem('onemint-recent-searches') || '[]');
+        const next = [query, ...prev.filter((s: string) => s !== query)].slice(0, 10);
+        localStorage.setItem('onemint-recent-searches', JSON.stringify(next));
+        setRecentSearches(next.slice(0, 5));
+      } catch {
+        // storage blocked or corrupted - proceed without persisting recent searches
+      }
       
       // Update URL without reload
       window.history.replaceState(null, '', `?q=${encodeURIComponent(query)}`);

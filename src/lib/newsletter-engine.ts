@@ -241,12 +241,31 @@ Return ONLY the 2 sentences — nothing else.`;
 async function sendToSubscribers(subject: string, html: string): Promise<number> {
   if (!supabaseAdmin) return 0;
 
-  const { data: subs } = await supabaseAdmin
-    .from('newsletter_subscribers')
-    .select('email, name')
-    .eq('status', 'active');
+  // Paginate query in chunks of 500 to prevent PostgREST's 1000-row default truncation
+  const CHUNK_SIZE = 500;
+  let allSubs: { email: string; name: string | null }[] = [];
+  let from = 0;
 
-  if (!subs || subs.length === 0) return 0;
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from('newsletter_subscribers')
+      .select('email, name')
+      .eq('status', 'active')
+      .range(from, from + CHUNK_SIZE - 1);
+
+    if (error) {
+      console.error('[Newsletter] Error fetching subscribers:', error.message);
+      break;
+    }
+    if (!data || data.length === 0) break;
+
+    allSubs = allSubs.concat(data);
+    if (data.length < CHUNK_SIZE) break;
+    from += CHUNK_SIZE;
+  }
+
+  const subs = allSubs;
+  if (subs.length === 0) return 0;
 
   const apiKey     = ENV.BREVO_API_KEY;
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
@@ -260,25 +279,24 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
   let sent = 0;
 
   const sendOne = async (email: string, name?: string | null) => {
-    // Generate a signed per-subscriber unsubscribe URL and inject it into the HTML.
-    // Falls back gracefully if secret not set — leaves a mailto: fallback.
-    let personalizedHtml = html;
+    // Generate signed per-subscriber unsubscribe token ONCE
+    let token: string | null = null;
     try {
-      const token = generateUnsubscribeToken(email);
-      const unsubUrl = `${ENV.SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
-      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, unsubUrl);
+      token = generateUnsubscribeToken(email);
     } catch (err) {
       console.warn('[Newsletter] Could not generate unsubscribe token:', err);
-      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.in?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
     }
 
-    // List-Unsubscribe for RFC 8058 / Gmail / Apple Mail one-click
+    let personalizedHtml = html;
     let listUnsubscribeHeader: string | undefined;
-    try {
-      const token = generateUnsubscribeToken(email);
+
+    if (token) {
       const unsubUrl = `${ENV.SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, unsubUrl);
       listUnsubscribeHeader = `<${unsubUrl}>`;
-    } catch { /* skip header if token fails */ }
+    } else {
+      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.in?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
+    }
 
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method:  'POST',

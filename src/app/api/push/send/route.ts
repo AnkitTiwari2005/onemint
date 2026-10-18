@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash, timingSafeEqual } from 'crypto';
 import webpush from 'web-push';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getCleanEnv } from '@/lib/env';
@@ -20,10 +21,20 @@ import { getCleanEnv } from '@/lib/env';
  */
 export async function POST(req: NextRequest) {
   // ── Auth (header only — never read the body for secrets) ─────────────────
-  const secret = req.headers.get('x-cron-secret');
+  const secret = req.headers.get('x-cron-secret') || '';
   const expected = getCleanEnv('CRON_SECRET');
   // Fail closed: reject if secret not configured OR if header doesn't match
-  if (!expected || secret !== expected) {
+  if (!expected) {
+    return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+  }
+
+  try {
+    const a = createHash('sha256').update(secret).digest();
+    const b = createHash('sha256').update(expected).digest();
+    if (!timingSafeEqual(a, b)) {
+      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    }
+  } catch {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
   }
 

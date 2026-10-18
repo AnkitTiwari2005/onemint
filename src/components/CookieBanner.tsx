@@ -26,13 +26,21 @@ export function CookieBanner() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie_consent_v2');
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!consent) setVisible(true);
+    try {
+      const consent = getCookieConsent();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (!consent) setVisible(true);
+    } catch {
+      setVisible(true);
+    }
   }, []);
 
   const save = (accepted: boolean, p: Prefs) => {
-    localStorage.setItem('cookie_consent_v2', JSON.stringify({ accepted, prefs: p }));
+    try {
+      localStorage.setItem('cookie_consent_v2', JSON.stringify({ accepted, prefs: p }));
+    } catch {
+      // Storage blocked or quota exceeded - proceed gracefully without throwing
+    }
     // Propagate to GA4 Consent Mode v2 — update all four consent signals
     if (typeof window !== 'undefined' && typeof (window as Window & { gtag?: (...args: unknown[]) => void }).gtag === 'function') {
       (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('consent', 'update', {

@@ -41,7 +41,23 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'dismiss') return;
 
-  const targetUrl = event.notification.data?.url || '/';
+  // Sanitize targetUrl: allow only safe relative paths or URLs matching onemint.com
+  let targetUrl = '/';
+  try {
+    const raw = event.notification.data?.url || '/';
+    if (typeof raw === 'string') {
+      if (raw.startsWith('/') && !raw.startsWith('//')) {
+        targetUrl = raw;
+      } else {
+        const parsed = new URL(raw, self.location.origin);
+        if (parsed.origin === self.location.origin || parsed.hostname.endsWith('onemint.com')) {
+          targetUrl = parsed.pathname + parsed.search;
+        }
+      }
+    }
+  } catch {
+    targetUrl = '/';
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

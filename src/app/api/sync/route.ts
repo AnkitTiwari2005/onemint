@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash, timingSafeEqual } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
 import { typesenseAdmin } from '@/lib/typesense';
 import { getCleanEnv } from '@/lib/env';
 
 
-/** Validate that callers provide the correct internal service secret */
+/** Validate that callers provide the correct internal service secret using timing-safe comparison */
 function authorizeServiceCall(req: NextRequest): boolean {
   const syncSecret = getCleanEnv('SYNC_SECRET');
   if (!syncSecret) {
     console.warn('[Sync] SYNC_SECRET env var is not set — all sync requests will be rejected');
     return false; // fail closed
   }
-  return req.headers.get('x-sync-secret') === syncSecret;
+  const provided = req.headers.get('x-sync-secret') || '';
+  try {
+    const a = createHash('sha256').update(provided).digest();
+    const b = createHash('sha256').update(syncSecret).digest();
+    return timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
 
 

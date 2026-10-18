@@ -47,6 +47,7 @@ async function getAuthors(): Promise<DbAuthor[]> {
       .from('authors')
       .select('id, name, slug, role, bio, avatar, status')
       .eq('status', 'active')
+      .is('deleted_at', null)
       .order('name', { ascending: true });
 
     if (!error && data) {

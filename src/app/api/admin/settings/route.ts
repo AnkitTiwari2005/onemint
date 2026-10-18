@@ -75,11 +75,16 @@ export async function PUT(req: NextRequest) {
     }
 
 
-    // Filter out masked API key values — GET returns '••••••••xxxx' for the key.
+    // Filter out masked secret values — GET returns '••••••••xxxx' for secrets like newsletterApiKey.
     // If the admin saves without changing the key, that masked value must NOT overwrite
-    // the real key stored in the DB. Skip any value that contains the bullet character.
+    // the real key stored in the DB. Only skip when the key is a known masked secret field.
     const filteredBody = Object.fromEntries(
-      Object.entries(body).filter(([, value]) => !String(value).includes('•'))
+      Object.entries(body).filter(([key, value]) => {
+        if (key === 'newsletterApiKey' && String(value).includes('•')) {
+          return false;
+        }
+        return true;
+      })
     );
 
     const rows = Object.entries(filteredBody).map(([key, value]) => ({
