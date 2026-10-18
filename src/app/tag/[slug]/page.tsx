@@ -84,7 +84,7 @@ export default async function TagPage({ params }: Props) {
 
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 24px 80px' }}>
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
       {/* Breadcrumb */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32, fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
         <Link href="/" style={{ color: 'var(--color-ink-tertiary)', textDecoration: 'none' }}>Home</Link>
@@ -107,7 +107,7 @@ export default async function TagPage({ params }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 48, alignItems: 'start' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-12 items-start">
         {/* Articles Grid */}
         <div>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 600, color: 'var(--color-ink)', marginBottom: 24, paddingBottom: 12, borderBottom: '1px solid var(--color-border)' }}>
@@ -121,7 +121,7 @@ export default async function TagPage({ params }: Props) {
         </div>
 
         {/* Sidebar */}
-        <aside style={{ position: 'sticky', top: 88 }}>
+        <aside className="lg:sticky lg:top-24">
           {relatedTags.length > 0 && (
             <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: 20, marginBottom: 20 }}>
               <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--color-ink-tertiary)', marginBottom: 12 }}>
@@ -143,13 +143,6 @@ export default async function TagPage({ params }: Props) {
           </Link>
         </aside>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          [style*="grid-template-columns: 1fr 280px"] { grid-template-columns: 1fr !important; }
-          aside { position: static !important; }
-        }
-      `}</style>
     </div>
     </div>
   );

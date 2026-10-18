@@ -20,7 +20,7 @@ const COOKIE_TABLE = [
 export default function CookiePolicyPage() {
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 80px' }}>
+    <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       {/* Breadcrumb */}
       <nav style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-tertiary)', marginBottom: 36, display: 'flex', gap: 8 }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>

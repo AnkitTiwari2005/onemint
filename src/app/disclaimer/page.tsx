@@ -15,7 +15,7 @@ const EFFECTIVE_DATE = 'April 19, 2026';
 export default function DisclaimerPage() {
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px 80px' }}>
+    <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       {/* Header */}
       <div style={{ marginBottom: 40 }}>
         <div

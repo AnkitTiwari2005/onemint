@@ -18,20 +18,9 @@ const EFFECTIVE_DATE = 'October 18, 2026';
 export default function PrivacyPolicyPage() {
   return (
     <div className="pt-16 lg:pt-[72px]">
-    <div
-      style={{
-        maxWidth: 1100,
-        margin: '0 auto',
-        padding: '32px 24px 80px',
-        display: 'grid',
-        gridTemplateColumns: '1fr 260px',
-        gap: 48,
-        alignItems: 'start',
-      }}
-      className="lg:grid-cols-[1fr_260px] block lg:grid"
-    >
-      {/* Main content */}
-      <article className="min-w-0 [overflow-wrap:anywhere] break-words">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 lg:grid lg:grid-cols-[1fr_260px] lg:gap-12 items-start">
+        {/* Main content */}
+        <article className="min-w-0 max-w-full break-words [overflow-wrap:anywhere]">
         {/* Header */}
         <div style={{ marginBottom: 40 }}>
           <div
@@ -393,34 +382,9 @@ export default function PrivacyPolicyPage() {
       </article>
 
       {/* Sidebar ToC */}
-      <aside
-        style={{
-          position: 'sticky',
-          top: 88,
-          alignSelf: 'start',
-          display: 'none',
-        }}
-        className="legal-toc"
-      >
-        <div
-          style={{
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 10,
-            padding: '20px',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--font-ui)',
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: 'var(--color-ink-tertiary)',
-              marginBottom: 12,
-            }}
-          >
+      <aside className="hidden lg:block sticky top-24 self-start">
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-5 shadow-sm">
+          <p className="font-[family-name:var(--font-ui)] text-[11px] font-bold tracking-wider uppercase text-[var(--color-ink-tertiary)] mb-3">
             On This Page
           </p>
           {[
@@ -438,34 +402,13 @@ export default function PrivacyPolicyPage() {
             <a
               key={item.id}
               href={`#${item.id}`}
-              className="legal-toc-link"
-              style={{
-                display: 'block',
-                fontFamily: 'var(--font-ui)',
-                fontSize: 13,
-                color: 'var(--color-ink-secondary)',
-                textDecoration: 'none',
-                padding: '5px 0',
-                borderBottom: '1px solid var(--color-border)',
-                transition: 'color 0.15s ease',
-              }}
+              className="block font-[family-name:var(--font-ui)] text-[13px] text-[var(--color-ink-secondary)] hover:text-[var(--color-accent)] py-1.5 border-b border-[var(--color-border)] last:border-b-0 transition-colors"
             >
               {item.label}
             </a>
           ))}
         </div>
       </aside>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .legal-toc { display: none !important; }
-          [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
-        }
-        @media (min-width: 769px) {
-          .legal-toc { display: block !important; }
-        }
-        .legal-toc-link:hover { color: var(--color-accent) !important; }
-      `}</style>
     </div>
     </div>
   );
