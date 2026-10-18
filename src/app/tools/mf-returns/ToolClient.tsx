@@ -44,7 +44,7 @@ export default function MfReturnsPage() {
   const IconComponent = TrendingUp;
   const chart = chartDataObj && chartDataObj.length > 0 ? (
     <div className="h-[250px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
         <PieChart>
           <Pie data={chartDataObj} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
             {chartDataObj.map((entry, index) => (

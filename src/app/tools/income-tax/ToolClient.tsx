@@ -368,7 +368,7 @@ export default function IncomeTaxPage() {
             <div className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="font-semibold text-[var(--color-ink)] mb-4 font-[family-name:var(--font-heading)]">Old vs New Regime Comparison</h3>
               <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
                   <BarChart data={comparisonChart} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
                     <XAxis type="number" hide />
                     <YAxis type="category" dataKey="name" axisLine={false} tickLine={false}

@@ -6,7 +6,7 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "prebuild": "npx tsx scripts/generate-redirect-map.ts || true",
+    "prebuild": "node scripts/write-deployment-id.js && npx tsx scripts/generate-redirect-map.ts || true",
     "dev": "next dev",
     "build": "next build --webpack",
     "postbuild": "node scripts/postbuild-css.js && node scripts/postbuild-copy.js",

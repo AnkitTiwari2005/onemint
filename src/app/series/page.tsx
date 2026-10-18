@@ -127,7 +127,7 @@ export default async function SeriesHubPage() {
           </Link>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 28 }}>
+        <div className="series-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(380px, 100%), 1fr))', gap: 28 }}>
           {allSeries.map((s) => {
             const cat = categories.find((c) => c.id === s.categoryId || c.slug === s.categoryId);
             return (

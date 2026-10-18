@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { isChunkLoadError, reloadOnceForChunkError } from '@/lib/chunk-recovery';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -14,6 +15,10 @@ interface GlobalErrorProps {
  */
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
+    // If error is due to a stale chunk/script 404, perform a rate-limited hard reload
+    if (isChunkLoadError(error)) {
+      reloadOnceForChunkError();
+    }
     console.error('[RootGlobalError]', error);
   }, [error]);
 

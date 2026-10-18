@@ -26,6 +26,8 @@ export function BackToTop() {
           onClick={scrollToTop}
           title="Back to top"
           aria-label="Scroll back to top"
+          data-print-hide=""
+          className="back-to-top"
           style={{
             position: 'fixed',
             bottom: 88, // above MobileBottomNav on mobile

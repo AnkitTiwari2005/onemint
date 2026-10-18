@@ -1,5 +1,19 @@
+import fs from 'fs';
+import path from 'path';
+
+let deploymentId = undefined;
+try {
+  const dplFile = path.join(process.cwd(), '.deployment-id');
+  if (fs.existsSync(dplFile)) {
+    deploymentId = fs.readFileSync(dplFile, 'utf8').trim() || undefined;
+  }
+} catch {
+  // Ignore in worker threads
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  deploymentId,
   // Standalone output — required for self-hosted deployments (Hostinger, VPS, Docker).
   // Creates .next/standalone/server.js — a self-contained server that doesn't need
   // the project's node_modules at runtime. Hostinger runs this directly.
@@ -124,18 +138,6 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Public folder: images, fonts, og-image — Vary for compression negotiation.
-        // Explicitly excludes /_next/ and /api/ to avoid interfering with
-        // Next.js internal static asset serving.
-        source: '/:path((?!_next|api).*)',
-        headers: [
-          {
-            key: 'Vary',
-            value: 'Accept-Encoding',
-          },
-        ],
-      },
-      {
         // Fonts — immutable, cache aggressively (content never changes for a given filename)
         source: '/fonts/:path*',
         headers: [
@@ -156,15 +158,31 @@ const nextConfig = {
         ],
       },
       {
-        // ── Security & caching headers ─ applied to every HTML page (not API or static assets) ───
-        // Excludes /api/*, /_next/*, /static/*, /favicon.ico so static bundles and APIs aren't affected.
-        source: '/((?!api|_next|static|favicon.ico).*)',
+        // ── Security & caching headers ─ applied to HTML / RSC page routes ─────────────────
+        // Excludes static files, fonts, and extensions so static asset cache rules are never overridden.
+        source: '/((?!api|_next|static|fonts|favicon\\.ico|.*\\..*).*)',
         headers: [
           {
-            // Forces CDN & browser to revalidate HTML with origin before serving from cache.
-            // Prevents edge CDNs from holding stale HTML pointing to dead CSS/JS hashes.
+            // Forces CDN & browser to never store HTML/RSC without validating fresh state.
+            // Prevents edge CDNs and browsers from serving stale HTML with deleted chunk hashes.
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: 'private, no-cache, max-age=0, must-revalidate',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store',
+          },
+          {
+            key: 'Cloudflare-CDN-Cache-Control',
+            value: 'no-store',
+          },
+          {
+            key: 'Surrogate-Control',
+            value: 'no-store',
+          },
+          {
+            key: 'X-LiteSpeed-Cache-Control',
+            value: 'no-cache',
           },
           {
             // Prevent site from being embedded in iframes (clickjacking defence)
@@ -189,26 +207,24 @@ const nextConfig = {
             value: 'camera=(), microphone=(), geolocation=(), payment=()',
           },
           {
-            // Content Security Policy — allows Google Analytics, AdSense, Cloudinary,
-            // Supabase, and self-hosted assets. Blocks inline scripts except the
-            // theme-init snippet (whitelisted via 'unsafe-inline' — tighten with nonce
-            // in a future iteration once all inline scripts are audited).
+            // Content Security Policy — allows Google Analytics, AdSense, DoubleClick,
+            // AdTrafficQuality, Cloudinary, Supabase, and self-hosted assets.
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Scripts: self + GA4 + AdSense + GTM
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.gstatic.com",
-              // Styles: self + inline (Recharts, NProgress, dynamic styles)
-              "style-src 'self' 'unsafe-inline'",
-              // Images: self + Cloudinary + Supabase + R2 + Unsplash + Google
-              "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://*.r2.dev https://images.unsplash.com https://www.google.com https://www.gstatic.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
-              // Fonts: self only (self-hosted)
-              "font-src 'self'",
-              // Connections: self + Supabase + GA4 + Typesense
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.typesense.net",
-              // Frames: AdSense iframes only
-              "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com",
-              // Workers: none needed
+              // Scripts: self + GA4 + AdSense + DoubleClick + GTM + AdTrafficQuality
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://tpc.googlesyndication.com https://www.gstatic.com https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://www.google.co.in https://www.google.com",
+              // Styles: self + inline (Recharts, dynamic styles)
+              "style-src 'self' 'unsafe-inline' https://www.gstatic.com",
+              // Images: self + Cloudinary + Supabase + R2 + Unsplash + Google + AdSense
+              "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://*.r2.dev https://images.unsplash.com https://www.google.com https://www.google.co.in https://www.gstatic.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.google-analytics.com https://*.analytics.google.com",
+              // Fonts: self + data:
+              "font-src 'self' data:",
+              // Connections: self + Supabase + GA4 + Typesense + AdSense/DoubleClick/AdTrafficQuality
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://*.typesense.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google https://fundingchoicesmessages.google.com https://www.google.co.in https://www.google.com",
+              // Frames: AdSense iframes + Google Funding Choices
+              "frame-src https://googleads.g.doubleclick.net https://*.doubleclick.net https://tpc.googlesyndication.com https://*.googlesyndication.com https://www.google.com https://www.google.co.in https://fundingchoicesmessages.google.com",
+              // Workers: Service Worker
               "worker-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",

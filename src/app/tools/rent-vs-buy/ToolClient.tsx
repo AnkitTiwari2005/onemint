@@ -143,7 +143,7 @@ export default function RentVsBuyPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Net Worth Comparison Over 10 Years</h3>
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
           <LineChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <XAxis dataKey="year" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />

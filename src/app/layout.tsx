@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClientLayout } from "@/components/ClientLayout";
 import { JsonLd } from "@/components/JsonLd";
 import { buildWebSite, buildOrganization } from "@/lib/jsonld";
+import { CHUNK_RECOVERY_INLINE_SCRIPT } from "@/lib/chunk-recovery";
 
 // ── Self-hosted fonts (downloaded from Google Fonts, same woff2 files) ────────
 // Build-time network-independent — no Google CDN fetch during `next build`.
@@ -23,6 +24,7 @@ const playfair = localFont({
 const lora = localFont({
   variable: "--font-lora",
   display: "swap",
+  preload: false,
   src: [
     { path: "../../public/fonts/lora/lora-latin-normal-400.woff2", weight: "400", style: "normal" },
     { path: "../../public/fonts/lora/lora-latin-normal-500.woff2", weight: "500", style: "normal" },
@@ -36,6 +38,7 @@ const lora = localFont({
 const sourceSerif = localFont({
   variable: "--font-source-serif",
   display: "swap",
+  preload: false,
   src: [
     { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-400.woff2", weight: "400", style: "normal" },
     { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-600.woff2", weight: "600", style: "normal" },
@@ -58,6 +61,7 @@ const dmSans = localFont({
 const jetbrains = localFont({
   variable: "--font-jetbrains",
   display: "swap",
+  preload: false,
   src: [
     { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-400.woff2", weight: "400", style: "normal" },
     { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-500.woff2", weight: "500", style: "normal" },
@@ -145,8 +149,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-IN" suppressHydrationWarning>
+    <html lang="en-IN" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
+        {/* Chunk load failure recovery — hard reload on stale chunk 404 before React breaks */}
+        <script
+          id="chunk-recovery"
+          dangerouslySetInnerHTML={{ __html: CHUNK_RECOVERY_INLINE_SCRIPT }}
+        />
         {/* Sync theme init — MUST be before body to prevent FOUC */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="icon" type="image/png" href="/icon.png" />

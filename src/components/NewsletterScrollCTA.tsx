@@ -109,7 +109,8 @@ export function NewsletterScrollCTA() {
           // We use bottom:56px so the banner floats just above it, fully visible.
           // z-[9995] ensures it renders on top of everything except modals.
           // Desktop: right-side panel unchanged.
-          className="fixed z-[9995] left-0 right-0 sm:left-auto sm:right-6 sm:w-[340px]"
+          className="newsletter-cta fixed z-[9995] left-0 right-0 sm:left-auto sm:right-6 sm:w-[340px]"
+          data-print-hide=""
           style={{ bottom: isMobile ? '56px' : '24px' }}
           role="complementary"
           aria-label="Newsletter signup"

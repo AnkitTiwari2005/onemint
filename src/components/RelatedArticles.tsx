@@ -47,7 +47,8 @@ export function RelatedArticles({ currentSlug, currentCategoryId, currentTags, a
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, ease: easeOut }}
-      className="mt-16 pt-12 border-t border-[var(--color-border)]"
+      data-print-hide=""
+      className="related-articles mt-16 pt-12 border-t border-[var(--color-border)]"
     >
       <h2 className="font-[family-name:var(--font-display)] text-2xl lg:text-3xl font-bold text-[var(--color-ink)] mb-8">
         You might also like

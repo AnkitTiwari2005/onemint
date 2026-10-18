@@ -238,7 +238,7 @@ export default function AdminDashboard() {
               <Loader2 size={14} className="animate-spin" /> Loading chart…
             </div>
           ) : weeklyChart.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
               <BarChart data={weeklyChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'var(--color-ink-tertiary)' }} />
                 <YAxis tick={{ fontSize: 10, fill: 'var(--color-ink-tertiary)' }} />

@@ -56,3 +56,4 @@ TECHNICAL_AUDIT_DIFF_REPORT.md
 adsense_review_content.txt
 build_*.txt
 public/_next/
+.deployment-id

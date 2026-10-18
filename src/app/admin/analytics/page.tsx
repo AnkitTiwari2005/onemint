@@ -77,7 +77,7 @@ function DeviceDonut({ deviceSplit }: { deviceSplit: AnalyticsStats['deviceSplit
     <div>
       {/* Donut */}
       <div style={{ position: 'relative', height: 180 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
           <PieChart>
             <Pie
               data={deviceSplit}
@@ -956,7 +956,7 @@ function AnalyticsPageContent() {
             Page Views — {periodLabel}
           </h2>
           <div style={{ height: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
               {period === 'weekly' ? (
                 <BarChart data={data.weeklyChart}>
                   <XAxis dataKey="day" tick={{ fontSize: 11 }} />

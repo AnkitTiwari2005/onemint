@@ -271,7 +271,7 @@ export default function TakeHomeSalaryPage() {
     <div>
       <h3 className="text-sm font-semibold text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] mb-4">Where Your CTC Goes</h3>
       <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
           <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} layout="vertical">
             <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={rupeesTickFormatter} width={60} />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />

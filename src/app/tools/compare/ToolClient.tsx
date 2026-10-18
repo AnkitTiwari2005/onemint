@@ -185,7 +185,7 @@ export default function CompareToolsPage() {
 
           {/* Chart */}
           <div style={{ height: 300, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 16 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
               <AreaChart data={sipResult.rows}>
                 <XAxis dataKey="year" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
@@ -274,7 +274,7 @@ export default function CompareToolsPage() {
           </div>
 
           <div style={{ height: 280, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: 16, marginBottom: 24 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
               <AreaChart data={fdResult.rows}>
                 <XAxis dataKey="year" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={rupeesTickFormatter} width={80} />
