@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, CheckCircle2, Loader2, AlertCircle, ArrowRight, Info } from 'lucide-react';
+import { X, Mail, CheckCircle2, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 
 type FormState = 'idle' | 'loading' | 'success' | 'previously_unsubscribed' | 'error';
 

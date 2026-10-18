@@ -174,7 +174,7 @@ export default async function AuthorPage({ params }: Props) {
       <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', marginBottom: 48, flexWrap: 'wrap' }}>
         {authorAvatar && (
           <div style={{ position: 'relative', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '3px solid var(--color-accent)', boxShadow: '0 0 0 4px var(--color-surface)' }}>
-            <Image src={authorAvatar} alt={authorName} fill className="object-cover" />
+            <Image src={authorAvatar} alt={authorName} fill sizes="120px" className="object-cover" />
           </div>
         )}
         <div style={{ flex: 1 }}>

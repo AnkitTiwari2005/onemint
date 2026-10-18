@@ -2,9 +2,14 @@
 
 import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Calculator, Info, ArrowLeft, AlertTriangle } from 'lucide-react';
+
+const SipChart = dynamic(() => import('./SipChart'), {
+  ssr: false,
+  loading: () => <div className="h-[250px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
+});
 
 // ── Scenario presets ──────────────────────────────────────────────────────────
 const SCENARIOS = [
@@ -349,40 +354,7 @@ export default function SIPCalculatorPage() {
             {/* Chart */}
             <div className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-border)] shadow-sm flex-1 min-h-[300px]">
               <h3 className="font-semibold text-[var(--color-ink)] mb-6">Wealth Growth Over Time</h3>
-              <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 320, height: 240 }}>
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorReturns" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="var(--color-cat-finance)" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="var(--color-cat-finance)" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="var(--color-ink-tertiary)" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="var(--color-ink-tertiary)" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis
-                      dataKey="year"
-                      axisLine={false} tickLine={false}
-                      tick={{ fill: 'var(--color-ink-tertiary)', fontSize: 11 }}
-                      dy={10} minTickGap={30}
-                    />
-                    <YAxis
-                      axisLine={false} tickLine={false}
-                      tick={{ fill: 'var(--color-ink-tertiary)', fontSize: 11 }}
-                      tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`}
-                      dx={-10}
-                    />
-                    <Tooltip
-                      formatter={(value) => [`₹ ${formatIndianNumber(Number(value))}`, '']}
-                      contentStyle={{ borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}
-                    />
-                    <Area type="monotone" dataKey="total"    stroke="var(--color-cat-finance)"    strokeWidth={2} fillOpacity={1} fill="url(#colorReturns)" />
-                    <Area type="monotone" dataKey="invested" stroke="var(--color-ink-tertiary)"   strokeWidth={2} fillOpacity={1} fill="url(#colorInvested)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <SipChart chartData={chartData} />
             </div>
           </div>
         </div>

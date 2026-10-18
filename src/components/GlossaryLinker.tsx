@@ -35,7 +35,13 @@ const uniqueTerms = allTerms.filter(t => {
  *
  * Terms are only highlighted once per article to keep the prose clean.
  */
-export function GlossaryLinker({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
+export function GlossaryLinker({
+  containerRef,
+  containerId = 'article-prose',
+}: {
+  containerRef?: React.RefObject<HTMLDivElement | null>;
+  containerId?: string;
+}) {
   const done = useRef(false);
 
   useEffect(() => {
@@ -46,7 +52,7 @@ export function GlossaryLinker({ containerRef }: { containerRef: React.RefObject
     // the DOM scan never blocks first paint or interactivity.
     const run = () => {
       if (done.current) return;
-      const container = containerRef.current;
+      const container = containerRef ? containerRef.current : document.getElementById(containerId);
       if (!container) return;
       scanAndHighlight(container);
       done.current = true;
@@ -62,7 +68,7 @@ export function GlossaryLinker({ containerRef }: { containerRef: React.RefObject
       if ('requestIdleCallback' in window) cancelIdleCallback(handle as number);
       else clearTimeout(handle as ReturnType<typeof setTimeout>);
     };
-  }, [containerRef]);
+  }, [containerRef, containerId]);
 
   return null;
 }

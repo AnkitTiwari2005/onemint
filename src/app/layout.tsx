@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ClientLayout } from "@/components/ClientLayout";
@@ -12,12 +13,8 @@ const playfair = localFont({
   variable: "--font-playfair",
   display: "swap",
   src: [
-    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-400.woff2", weight: "400", style: "normal" },
-    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-500.woff2", weight: "500", style: "normal" },
-    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-600.woff2", weight: "600", style: "normal" },
-    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-700.woff2", weight: "700", style: "normal" },
-    { path: "../../public/fonts/playfair-display/playfair-display-latin-italic-400.woff2", weight: "400", style: "italic" },
-    { path: "../../public/fonts/playfair-display/playfair-display-latin-italic-600.woff2", weight: "600", style: "italic" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-normal-400.woff2", weight: "400 700", style: "normal" },
+    { path: "../../public/fonts/playfair-display/playfair-display-latin-italic-400.woff2", weight: "400 700", style: "italic" },
   ],
 });
 
@@ -26,12 +23,8 @@ const lora = localFont({
   display: "swap",
   preload: false,
   src: [
-    { path: "../../public/fonts/lora/lora-latin-normal-400.woff2", weight: "400", style: "normal" },
-    { path: "../../public/fonts/lora/lora-latin-normal-500.woff2", weight: "500", style: "normal" },
-    { path: "../../public/fonts/lora/lora-latin-normal-600.woff2", weight: "600", style: "normal" },
-    { path: "../../public/fonts/lora/lora-latin-normal-700.woff2", weight: "700", style: "normal" },
-    { path: "../../public/fonts/lora/lora-latin-italic-400.woff2", weight: "400", style: "italic" },
-    { path: "../../public/fonts/lora/lora-latin-italic-600.woff2", weight: "600", style: "italic" },
+    { path: "../../public/fonts/lora/lora-latin-normal-400.woff2", weight: "400 700", style: "normal" },
+    { path: "../../public/fonts/lora/lora-latin-italic-400.woff2", weight: "400 700", style: "italic" },
   ],
 });
 
@@ -39,9 +32,7 @@ const sourceSerif = localFont({
   variable: "--font-source-serif",
   display: "swap",
   src: [
-    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-400.woff2", weight: "400", style: "normal" },
-    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-600.woff2", weight: "600", style: "normal" },
-    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-700.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-400.woff2", weight: "400 700", style: "normal" },
     { path: "../../public/fonts/source-serif-4/source-serif-4-latin-italic-400.woff2", weight: "400", style: "italic" },
   ],
 });
@@ -50,10 +41,7 @@ const dmSans = localFont({
   variable: "--font-dm-sans",
   display: "swap",
   src: [
-    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-400.woff2", weight: "400", style: "normal" },
-    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-500.woff2", weight: "500", style: "normal" },
-    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-600.woff2", weight: "600", style: "normal" },
-    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-700.woff2", weight: "700", style: "normal" },
+    { path: "../../public/fonts/dm-sans/dm-sans-latin-normal-400.woff2", weight: "400 700", style: "normal" },
   ],
 });
 
@@ -62,10 +50,7 @@ const jetbrains = localFont({
   display: "swap",
   preload: false,
   src: [
-    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-400.woff2", weight: "400", style: "normal" },
-    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-500.woff2", weight: "500", style: "normal" },
-    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-700.woff2", weight: "700", style: "normal" },
-    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-italic-400.woff2", weight: "400", style: "italic" },
+    { path: "../../public/fonts/jetbrains-mono/jetbrains-mono-latin-normal-400.woff2", weight: "400 700", style: "normal" },
   ],
 });
 
@@ -157,7 +142,6 @@ export default function RootLayout({
         />
         {/* Sync theme init — MUST be before body to prevent FOUC */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link rel="icon" type="image/png" href="/icon.png" />
         {/* RSS feed autodiscovery */}
         <link rel="alternate" type="application/rss+xml" title="OneMint — Latest Articles" href="/feed.xml" />
         {/* PWA theme colors */}
@@ -165,7 +149,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
         {/* PWA manifest + Apple meta */}
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="OneMint" />
@@ -190,13 +174,14 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Google Analytics 4 — page-view tracking */}
-        {/* ID driven by NEXT_PUBLIC_GA4_MEASUREMENT_ID env var */}
-        <script
-          async
+        {/* Google Analytics 4 — page-view tracking (afterInteractive so it never blocks hydration/LCP) */}
+        <Script
+          strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? 'G-64VNWTB5ME'}`}
         />
-        <script
+        <Script
+          id="ga4-init"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];

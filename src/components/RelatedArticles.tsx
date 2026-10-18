@@ -7,17 +7,28 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { toArticle } from '@/lib/articles';
 import { easeOut } from '@/lib/motion';
 
+import type { Article } from '@/data/articles';
+
 interface RelatedArticlesProps {
-  currentSlug: string;
-  currentCategoryId: string | null;
-  currentTags: string[];
-  allArticles: PublicArticle[];
+  articles?: Article[];
+  currentSlug?: string;
+  currentCategoryId?: string | null;
+  currentTags?: string[];
+  allArticles?: PublicArticle[];
 }
 
-export function RelatedArticles({ currentSlug, currentCategoryId, currentTags, allArticles }: RelatedArticlesProps) {
+export function RelatedArticles({
+  articles,
+  currentSlug,
+  currentCategoryId,
+  currentTags = [],
+  allArticles = [],
+}: RelatedArticlesProps) {
   const prefersReduced = useReducedMotion();
 
   const related = useMemo(() => {
+    if (articles) return articles;
+    if (!currentSlug) return [];
     const scored = allArticles
       .filter(a => a.slug !== currentSlug)
       .map(a => {
@@ -37,7 +48,7 @@ export function RelatedArticles({ currentSlug, currentCategoryId, currentTags, a
       });
 
     return scored.slice(0, 3).map((s, i) => toArticle(s.article, i));
-  }, [currentSlug, currentCategoryId, currentTags, allArticles]);
+  }, [articles, currentSlug, currentCategoryId, currentTags, allArticles]);
 
   if (related.length === 0) return null;
 

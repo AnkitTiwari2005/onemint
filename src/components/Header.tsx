@@ -240,6 +240,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={onSearchOpen}
+                onMouseEnter={() => { import('@/components/SearchOverlay'); }}
                 className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-alt)] transition-colors"
                 aria-label="Search (Ctrl+K)"
               >

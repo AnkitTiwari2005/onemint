@@ -6,7 +6,6 @@
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 const SITE_NAME = 'OneMint';
-const LOGO_URL = `${SITE}/logo.png`;
 
 // ── WebSite ───────────────────────────────────────────────────────────────────
 /** Root WebSite schema — also registers the Sitelinks Search Box in Google. */
@@ -44,7 +43,7 @@ export function buildOrganization() {
     logo: {
       '@type': 'ImageObject',
       '@id': `${SITE}/#logo`,
-      url: LOGO_URL,
+      url: `${SITE}/icon-512.png`,
       width: 512,
       height: 512,
       caption: SITE_NAME,
@@ -96,6 +95,7 @@ export interface ArticleSchemaInput {
   dateModified: string;
   authorName: string;
   authorUrl: string;
+  authorSameAs?: string[];
   /** Category / topic name — maps to schema.org articleSection */
   articleSection?: string;
 }
@@ -131,13 +131,18 @@ export function buildArticle(article: ArticleSchemaInput) {
       '@type': 'Person',
       name: article.authorName,
       url: article.authorUrl,
+      ...(article.authorSameAs && article.authorSameAs.length > 0
+        ? { sameAs: article.authorSameAs }
+        : {}),
     },
     publisher: {
       '@type': 'Organization',
+      '@id': `${SITE}/#organization`,
       name: SITE_NAME,
+      url: SITE,
       logo: {
         '@type': 'ImageObject',
-        url: LOGO_URL,
+        url: `${SITE}/icon-512.png`,
         width: 512,
         height: 512,
       },

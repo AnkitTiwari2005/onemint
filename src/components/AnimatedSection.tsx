@@ -12,6 +12,8 @@ interface AnimatedSectionProps {
   direction?: 'up' | 'left' | 'right' | 'none';
   /** Distance in px to travel. Default: 28 */
   distance?: number;
+  /** When true, renders visible immediately without hiding in initial SSR HTML */
+  priority?: boolean;
 }
 
 /**
@@ -25,6 +27,7 @@ export function AnimatedSection({
   className,
   direction = 'up',
   distance = 28,
+  priority = false,
 }: AnimatedSectionProps) {
   const dirMap = {
     up: { y: distance, x: 0 },
@@ -51,7 +54,7 @@ export function AnimatedSection({
     <motion.div
       className={cn(className)}
       variants={variants}
-      initial="hidden"
+      initial={priority ? false : 'hidden'}
       whileInView="visible"
       viewport={{ once: true, margin: '-60px' }}
       data-motion="true"

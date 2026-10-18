@@ -198,7 +198,7 @@ function SearchPageContent() {
                       <Link key={article.id} href={`/articles/${article.slug}`} className="group flex flex-col sm:flex-row gap-6 items-start">
                         {imgSrc && (
                           <div className="relative w-full sm:w-64 aspect-video shrink-0 rounded-xl overflow-hidden bg-[var(--color-surface-alt)]">
-                            <Image src={imgSrc} alt={article.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <Image src={imgSrc} alt={article.title} fill sizes="(max-width: 640px) 100vw, 256px" className="object-cover transition-transform duration-500 group-hover:scale-105" />
                           </div>
                         )}
                         <div>

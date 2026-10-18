@@ -143,6 +143,8 @@ const NEW_SITE_PREFIXES = [
 ];
 const NEW_SITE_EXACT = new Set([
   '/', '/about', '/advertise', '/press', '/suggest',
+  '/contact', '/editorial-policy', '/privacy-policy',
+  '/terms', '/cookies', '/disclaimer',
   '/favicon.ico', '/robots.txt',
 ]);
 
@@ -238,11 +240,23 @@ export async function proxy(req: NextRequest) {
   // ── Maintenance mode ───────────────────────────────────────────────────────
   const isAdminRoute    = pathname.startsWith('/admin');
   const isApiRoute      = pathname.startsWith('/api');
-  const isPublicAsset   = pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname === '/favicon.ico';
+  const isExcludedFromMaintenance =
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname.startsWith('/sitemap');
   const isMaintenancePage = pathname === '/maintenance';
 
-  if (isMaintenanceMode() && !isAdminRoute && !isApiRoute && !isPublicAsset && !isMaintenancePage) {
-    return NextResponse.redirect(new URL('/maintenance', req.nextUrl.origin));
+  if (isMaintenanceMode() && !isAdminRoute && !isApiRoute && !isExcludedFromMaintenance) {
+    if (isMaintenancePage) {
+      const res = NextResponse.next({ status: 503 });
+      res.headers.set('Retry-After', '3600');
+      return res;
+    }
+    const res = NextResponse.rewrite(new URL('/maintenance', req.nextUrl.origin), { status: 503 });
+    res.headers.set('Retry-After', '3600');
+    return res;
   }
 
   // ── Admin session protection ───────────────────────────────────────────────
@@ -267,5 +281,13 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*', '/((?!_next|static|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - _next/static (static chunks and bundles)
+     * - _next/image (image optimization files)
+     * - static assets (.ico, .png, .jpg, .jpeg, .svg, .webp, .woff, .woff2)
+     */
+    '/((?!_next/static|_next/image|.*\\.(?:ico|png|jpg|jpeg|svg|webp|woff|woff2)$).*)',
+  ],
 };

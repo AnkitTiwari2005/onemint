@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { fetchPublishedArticleBySlug, fetchPublishedArticles } from '@/lib/articles';
+import { fetchPublishedArticleBySlug, fetchPublishedArticles, toArticle } from '@/lib/articles';
 import { supabaseAdmin } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
 import { ShareBar } from '@/components/ShareBar';
@@ -130,6 +130,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     twitter: {
       card: 'summary_large_image',
+      site: '@one_mint_',
       title: seoTitle,
       description: seoDesc,
     },
@@ -156,6 +157,24 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   // Parse TOC from actual markdown content
   const tocItems = hasDbContent ? extractToc(article!.content!) : [];
 
+  // Extract author social profiles for E-E-A-T sameAs schema
+  const authorRecord = author as Record<string, unknown> | null;
+  const authorSameAs: string[] = [];
+  if (authorRecord?.twitter && typeof authorRecord.twitter === 'string') {
+    authorSameAs.push(
+      authorRecord.twitter.startsWith('http')
+        ? authorRecord.twitter
+        : `https://twitter.com/${authorRecord.twitter}`
+    );
+  }
+  if (authorRecord?.linkedin && typeof authorRecord.linkedin === 'string') {
+    authorSameAs.push(
+      authorRecord.linkedin.startsWith('http')
+        ? authorRecord.linkedin
+        : `https://www.linkedin.com/in/${authorRecord.linkedin}`
+    );
+  }
+
   // ── Structured data ────────────────────────────────────────────────
   const articleUrl = `${SITE_URL}/articles/${slug}`;
   const breadcrumbItems = [
@@ -168,11 +187,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     description: article!.excerpt ?? '',
     url: articleUrl,
     imageUrl: article!.cover_image,
-    datePublished: article!.published_at ?? new Date().toISOString(),
-    // Use updated_at for freshness signal — Google boosts recently-updated articles
-    dateModified: (article as unknown as Record<string, string>).updated_at ?? article!.published_at ?? new Date().toISOString(),
+    datePublished: article!.published_at ?? '2026-01-01T00:00:00.000Z',
+    // Use updated_at for freshness signal; fall back to published_at — never fabricate new Date()
+    dateModified: (article as unknown as Record<string, string>).updated_at || article!.published_at || '2026-01-01T00:00:00.000Z',
     authorName: author?.name ?? 'OneMint Editorial',
     authorUrl: author ? `${SITE_URL}/author/${author.slug}` : SITE_URL,
+    authorSameAs,
     articleSection: category?.name,
   });
   const breadcrumbSchema = buildBreadcrumbs(breadcrumbItems);
@@ -188,6 +208,29 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       (a.published_at ?? '') > (article!.published_at ?? '')
     )
     .sort((a, b) => (a.published_at ?? '').localeCompare(b.published_at ?? ''))[0] ?? null;
+
+  // Related articles computed on the server — pass top 3 only, avoiding massive catalogue client serialization
+  const currentCategoryId = article!.categories?.slug ?? article!.category_id;
+  const currentTags = (article!.tags ?? []) as string[];
+  const relatedArticles = allArticles
+    .filter(a => a.slug !== slug)
+    .map(a => {
+      let weight = 0;
+      const aCatId = a.categories?.slug ?? a.category_id;
+      if (aCatId && aCatId === currentCategoryId) weight += 3;
+      const aTags = a.tags ?? [];
+      const sharedTags = aTags.filter(t => currentTags.includes(t));
+      if (sharedTags.length >= 2) weight += 2;
+      else if (sharedTags.length === 1) weight += 1;
+      return { article: a, weight };
+    })
+    .filter(s => s.weight > 0)
+    .sort((a, b) => {
+      if (b.weight !== a.weight) return b.weight - a.weight;
+      return (b.article.published_at ?? '').localeCompare(a.article.published_at ?? '');
+    })
+    .slice(0, 3)
+    .map((s, i) => toArticle(s.article, i));
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-20">
@@ -329,7 +372,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         {article!.cover_image && (
           <figure className="mb-12 relative group">
             <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--color-surface-alt)]">
-              <Image src={article!.cover_image} alt={article!.title} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.02]" priority data-no-dim />
+              <Image
+                src={article!.cover_image}
+                alt={article!.title}
+                fill
+                sizes="((max-width: 768px) 100vw, 720px)"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                priority
+                data-no-dim
+              />
             </div>
           </figure>
         )}
@@ -479,13 +530,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <ArticleComments slug={slug} />
           </ErrorBoundary>
 
-          {/* Related Articles */}
-          <RelatedArticles
-            currentSlug={article!.slug}
-            currentCategoryId={article!.categories?.slug ?? article!.category_id}
-            currentTags={article!.tags ?? []}
-            allArticles={allArticles}
-          />
+          {/* Related Articles — pre-scored top 3 passed directly */}
+          <RelatedArticles articles={relatedArticles} />
 
           {/* Multiplex ad — content recommendation grid after related articles */}
           <AdSlot

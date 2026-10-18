@@ -35,7 +35,6 @@ export default function ContactClient() {
   const [formState, setFormState] = useState<FormState>('idle');
 
   const errors = validate(fields);
-  const isValid = Object.keys(errors).length === 0;
 
   const set = (k: keyof typeof fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setFields(f => ({ ...f, [k]: e.target.value }));

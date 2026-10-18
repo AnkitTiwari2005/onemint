@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Flame, TrendingUp, Star, CheckCircle2, Loader2, ArrowRight, Clock, BookOpen } from 'lucide-react';
 import { categories as staticCategories } from '@/data/categories';
 import { getCategoryById } from '@/data/categories';
@@ -22,7 +22,7 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { MarketTicker } from '@/components/MarketTicker';
 import { AnimatedSection, StaggerContainer } from '@/components/AnimatedSection';
 import { formatDate } from '@/lib/utils';
-import { cardVariants, heroVariants } from '@/lib/motion';
+import { cardVariants } from '@/lib/motion';
 import { cn } from '@/lib/cn';
 import { trackEvent } from '@/lib/analytics';
 import type { Article } from '@/data/articles';
@@ -79,8 +79,6 @@ interface HomePageClientProps {
 }
 
 export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [] }: HomePageClientProps) {
-  const prefersReduced = useReducedMotion();
-
   // ── Derived lists (same logic as before, now from props not state) ───────
   const featured = articles.find((a) => a.featured) ?? articles[0];
   const featuredCategory =
@@ -174,13 +172,7 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
           {/* Main featured article */}
-          <motion.div
-            className="lg:col-span-7"
-            variants={prefersReduced ? undefined : { initial: heroVariants.image.initial, animate: heroVariants.image.animate }}
-            initial="initial"
-            animate="animate"
-            data-motion="true"
-          >
+          <div className="lg:col-span-7 animate-hero-image">
             <Link href={`/articles/${featured.slug}`} className="group relative block rounded-2xl overflow-hidden min-h-[300px] lg:min-h-[480px] bg-[var(--color-surface-alt)]">
               <Image
                 src={featured.featuredImage}
@@ -195,33 +187,17 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
 
               <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-10">
                 {featuredCategory?.name && (
-                  <motion.span
-                    variants={prefersReduced ? undefined : heroVariants.pill}
-                    initial="initial"
-                    animate="animate"
-                    className="inline-block px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white mb-3"
+                  <span
+                    className="inline-block px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white mb-3 animate-hero-pill"
                     style={{ background: featuredCategory.accentColor }}
-                    data-motion="true"
                   >
                     {featuredCategory.name}
-                  </motion.span>
+                  </span>
                 )}
-                <motion.h2
-                  variants={prefersReduced ? undefined : heroVariants.title}
-                  initial="initial"
-                  animate="animate"
-                  className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl lg:text-[40px] font-bold text-white leading-tight mb-3"
-                  data-motion="true"
-                >
+                <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl lg:text-[40px] font-bold text-white leading-tight mb-3 animate-hero-title">
                   {featured.title}
-                </motion.h2>
-                <motion.div
-                  variants={prefersReduced ? undefined : heroVariants.meta}
-                  initial="initial"
-                  animate="animate"
-                  className="flex flex-wrap items-center gap-3 text-white/75 text-sm font-[family-name:var(--font-ui)]"
-                  data-motion="true"
-                >
+                </h2>
+                <div className="flex flex-wrap items-center gap-3 text-white/75 text-sm font-[family-name:var(--font-ui)] animate-hero-meta">
                   {featuredAuthor && (
                     <>
                       <Image src={featuredAuthor.avatar} alt={featuredAuthor.name} width={24} height={24} className="rounded-full border border-white/30" />
@@ -232,7 +208,7 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
                   {featured.publishedAt && <span>{formatDate(featured.publishedAt)}</span>}
                   <span>·</span>
                   <span>{featured.readTimeMinutes} min read</span>
-                </motion.div>
+                </div>
               </div>
 
               <div className="absolute top-4 left-4">
@@ -242,16 +218,10 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
                 </span>
               </div>
             </Link>
-          </motion.div>
+          </div>
 
           {/* Secondary stack */}
-          <motion.div
-            className="lg:col-span-5"
-            variants={prefersReduced ? undefined : heroVariants.secondary}
-            initial="initial"
-            animate="animate"
-            data-motion="true"
-          >
+          <div className="lg:col-span-5 animate-hero-secondary">
             {/* Mobile: horizontal scroll */}
             <div className="flex lg:hidden gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
               {secondary.map((article) => {
@@ -307,7 +277,7 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
                 View all articles <ArrowRight size={15} />
               </Link>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 

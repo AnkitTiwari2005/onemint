@@ -1,6 +1,3 @@
-'use client';
-
-import { useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { GlossaryLinker } from '@/components/GlossaryLinker';
@@ -137,12 +134,11 @@ const END_SLOT  = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE_END;
  * Injects AdSense slots at mid-article and end of article.
  */
 export function ArticleBodyClient({ content }: ArticleBodyClientProps) {
-  const proseRef = useRef<HTMLDivElement>(null);
   const [firstHalf, secondHalf] = splitAtMidpoint(content);
   const hasSecondHalf = secondHalf.trim().length > 200;
 
   return (
-    <div className="prose prose-slate max-w-none" ref={proseRef}>
+    <div id="article-prose" className="prose prose-slate max-w-none">
       {/* First half of article */}
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
         {firstHalf}
@@ -171,8 +167,8 @@ export function ArticleBodyClient({ content }: ArticleBodyClientProps) {
         label="End of article"
       />
 
-      {/* Glossary auto-linker runs after render, walks text nodes */}
-      <GlossaryLinker containerRef={proseRef} />
+      {/* Glossary auto-linker client island */}
+      <GlossaryLinker containerId="article-prose" />
     </div>
   );
 }

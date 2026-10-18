@@ -35,7 +35,7 @@ export default function EPFPage() {
       // Employer contribution: 12% total. 8.33% goes to EPS, capped at ₹15,000 wage (max ₹1,250/mo).
       // The rest (12% − EPS portion) goes to EPF.
       const epsWageCap = 15000;
-      const epsContrib = Math.min(0.0833 * Math.min(currentSalary, epsWageCap), 1250);
+      const epsContrib = Math.min(Math.round((8.3333 / 100) * Math.min(currentSalary, epsWageCap)), 1250);
       const erMonthly = Math.round(currentSalary * 0.12 - epsContrib);
       let yearInterest = 0;
 

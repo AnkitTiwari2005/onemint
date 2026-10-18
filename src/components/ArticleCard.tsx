@@ -40,7 +40,7 @@ export function ArticleCard({ article, variant = 'standard', index = 0, priority
   return (
     <motion.div
       custom={index}
-      initial={prefersReduced ? false : 'hidden'}
+      initial={prefersReduced || priority || index === 0 ? false : 'hidden'}
       whileInView="visible"
       viewport={{ once: true, margin: '-50px' }}
       variants={cardVariants}
@@ -116,12 +116,7 @@ function HeroCard({
       href={`/articles/${article.slug}`}
       className="group relative block rounded-2xl overflow-hidden min-h-[300px] lg:min-h-[480px]"
     >
-      <motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0, scale: 1.02 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-      >
+      <div className="absolute inset-0 animate-hero-image">
         <Image
           src={article.featuredImage}
           alt={article.title}
@@ -130,43 +125,25 @@ function HeroCard({
           sizes="(max-width: 1024px) 100vw, 58vw"
           priority={priority}
         />
-      </motion.div>
+      </div>
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
       <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-10">
         {category && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="inline-block px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white mb-3"
+          <span
+            className="inline-block px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white mb-3 animate-hero-pill"
             style={{ background: category.accentColor }}
           >
             {category.name}
-          </motion.span>
+          </span>
         )}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl lg:text-[40px] font-bold text-white leading-tight mb-3"
-        >
+        <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl lg:text-[40px] font-bold text-white leading-tight mb-3 animate-hero-title">
           {article.title}
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.35 }}
-          className="text-white/80 text-sm lg:text-base mb-3 line-clamp-2 font-[family-name:var(--font-body)]"
-        >
+        </h1>
+        <p className="text-white/80 text-sm lg:text-base mb-3 line-clamp-2 font-[family-name:var(--font-body)] animate-hero-meta">
           {article.deck}
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="flex items-center gap-3 text-white/70 text-sm"
-        >
+        </p>
+        <div className="flex items-center gap-3 text-white/70 text-sm animate-hero-meta">
           {author && (
             <>
               <Image
@@ -183,7 +160,7 @@ function HeroCard({
           <span>{formatDate(article.publishedAt)}</span>
           <span>·</span>
           <span>{article.readTimeMinutes} min read</span>
-        </motion.div>
+        </div>
       </div>
       <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[var(--color-accent-gold)] text-white text-[10px] font-bold uppercase tracking-wider">
         Featured

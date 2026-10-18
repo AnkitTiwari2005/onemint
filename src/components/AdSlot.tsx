@@ -83,10 +83,18 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
   // No pub ID or slot configured — render nothing
   if (!PUB_ID || !slotId) return null;
 
+const MIN_HEIGHTS: Record<string, number> = {
+  auto: 90,
+  fluid: 250,
+  rectangle: 250,
+  autorelaxed: 280,
+  infeed: 120,
+};
+
   // Multiplex (autorelaxed) — uses data-ad-format="autorelaxed", no responsive attr
   if (format === 'autorelaxed') {
     return (
-      <div className={className} style={{ margin: '32px 0' }} aria-label="Advertisement">
+      <div className={`ad-slot-container ${className}`} style={{ margin: '32px 0', minHeight: 280 }} aria-label="Advertisement">
         <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, textAlign: 'center' }}>
           Advertisement
         </p>
@@ -104,7 +112,7 @@ export function AdSlot({ slotId, format = 'auto', label = 'Advertisement', class
 
   // Standard display / fluid / rectangle / infeed
   return (
-    <div className={className} style={{ margin: '24px 0', textAlign: 'center' }} aria-label="Advertisement">
+    <div className={`ad-slot-container ${className}`} style={{ margin: '24px 0', minHeight: MIN_HEIGHTS[format] ?? 90, textAlign: 'center' }} aria-label="Advertisement">
       <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
         Advertisement
       </p>

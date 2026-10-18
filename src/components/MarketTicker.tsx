@@ -12,15 +12,15 @@ interface MarketItem {
   unit?: string;
 }
 
-// Static fallback — shown instantly while live data loads
+// Static indicative baseline — shown instantly while live data loads
 const FALLBACK: MarketItem[] = [
-  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: 22847.65, change: 0.84 },
-  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: 75310.42, change: 0.79 },
-  { symbol: 'GOLD',       name: 'Gold',        value: 91450,    change: 0.32, unit: '₹/10g' },
-  { symbol: 'USD/INR',    name: 'USD/INR',     value: 83.42,    change: -0.11 },
-  { symbol: 'BTC',        name: 'Bitcoin',     value: 6824302,  change: 2.45, unit: '₹' },
-  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: 49182.30, change: 1.12 },
-  { symbol: 'SILVER',     name: 'Silver',      value: 1048,     change: 0.58, unit: '₹/g' },
+  { symbol: 'NIFTY 50',   name: 'Nifty 50',    value: 24500.00, change: 0 },
+  { symbol: 'SENSEX',     name: 'BSE Sensex',  value: 80500.00, change: 0 },
+  { symbol: 'GOLD',       name: 'Gold',        value: 93500,    change: 0, unit: '₹/10g' },
+  { symbol: 'USD/INR',    name: 'USD/INR',     value: 86.50,    change: 0 },
+  { symbol: 'BTC',        name: 'Bitcoin',     value: 8500000,  change: 0, unit: '₹' },
+  { symbol: 'NIFTY BANK', name: 'Bank Nifty',  value: 52000.00, change: 0 },
+  { symbol: 'SILVER',     name: 'Silver',      value: 1080,     change: 0, unit: '₹/g' },
 ];
 
 function formatValue(value: number, unit?: string): string {

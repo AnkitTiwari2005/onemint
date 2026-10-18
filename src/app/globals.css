@@ -285,6 +285,51 @@ mark {
   }
 }
 
+/* Hero section CSS entrance (Visible in server HTML; animates via CSS compositor) */
+@keyframes heroImageIn {
+  from { opacity: 0.88; transform: scale(1.02); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes heroSecondaryIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-hero-image {
+    animation: heroImageIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .animate-hero-pill {
+    animation: heroFadeUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
+  }
+  .animate-hero-title {
+    animation: heroFadeUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s both;
+  }
+  .animate-hero-meta {
+    animation: heroFadeIn 0.4s ease 0.25s both;
+  }
+  .animate-hero-secondary {
+    animation: heroSecondaryIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
+  }
+}
+
+/* AdSense CLS prevention: collapse unfilled ad slots */
+ins.adsbygoogle[data-ad-status="unfilled"],
+.ad-slot-container:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 /* Fixed: use transform: scaleX (not width) to avoid layout reflow */
 @keyframes progressGrow {
   from { transform: scaleX(0); }
