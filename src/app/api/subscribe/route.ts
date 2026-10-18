@@ -118,13 +118,29 @@ export async function POST(req: NextRequest) {
 
       isNewSubscriber = !existing;
 
-      // H3 fix: do NOT silently re-activate an opted-out subscriber.
-      // Return a specific status so the UI can show an appropriate message.
+      // If previously unsubscribed, reactivate on explicit user resubmission
       if (existing?.status === 'unsubscribed') {
-        return NextResponse.json(
-          { status: 'previously_unsubscribed', message: 'You have previously unsubscribed. Please contact us if you would like to re-subscribe.' },
-          { status: 200 }
-        );
+        const { error: reactivateErr } = await supabaseAdmin
+          .from('newsletter_subscribers')
+          .update({
+            status: 'active',
+            name: displayName || undefined,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('email', normalizedEmail);
+
+        if (reactivateErr) {
+          console.error('[Subscribe] Reactivation error:', reactivateErr.message);
+        } else {
+          sendWelcomeEmail(normalizedEmail, displayName).catch(err => {
+            console.error('[Subscribe] Welcome email failed:', err);
+          });
+          return NextResponse.json({
+            success: true,
+            status: 'reactivated',
+            message: 'Welcome back! Your newsletter subscription has been reactivated.',
+          });
+        }
       }
 
       // Only upsert if subscriber is new or already active

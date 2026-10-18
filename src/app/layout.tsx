@@ -38,7 +38,6 @@ const lora = localFont({
 const sourceSerif = localFont({
   variable: "--font-source-serif",
   display: "swap",
-  preload: false,
   src: [
     { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-400.woff2", weight: "400", style: "normal" },
     { path: "../../public/fonts/source-serif-4/source-serif-4-latin-normal-600.woff2", weight: "600", style: "normal" },

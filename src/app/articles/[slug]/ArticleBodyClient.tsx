@@ -86,14 +86,46 @@ interface ArticleBodyClientProps {
 
 /**
  * Split markdown into two halves at the nearest paragraph boundary
- * after the midpoint. Used to inject a mid-article ad slot.
+ * after the midpoint. Skips code fences (```) and tables so formatting is never broken.
+ * Used to inject a mid-article ad slot.
  */
 function splitAtMidpoint(md: string): [string, string] {
-  const mid = Math.floor(md.length / 2);
-  // Find next double-newline after midpoint (paragraph break)
-  const splitIdx = md.indexOf('\n\n', mid);
-  if (splitIdx === -1) return [md, ''];
-  return [md.slice(0, splitIdx + 2), md.slice(splitIdx + 2)];
+  if (!md) return ['', ''];
+  const lines = md.split('\n');
+  if (lines.length < 8) return [md, ''];
+
+  const mid = Math.floor(lines.length / 2);
+  let inCodeFence = false;
+  let splitLineIndex = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (trimmed.startsWith('```')) {
+      inCodeFence = !inCodeFence;
+      continue;
+    }
+
+    // Don't split inside a code block, inside a table, or right after a heading
+    if (!inCodeFence && i >= mid) {
+      const isBlank = trimmed === '';
+      const prevLine = i > 0 ? lines[i - 1].trim() : '';
+      const isPrevHeading = prevLine.startsWith('#');
+      const isTable = trimmed.startsWith('|') || prevLine.startsWith('|');
+
+      if (isBlank && !isPrevHeading && !isTable) {
+        splitLineIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (splitLineIndex === -1) {
+    return [md, ''];
+  }
+
+  const firstHalf = lines.slice(0, splitLineIndex).join('\n');
+  const secondHalf = lines.slice(splitLineIndex + 1).join('\n');
+  return [firstHalf, secondHalf];
 }
 
 const MID_SLOT  = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE_MID;
