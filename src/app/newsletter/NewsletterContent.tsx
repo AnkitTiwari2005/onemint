@@ -7,12 +7,13 @@
  */
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, CheckCircle2, Loader2, Star, Zap, Target, IndianRupee, Unlock } from 'lucide-react';
+import { Mail, CheckCircle2, Loader2, Star, Zap, Target, IndianRupee, Unlock, Info } from 'lucide-react';
 
 import { PushNotificationButton } from '@/components/PushNotificationButton';
 
-type FormState = 'idle' | 'loading' | 'success' | 'error';
+type FormState = 'idle' | 'loading' | 'success' | 'previously_unsubscribed' | 'error';
 
 export default function NewsletterContent() {
   const [email, setEmail] = useState('');
@@ -28,7 +29,12 @@ export default function NewsletterContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error('failed');
+      if (data.status === 'previously_unsubscribed') {
+        setFormState('previously_unsubscribed');
+        return;
+      }
       setFormState('success');
     } catch {
       setFormState('error');
@@ -73,6 +79,25 @@ export default function NewsletterContent() {
                     <PushNotificationButton />
                   </div>
                 </motion.div>
+              ) : formState === 'previously_unsubscribed' ? (
+                <motion.div
+                  key="unsub"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 max-w-lg mx-auto"
+                >
+                  <Info className="mx-auto mb-3 text-white" size={32} />
+                  <h3 className="text-xl font-bold mb-2">Previously Unsubscribed</h3>
+                  <p className="opacity-90 text-sm mb-4">
+                    This email was previously unsubscribed from OneMint. To respect your privacy, we don&apos;t automatically re-subscribe accounts.
+                  </p>
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-white text-[var(--color-accent)] font-bold text-sm hover:bg-white/90 transition-all"
+                  >
+                    Contact Us to Re-activate →
+                  </Link>
+                </motion.div>
               ) : (
                 <motion.form
                   key="form"
@@ -81,6 +106,9 @@ export default function NewsletterContent() {
                 >
                   <input
                     type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    aria-label="Email address for newsletter"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="your@email.com"
@@ -104,7 +132,7 @@ export default function NewsletterContent() {
             <p className="text-xs opacity-60 mt-6">No spam. Unsubscribe anytime. We respect your inbox.</p>
             <p className="text-xs opacity-50 mt-2">
               By subscribing, you agree to our{' '}
-              <a href="/privacy-policy" className="underline underline-offset-2 hover:opacity-80 transition-opacity">Privacy Policy</a>.
+              <Link href="/privacy-policy" className="underline underline-offset-2 hover:opacity-80 transition-opacity">Privacy Policy</Link>.
             </p>
             <div className="flex items-center justify-center gap-3 mt-4">
               <span className="text-xs opacity-50">Or get instant browser alerts:</span>

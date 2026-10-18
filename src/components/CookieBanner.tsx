@@ -35,6 +35,16 @@ export function CookieBanner() {
     }
   }, []);
 
+  // Close manage view on Escape
+  useEffect(() => {
+    if (!showManage) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowManage(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showManage]);
+
   const save = (accepted: boolean, p: Prefs) => {
     try {
       localStorage.setItem('cookie_consent_v2', JSON.stringify({ accepted, prefs: p }));
@@ -74,11 +84,11 @@ export function CookieBanner() {
           }}
           className="md:!bottom-0 !bottom-14"
         >
-          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '16px 24px' }}>
+          <div className="px-4 py-3 sm:px-6 sm:py-4 max-w-[1100px] mx-auto">
             {!showManage ? (
-              /* ── Default view ── */
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
-                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 14, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.6, flex: 1, minWidth: 200 }}>
+              /* ── Default view (compact mobile) ── */
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.5, flex: 1, minWidth: 200 }}>
                   🍪 We use cookies for analytics and personalised content.{' '}
                   <Link href="/cookies" style={{ color: 'var(--color-accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}>
                     Cookie Policy
@@ -87,81 +97,91 @@ export function CookieBanner() {
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
                   <button
                     onClick={() => setShowManage(true)}
-                    style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                    style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
                   >
                     Manage
                   </button>
                   <button
                     onClick={() => save(false, { analytics: false, advertising: false })}
-                    style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                    style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
                   >
                     Decline
                   </button>
                   <button
                     onClick={() => save(true, DEFAULT_PREFS)}
-                    style={{ padding: '9px 20px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                   >
                     Accept all
                   </button>
                 </div>
               </div>
             ) : (
-              /* ── Manage preferences view ── */
-              <div>
-                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 14 }}>
+              /* ── Manage preferences accessible dialog view ── */
+              <div role="dialog" aria-modal="true" aria-label="Cookie Preferences">
+                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 700, color: 'var(--color-ink)', marginBottom: 12 }}>
                   Cookie Preferences
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
                   {/* Necessary — always on */}
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                     <div>
                       <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Necessary</p>
                       <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>Required for the site to work. Cannot be disabled.</p>
                     </div>
-                    <div style={{ width: 36, height: 20, borderRadius: 10, background: 'var(--color-accent)', flexShrink: 0, position: 'relative' }}>
-                      <div style={{ position: 'absolute', right: 2, top: 2, width: 16, height: 16, borderRadius: '50%', background: 'white' }} />
+                    <div style={{ width: 40, height: 24, borderRadius: 12, background: 'var(--color-accent)', flexShrink: 0, position: 'relative' }}>
+                      <div style={{ position: 'absolute', right: 2, top: 2, width: 20, height: 20, borderRadius: '50%', background: 'white' }} />
                     </div>
-                  </label>
+                  </div>
 
                   {/* Analytics */}
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                     <div>
-                      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Analytics</p>
+                      <label htmlFor="cookie-switch-analytics" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0, cursor: 'pointer', display: 'block' }}>Analytics</label>
                       <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>Google Analytics — helps us understand which content is useful.</p>
                     </div>
-                    <div
+                    <button
+                      id="cookie-switch-analytics"
+                      type="button"
+                      role="switch"
+                      aria-checked={prefs.analytics}
+                      aria-label="Toggle Google Analytics cookies"
                       onClick={() => setPrefs(p => ({ ...p, analytics: !p.analytics }))}
-                      style={{ width: 36, height: 20, borderRadius: 10, background: prefs.analytics ? 'var(--color-accent)' : 'var(--color-border)', flexShrink: 0, position: 'relative', transition: 'background 0.2s', cursor: 'pointer' }}
+                      style={{ width: 40, height: 24, borderRadius: 12, background: prefs.analytics ? 'var(--color-accent)' : 'var(--color-border)', flexShrink: 0, position: 'relative', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
-                      <div style={{ position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'right 0.2s, left 0.2s', ...(prefs.analytics ? { right: 2 } : { left: 2 }) }} />
-                    </div>
-                  </label>
+                      <span style={{ position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: prefs.analytics ? 18 : 2 }} />
+                    </button>
+                  </div>
 
                   {/* Advertising */}
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                     <div>
-                      <p style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Advertising</p>
+                      <label htmlFor="cookie-switch-advertising" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', margin: 0, cursor: 'pointer', display: 'block' }}>Advertising</label>
                       <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', margin: 0 }}>Google AdSense — allows us to show relevant ads.</p>
                     </div>
-                    <div
+                    <button
+                      id="cookie-switch-advertising"
+                      type="button"
+                      role="switch"
+                      aria-checked={prefs.advertising}
+                      aria-label="Toggle Google AdSense advertising cookies"
                       onClick={() => setPrefs(p => ({ ...p, advertising: !p.advertising }))}
-                      style={{ width: 36, height: 20, borderRadius: 10, background: prefs.advertising ? 'var(--color-accent)' : 'var(--color-border)', flexShrink: 0, position: 'relative', transition: 'background 0.2s', cursor: 'pointer' }}
+                      style={{ width: 40, height: 24, borderRadius: 12, background: prefs.advertising ? 'var(--color-accent)' : 'var(--color-border)', flexShrink: 0, position: 'relative', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
-                      <div style={{ position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%', background: 'white', transition: 'right 0.2s, left 0.2s', ...(prefs.advertising ? { right: 2 } : { left: 2 }) }} />
-                    </div>
-                  </label>
+                      <span style={{ position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: prefs.advertising ? 18 : 2 }} />
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     onClick={() => setShowManage(false)}
-                    style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                    style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-ink-secondary)', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
                   >
                     Back
                   </button>
                   <button
                     onClick={() => save(true, prefs)}
-                    style={{ padding: '9px 20px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: 'var(--color-accent)', color: 'white', fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                   >
                     Save preferences
                   </button>

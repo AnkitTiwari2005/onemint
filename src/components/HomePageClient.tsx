@@ -137,8 +137,15 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
     }
   };
 
-  // No articles at all (extremely rare — DB empty + static fallback empty)
-  if (!featured) return null;
+  // Fallback when no articles loaded yet — ensure h1 landmark is always preserved
+  if (!featured) {
+    return (
+      <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">
+        <h1 className="sr-only">OneMint — India&apos;s Most Trusted Knowledge Platform</h1>
+        <MarketTicker />
+      </div>
+    );
+  }
 
   return (
     <div className="pt-16 lg:pt-[72px] pb-28 md:pb-0">

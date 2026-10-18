@@ -26,6 +26,9 @@ export function Header({ onSearchOpen }: HeaderProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const closeDrawerRef = useRef<HTMLButtonElement>(null);
+  const prevMobileOpen = useRef(mobileOpen);
 
   const { scrollY } = useScroll();
 
@@ -40,13 +43,18 @@ export function Header({ onSearchOpen }: HeaderProps) {
     setDark(theme === 'dark');
   }, []);
 
-  // Scroll lock when mobile drawer is open
+  // Scroll lock and focus management when mobile drawer is open
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = 'hidden';
+      setTimeout(() => closeDrawerRef.current?.focus(), 50);
     } else {
       document.body.style.overflow = '';
+      if (prevMobileOpen.current) {
+        hamburgerRef.current?.focus();
+      }
     }
+    prevMobileOpen.current = mobileOpen;
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
@@ -267,9 +275,12 @@ export function Header({ onSearchOpen }: HeaderProps) {
 
               {/* Hamburger — mobile only */}
               <button
+                ref={hamburgerRef}
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-alt)] transition-colors"
-                aria-label="Open menu"
+                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-menu-drawer"
               >
                 <AnimatePresence mode="wait" initial={false}>
                   {mobileOpen ? (
@@ -309,6 +320,10 @@ export function Header({ onSearchOpen }: HeaderProps) {
             {/* Drawer panel */}
             <motion.div
               key="drawer-panel"
+              id="mobile-menu-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Site Navigation"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -332,6 +347,7 @@ export function Header({ onSearchOpen }: HeaderProps) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-ink)' }}>Menu</span>
                 <button
+                  ref={closeDrawerRef}
                   onClick={() => setMobileOpen(false)}
                   style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--color-surface-alt)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-ink)' }}
                   aria-label="Close menu"

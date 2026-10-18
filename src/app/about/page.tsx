@@ -12,7 +12,7 @@ export const revalidate = 3600;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
 export const metadata = {
-  title: 'About OneMint — Knowledge Platform for Personal Finance, Tech & Health',
+  title: 'About Us — Personal Finance, Tech & Health',
   description: "OneMint is a knowledge platform covering personal finance, technology, health, and careers. Expert-reviewed articles, free tools, and zero spam.",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {

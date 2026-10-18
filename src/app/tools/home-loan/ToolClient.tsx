@@ -100,18 +100,46 @@ export default function HomeLoanEMIPage() {
           {/* Controls */}
           <div className="lg:col-span-5 bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-card)] p-6 lg:p-8 border border-[var(--color-border)]">
 
+            {/* Mobile Quick Result Bar */}
+            <div className="lg:hidden mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800/50 flex justify-between items-center" aria-live="polite">
+              <div>
+                <span className="text-xs uppercase font-semibold text-amber-800 dark:text-amber-300">
+                  Monthly EMI
+                </span>
+                <div className="text-2xl font-bold font-[family-name:var(--font-mono)] text-amber-900 dark:text-amber-100">
+                  ₹ {formatIndianNumber(emi)}
+                </div>
+              </div>
+              <div className="text-right text-xs text-amber-700 dark:text-amber-400">
+                Total: ₹{formatIndianNumber(totalPayment)}
+              </div>
+            </div>
+
             {/* Loan Amount */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Loan Amount</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  ₹ {formatIndianNumber(loanAmount)}
+                <label htmlFor="hl-amount-slider" className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Loan Amount</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)]">
+                  <span className="text-[var(--color-ink-tertiary)] font-bold mr-1">₹</span>
+                  <input
+                    type="number"
+                    min="100000"
+                    max="100000000"
+                    step="100000"
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(Math.max(0, Number(e.target.value)))}
+                    className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Loan Amount in rupees"
+                  />
                 </div>
               </div>
               <input
+                id="hl-amount-slider"
                 type="range" min="100000" max="50000000" step="100000"
                 value={loanAmount}
                 onChange={(e) => setLoanAmount(Number(e.target.value))}
+                aria-label="Loan Amount Slider"
+                aria-valuetext={`₹${formatIndianNumber(loanAmount)}`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
@@ -122,15 +150,28 @@ export default function HomeLoanEMIPage() {
             {/* Interest Rate */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Interest Rate (p.a.)</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  {interestRate}%
+                <label htmlFor="hl-rate-slider" className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Interest Rate (p.a.)</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)]">
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    step="0.05"
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(Math.max(0, Number(e.target.value)))}
+                    className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Interest Rate percentage"
+                  />
+                  <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">%</span>
                 </div>
               </div>
               <input
+                id="hl-rate-slider"
                 type="range" min="5" max="20" step="0.1"
                 value={interestRate}
                 onChange={(e) => setInterestRate(Number(e.target.value))}
+                aria-label="Interest Rate Slider"
+                aria-valuetext={`${interestRate} percent`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
@@ -141,15 +182,28 @@ export default function HomeLoanEMIPage() {
             {/* Tenure */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Loan Tenure</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  {tenure} Yr
+                <label htmlFor="hl-tenure-slider" className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Loan Tenure</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)]">
+                  <input
+                    type="number"
+                    min="1"
+                    max="40"
+                    step="1"
+                    value={tenure}
+                    onChange={(e) => setTenure(Math.max(1, Number(e.target.value)))}
+                    className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Loan Tenure in years"
+                  />
+                  <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">Yr</span>
                 </div>
               </div>
               <input
+                id="hl-tenure-slider"
                 type="range" min="1" max="30" step="1"
                 value={tenure}
                 onChange={(e) => setTenure(Number(e.target.value))}
+                aria-label="Loan Tenure Slider"
+                aria-valuetext={`${tenure} years`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">

@@ -100,7 +100,7 @@ export default function ContributePage() {
             'All articles are edited by our team for clarity, accuracy, and style.',
           ].map((g, i) => (
             <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--color-accent)', color: 'white', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-ui)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>{i + 1}</span>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-accent)', color: 'white', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-ui)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--color-ink-secondary)', margin: 0, lineHeight: 1.6 }}>{g}</p>
             </div>
           ))}

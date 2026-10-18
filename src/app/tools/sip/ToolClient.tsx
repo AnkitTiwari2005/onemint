@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -55,6 +55,7 @@ export default function SIPCalculatorPage() {
   const [years, setYears]                         = useState(10);
   const [activeScenario, setActiveScenario]       = useState<number | null>(1); // 0=cons, 1=mod, 2=agg, null=custom
   const [showInflation, setShowInflation]         = useState(false);
+  const rateInputRef                              = useRef<HTMLInputElement>(null);
 
   // When user moves the rate slider manually, deselect scenario tabs
   function handleRateChange(rate: number) {
@@ -66,6 +67,14 @@ export default function SIPCalculatorPage() {
   function handleScenarioClick(idx: number) {
     setActiveScenario(idx);
     setReturnRate(SCENARIOS[idx].rate);
+  }
+
+  function handleCustomClick() {
+    setActiveScenario(null);
+    setTimeout(() => {
+      rateInputRef.current?.focus();
+      rateInputRef.current?.select();
+    }, 50);
   }
 
   const { totalInvested, estimatedReturns, totalValue, realValue, chartData } = useMemo(
@@ -116,7 +125,7 @@ export default function SIPCalculatorPage() {
             </button>
           ))}
           <button
-            onClick={() => setActiveScenario(null)}
+            onClick={handleCustomClick}
             className={`flex flex-col items-start px-5 py-3 rounded-xl border-2 transition-all text-left ${
               activeScenario === null
                 ? 'border-[var(--color-cat-finance)] bg-[var(--color-cat-finance-light)] shadow-sm'
@@ -132,19 +141,47 @@ export default function SIPCalculatorPage() {
           {/* Controls */}
           <div className="lg:col-span-5 bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-card)] p-6 lg:p-8 border border-[var(--color-border)]">
 
+            {/* Mobile Quick Result Bar (visible only on mobile so user sees instant updates above the fold) */}
+            <div className="lg:hidden mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800/50 flex justify-between items-center" aria-live="polite">
+              <div>
+                <span className="text-xs uppercase font-semibold text-emerald-800 dark:text-emerald-300">
+                  {showInflation ? 'Inflation-Adjusted Value' : 'Total Expected Value'}
+                </span>
+                <div className="text-2xl font-bold font-[family-name:var(--font-mono)] text-emerald-900 dark:text-emerald-100">
+                  ₹ {formatIndianNumber(Math.round(showInflation ? realValue : totalValue))}
+                </div>
+              </div>
+              <div className="text-right text-xs text-emerald-700 dark:text-emerald-400">
+                Invested: ₹{formatIndianNumber(totalInvested)}
+              </div>
+            </div>
+
             {/* Input: Monthly Investment */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)]">Monthly Investment</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  ₹ {formatIndianNumber(monthlyInvestment)}
+                <label htmlFor="sip-monthly-slider" className="font-semibold text-[var(--color-ink)]">Monthly Investment</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
+                  <span className="text-[var(--color-ink-tertiary)] font-bold mr-1">₹</span>
+                  <input
+                    type="number"
+                    min="500"
+                    max="10000000"
+                    step="500"
+                    value={monthlyInvestment}
+                    onChange={(e) => setMonthlyInvestment(Math.max(0, Number(e.target.value)))}
+                    className="w-28 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Monthly Investment Amount"
+                  />
                 </div>
               </div>
               <input
+                id="sip-monthly-slider"
                 type="range"
                 min="500" max="100000" step="500"
                 value={monthlyInvestment}
                 onChange={(e) => setMonthlyInvestment(Number(e.target.value))}
+                aria-label="Monthly Investment Slider"
+                aria-valuetext={`₹${formatIndianNumber(monthlyInvestment)} per month`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
@@ -155,16 +192,30 @@ export default function SIPCalculatorPage() {
             {/* Input: Expected Return */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)]">Expected Return Rate (p.a.)</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  {returnRate}%
+                <label htmlFor="sip-rate-slider" className="font-semibold text-[var(--color-ink)]">Expected Return Rate (p.a.)</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
+                  <input
+                    ref={rateInputRef}
+                    type="number"
+                    min="0.1"
+                    max="50"
+                    step="0.1"
+                    value={returnRate}
+                    onChange={(e) => handleRateChange(Number(e.target.value))}
+                    className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Expected Return Rate percentage"
+                  />
+                  <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">%</span>
                 </div>
               </div>
               <input
+                id="sip-rate-slider"
                 type="range"
                 min="1" max="30" step="0.5"
                 value={returnRate}
                 onChange={(e) => handleRateChange(Number(e.target.value))}
+                aria-label="Expected Return Rate Slider"
+                aria-valuetext={`${returnRate} percent per year`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
@@ -175,16 +226,29 @@ export default function SIPCalculatorPage() {
             {/* Input: Time Period */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)]">Time Period</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  {years} Yr
+                <label htmlFor="sip-years-slider" className="font-semibold text-[var(--color-ink)]">Time Period</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    step="1"
+                    value={years}
+                    onChange={(e) => setYears(Math.max(1, Number(e.target.value)))}
+                    className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Investment Time Period in years"
+                  />
+                  <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">Yr</span>
                 </div>
               </div>
               <input
+                id="sip-years-slider"
                 type="range"
                 min="1" max="40" step="1"
                 value={years}
                 onChange={(e) => setYears(Number(e.target.value))}
+                aria-label="Investment Time Period Slider"
+                aria-valuetext={`${years} years`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
@@ -193,15 +257,19 @@ export default function SIPCalculatorPage() {
             </div>
 
             {/* Inflation toggle */}
-            <label className="flex items-center gap-3 cursor-pointer select-none mb-6 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-              <div
-                className={`relative w-10 h-5 rounded-full transition-colors ${showInflation ? 'bg-[var(--color-cat-finance)]' : 'bg-gray-300'}`}
+            <div className="flex items-center gap-3 select-none mb-6 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={showInflation}
+                aria-label="Show inflation-adjusted value"
                 onClick={() => setShowInflation(v => !v)}
+                className={`relative w-10 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-cat-finance)] ${showInflation ? 'bg-[var(--color-cat-finance)]' : 'bg-gray-300 dark:bg-gray-700'}`}
               >
-                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${showInflation ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </div>
+                <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform ${showInflation ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
               <span className="text-sm font-medium text-[var(--color-ink)]">Show inflation-adjusted value <span className="text-[var(--color-ink-tertiary)]">(@{INFLATION_RATE}%)</span></span>
-            </label>
+            </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm flex gap-3 border border-blue-100 dark:border-blue-800/30">
               <Info className="shrink-0 mt-0.5" size={18} />

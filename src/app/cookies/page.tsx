@@ -34,7 +34,7 @@ export default function CookiePolicyPage() {
 
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 700, color: 'var(--color-ink)', marginBottom: 24 }}>Cookie Policy</h1>
 
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.8 }}>
+      <div className="break-words [overflow-wrap:anywhere] min-w-0" style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'var(--color-ink-secondary)', lineHeight: 1.8 }}>
         <p style={{ marginBottom: 20 }}>
           This Cookie Policy explains how OneMint (&quot;we,&quot; &quot;our,&quot; &quot;us&quot;) uses cookies and similar technologies when you visit onemint.com. By using our site, you consent to the use of cookies as described in this policy. You can change your preferences at any time using our Cookie Consent banner.
         </p>

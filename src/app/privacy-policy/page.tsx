@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
       className="lg:grid-cols-[1fr_260px] block lg:grid"
     >
       {/* Main content */}
-      <article>
+      <article className="min-w-0 [overflow-wrap:anywhere] break-words">
         {/* Header */}
         <div style={{ marginBottom: 40 }}>
           <div
@@ -204,7 +204,7 @@ export default function PrivacyPolicyPage() {
                 href="https://policies.google.com/technologies/partner-sites"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--color-accent)]"
+                className="text-[var(--color-accent)] break-all"
               >
                 policies.google.com/technologies/partner-sites
               </a>

@@ -122,6 +122,7 @@ function SearchPageContent() {
     <div className="pt-16 lg:pt-[72px] pb-20">
       {/* Header */}
       <header className="bg-[var(--color-surface-alt)] py-12 border-b border-[var(--color-border)]">
+        <h1 className="sr-only">Search OneMint</h1>
         <div className="max-w-[var(--content-max)] mx-auto px-4 sm:px-6 lg:px-8">
           <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative">
             <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]" size={24} />

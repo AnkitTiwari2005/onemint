@@ -267,10 +267,10 @@ export default function SuggestContent() {
                       {s.title}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: 6 }}>
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--color-ink-tertiary)', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: 6 }}>
                         {s.category}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: statusConfig.bg, color: statusConfig.text }}>
+                      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: statusConfig.bg, color: statusConfig.text }}>
                         {statusConfig.label}
                       </span>
                     </div>

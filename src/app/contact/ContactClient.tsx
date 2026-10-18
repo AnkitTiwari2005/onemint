@@ -44,7 +44,14 @@ export default function ContactClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({ name: true, email: true, subject: true, message: true });
-    if (!isValid) return;
+    const currentErrors = validate(fields);
+    if (Object.keys(currentErrors).length > 0) {
+      const firstBadField = (['name', 'email', 'subject', 'message'] as const).find(k => currentErrors[k]);
+      if (firstBadField) {
+        document.getElementById(`contact-${firstBadField}`)?.focus();
+      }
+      return;
+    }
     setFormState('loading');
 
     try {
@@ -157,28 +164,62 @@ export default function ContactClient() {
               <motion.form key="form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div className="contact-name-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <div>
-                    <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Name *</label>
-                    <input id="contact-name" type="text" value={fields.name} onChange={set('name')} onBlur={blur('name')} style={inputStyle('name')} placeholder="Priya Sharma" disabled={formState === 'loading'} />
-                    {touched.name && errors.name && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.name}</p>}
+                    <label htmlFor="contact-name" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Name *</label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      autoComplete="name"
+                      value={fields.name}
+                      onChange={set('name')}
+                      onBlur={blur('name')}
+                      style={inputStyle('name')}
+                      placeholder="Priya Sharma"
+                      disabled={formState === 'loading'}
+                      aria-invalid={touched.name && !!errors.name}
+                      aria-describedby={touched.name && errors.name ? 'contact-name-error' : undefined}
+                    />
+                    {touched.name && errors.name && <p id="contact-name-error" role="alert" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.name}</p>}
                   </div>
                   <div>
-                    <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Email *</label>
-                    <input id="contact-email" type="email" value={fields.email} onChange={set('email')} onBlur={blur('email')} style={inputStyle('email')} placeholder="priya@example.com" disabled={formState === 'loading'} />
-                    {touched.email && errors.email && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.email}</p>}
+                    <label htmlFor="contact-email" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Email *</label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      autoComplete="email"
+                      inputMode="email"
+                      value={fields.email}
+                      onChange={set('email')}
+                      onBlur={blur('email')}
+                      style={inputStyle('email')}
+                      placeholder="priya@example.com"
+                      disabled={formState === 'loading'}
+                      aria-invalid={touched.email && !!errors.email}
+                      aria-describedby={touched.email && errors.email ? 'contact-email-error' : undefined}
+                    />
+                    {touched.email && errors.email && <p id="contact-email-error" role="alert" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.email}</p>}
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Subject *</label>
-                  <select id="contact-subject" value={fields.subject} onChange={set('subject')} onBlur={blur('subject')} style={{ ...inputStyle('subject'), cursor: 'pointer' }} disabled={formState === 'loading'}>
+                  <label htmlFor="contact-subject" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>Subject *</label>
+                  <select
+                    id="contact-subject"
+                    value={fields.subject}
+                    onChange={set('subject')}
+                    onBlur={blur('subject')}
+                    style={{ ...inputStyle('subject'), cursor: 'pointer' }}
+                    disabled={formState === 'loading'}
+                    aria-invalid={touched.subject && !!errors.subject}
+                    aria-describedby={touched.subject && errors.subject ? 'contact-subject-error' : undefined}
+                  >
                     <option value="">Select a subject…</option>
                     {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
-                  {touched.subject && errors.subject && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.subject}</p>}
+                  {touched.subject && errors.subject && <p id="contact-subject-error" role="alert" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.subject}</p>}
                 </div>
 
                 <div>
-                  <label style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>
+                  <label htmlFor="contact-message" style={{ fontFamily: 'var(--font-ui)', fontSize: 13, fontWeight: 600, color: 'var(--color-ink)', display: 'block', marginBottom: 6 }}>
                     Message * <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--color-ink-tertiary)', fontWeight: 400 }}>({fields.message.length}/1000)</span>
                   </label>
                   <textarea
@@ -191,8 +232,10 @@ export default function ContactClient() {
                     style={{ ...inputStyle('message'), resize: 'vertical', minHeight: 120 }}
                     placeholder="Tell us what's on your mind…"
                     disabled={formState === 'loading'}
+                    aria-invalid={touched.message && !!errors.message}
+                    aria-describedby={touched.message && errors.message ? 'contact-message-error' : undefined}
                   />
-                  {touched.message && errors.message && <p style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.message}</p>}
+                  {touched.message && errors.message && <p id="contact-message-error" role="alert" style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.message}</p>}
                 </div>
 
                 <button

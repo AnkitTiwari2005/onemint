@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, CheckCircle2, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
+import { X, Mail, CheckCircle2, Loader2, AlertCircle, ArrowRight, Info } from 'lucide-react';
 
-type FormState = 'idle' | 'loading' | 'success' | 'error';
+type FormState = 'idle' | 'loading' | 'success' | 'previously_unsubscribed' | 'error';
 
 const SESSION_KEY = 'onemint-nl-cta-dismissed';
 
@@ -72,7 +73,12 @@ export function NewsletterScrollCTA() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error('failed');
+      if (data.status === 'previously_unsubscribed') {
+        setFormState('previously_unsubscribed');
+        return;
+      }
       setFormState('success');
       setTimeout(dismiss, 3000);
     } catch {
@@ -184,23 +190,32 @@ export function NewsletterScrollCTA() {
                     </button>
                   </div>
 
-                  {/* Email row */}
-                  <form onSubmit={handleSubmit} className="flex gap-2 px-4 pb-4">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      required
-                      disabled={formState === 'loading'}
-                      className="flex-1 min-w-0 px-3 py-2.5 rounded-xl text-sm outline-none"
-                      style={{
-                        border: '1.5px solid var(--color-border)',
-                        background: 'var(--color-surface-alt)',
-                        color: 'var(--color-ink)',
-                        fontFamily: 'var(--font-ui)',
-                      }}
-                    />
+                  {formState === 'previously_unsubscribed' ? (
+                    <div className="px-4 pb-3 pt-1 text-xs text-[var(--color-ink-secondary)]">
+                      Previously unsubscribed.{' '}
+                      <Link href="/contact" className="underline text-[var(--color-accent)] font-semibold">Contact us</Link> to re-activate.
+                    </div>
+                  ) : (
+                    /* Email row */
+                    <form onSubmit={handleSubmit} className="flex gap-2 px-4 pb-4">
+                      <input
+                        type="email"
+                        autoComplete="email"
+                        inputMode="email"
+                        aria-label="Email address for newsletter"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        required
+                        disabled={formState === 'loading'}
+                        className="flex-1 min-w-0 px-3 py-2.5 rounded-xl text-sm outline-none"
+                        style={{
+                          border: '1.5px solid var(--color-border)',
+                          background: 'var(--color-surface-alt)',
+                          color: 'var(--color-ink)',
+                          fontFamily: 'var(--font-ui)',
+                        }}
+                      />
                     <button
                       type="submit"
                       disabled={formState === 'loading'}
@@ -218,6 +233,7 @@ export function NewsletterScrollCTA() {
                         : 'Subscribe'}
                     </button>
                   </form>
+                  )}
                 </>
               )}
             </div>
@@ -298,24 +314,33 @@ export function NewsletterScrollCTA() {
                       India&rsquo;s most practical finance &amp; investing newsletter.
                       No jargon, zero spam, unsubscribe anytime.
                     </p>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        placeholder="your@email.com"
-                        required
-                        disabled={formState === 'loading'}
-                        className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-all"
-                        style={{
-                          border: '1.5px solid var(--color-border)',
-                          background: 'var(--color-surface-alt)',
-                          color: 'var(--color-ink)',
-                          fontFamily: 'var(--font-ui)',
-                        }}
-                        onFocus={e  => { e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
-                        onBlur={e   => { e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                      />
+                    {formState === 'previously_unsubscribed' ? (
+                      <div className="text-xs text-[var(--color-ink-secondary)] p-3 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] leading-normal">
+                        Previously unsubscribed.{' '}
+                        <Link href="/contact" className="underline text-[var(--color-accent)] font-semibold">Contact us</Link> to re-activate.
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+                        <input
+                          type="email"
+                          autoComplete="email"
+                          inputMode="email"
+                          aria-label="Email address for newsletter"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          placeholder="your@email.com"
+                          required
+                          disabled={formState === 'loading'}
+                          className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-all"
+                          style={{
+                            border: '1.5px solid var(--color-border)',
+                            background: 'var(--color-surface-alt)',
+                            color: 'var(--color-ink)',
+                            fontFamily: 'var(--font-ui)',
+                          }}
+                          onFocus={e  => { e.currentTarget.style.borderColor = 'var(--color-accent)'; }}
+                          onBlur={e   => { e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                        />
                       <button
                         type="submit"
                         disabled={formState === 'loading'}
@@ -335,6 +360,7 @@ export function NewsletterScrollCTA() {
                         )}
                       </button>
                     </form>
+                    )}
                   </>
                 )}
               </div>

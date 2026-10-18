@@ -19,7 +19,7 @@ export async function generateMetadata({
   const isFirstPage = pageNum === 1;
 
   return {
-    title: isFirstPage ? 'All Articles | OneMint' : `All Articles — Page ${pageNum} | OneMint`,
+    title: isFirstPage ? 'All Articles' : `All Articles — Page ${pageNum}`,
     description: 'In-depth guides across finance, technology, health, career, and more — from OneMint.',
     alternates: {
       canonical: isFirstPage ? `${SITE_URL}/articles` : `${SITE_URL}/articles?page=${pageNum}`,

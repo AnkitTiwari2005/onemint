@@ -154,6 +154,21 @@ export default function IncomeTaxPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Controls */}
           <div className="lg:col-span-5 space-y-6">
+            {/* Mobile Quick Result Bar */}
+            <div className="lg:hidden p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800/50 flex justify-between items-center" aria-live="polite">
+              <div>
+                <span className="text-xs uppercase font-semibold text-emerald-800 dark:text-emerald-300">
+                  Net Tax Payable ({regime === 'new' ? 'New' : 'Old'} Regime)
+                </span>
+                <div className="text-2xl font-bold font-[family-name:var(--font-mono)] text-emerald-900 dark:text-emerald-100">
+                  ₹ {formatIndianNumber(current.tax)}
+                </div>
+              </div>
+              <div className="text-right text-xs text-emerald-700 dark:text-emerald-400">
+                Effective: {current.effectiveRate}%
+              </div>
+            </div>
+
             {/* Regime Toggle */}
             <div className="bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-card)] p-6 border border-[var(--color-border)]">
               <label className="block font-semibold text-[var(--color-ink)] mb-3 font-[family-name:var(--font-ui)]">Tax Regime</label>
@@ -183,14 +198,29 @@ export default function IncomeTaxPage() {
             {/* Income */}
             <div className="bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-card)] p-6 border border-[var(--color-border)]">
               <div className="flex justify-between items-center mb-4">
-                <label className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Annual Income (CTC)</label>
-                <div className="bg-[var(--color-surface-alt)] px-4 py-2 rounded-lg font-[family-name:var(--font-mono)] font-bold text-lg border border-[var(--color-border)]">
-                  ₹ {formatIndianNumber(income)}
+                <label htmlFor="tax-income-slider" className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Annual Income (CTC)</label>
+                <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
+                  <span className="text-[var(--color-ink-tertiary)] font-bold mr-1">₹</span>
+                  <input
+                    type="number"
+                    min="100000"
+                    max="500000000"
+                    step="50000"
+                    value={income}
+                    onChange={(e) => setIncome(Math.max(0, Number(e.target.value)))}
+                    className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
+                    aria-label="Annual Income in rupees"
+                  />
                 </div>
               </div>
-              <input type="range" min="300000" max="10000000" step="50000"
+              <input
+                id="tax-income-slider"
+                type="range" min="300000" max="10000000" step="50000"
                 value={income} onChange={(e) => setIncome(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]" />
+                aria-label="Annual Income Slider"
+                aria-valuetext={`₹${formatIndianNumber(income)} per year`}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
+              />
               <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>₹3L</span><span>₹1Cr</span>
               </div>
@@ -204,45 +234,65 @@ export default function IncomeTaxPage() {
                 {/* 80C */}
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">Section 80C (PPF, ELSS, etc.)</label>
+                    <label htmlFor="tax-80c-slider" className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">Section 80C (PPF, ELSS, etc.)</label>
                     <span className="font-[family-name:var(--font-mono)] text-sm font-semibold">₹{formatIndianNumber(deductions80C)}</span>
                   </div>
-                  <input type="range" min="0" max="150000" step="10000"
+                  <input
+                    id="tax-80c-slider"
+                    type="range" min="0" max="150000" step="10000"
                     value={deductions80C} onChange={(e) => setDeductions80C(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]" />
+                    aria-label="Section 80C Deductions"
+                    aria-valuetext={`₹${formatIndianNumber(deductions80C)}`}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
+                  />
                 </div>
 
                 {/* 80D */}
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">Section 80D (Health Insurance)</label>
+                    <label htmlFor="tax-80d-slider" className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">Section 80D (Health Insurance)</label>
                     <span className="font-[family-name:var(--font-mono)] text-sm font-semibold">₹{formatIndianNumber(deductions80D)}</span>
                   </div>
-                  <input type="range" min="0" max="100000" step="5000"
+                  <input
+                    id="tax-80d-slider"
+                    type="range" min="0" max="100000" step="5000"
                     value={deductions80D} onChange={(e) => setDeductions80D(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]" />
+                    aria-label="Section 80D Deductions"
+                    aria-valuetext={`₹${formatIndianNumber(deductions80D)}`}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
+                  />
                 </div>
 
                 {/* HRA */}
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">HRA Exemption</label>
+                    <label htmlFor="tax-hra-slider" className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">HRA Exemption</label>
                     <span className="font-[family-name:var(--font-mono)] text-sm font-semibold">₹{formatIndianNumber(hra)}</span>
                   </div>
-                  <input type="range" min="0" max="500000" step="10000"
+                  <input
+                    id="tax-hra-slider"
+                    type="range" min="0" max="500000" step="10000"
                     value={hra} onChange={(e) => setHra(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]" />
+                    aria-label="HRA Exemption"
+                    aria-valuetext={`₹${formatIndianNumber(hra)}`}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
+                  />
                 </div>
 
                 {/* NPS */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">NPS (80CCD 1B)</label>
+                    <label htmlFor="tax-nps-slider" className="text-sm text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)]">NPS (80CCD 1B)</label>
                     <span className="font-[family-name:var(--font-mono)] text-sm font-semibold">₹{formatIndianNumber(nps80CCD)}</span>
                   </div>
-                  <input type="range" min="0" max="50000" step="5000"
+                  <input
+                    id="tax-nps-slider"
+                    type="range" min="0" max="50000" step="5000"
                     value={nps80CCD} onChange={(e) => setNps80CCD(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]" />
+                    aria-label="NPS 80CCD 1B Deduction"
+                    aria-valuetext={`₹${formatIndianNumber(nps80CCD)}`}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
+                  />
                 </div>
               </div>
             )}

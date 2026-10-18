@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Loader2, CheckCircle2, Heart } from 'lucide-react';
 
-type FormState = 'idle' | 'loading' | 'success' | 'error';
+type FormState = 'idle' | 'loading' | 'success' | 'previously_unsubscribed' | 'error';
 
 // Computed at module scope — identical value on server and client,
 // preventing React hydration mismatches from timezone differences.
@@ -62,7 +62,12 @@ export function Footer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error('failed');
+      if (data.status === 'previously_unsubscribed') {
+        setFormState('previously_unsubscribed');
+        return;
+      }
       setFormState('success');
       setTimeout(() => { setFormState('idle'); setEmail(''); }, 5000);
     } catch {
@@ -122,10 +127,18 @@ export function Footer() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--color-cat-finance)' }}>
                 <CheckCircle2 size={16} /> You&apos;re in!
               </motion.div>
+            ) : formState === 'previously_unsubscribed' ? (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-[var(--color-ink-secondary)] leading-normal">
+                Previously unsubscribed.{' '}
+                <Link href="/contact" className="underline text-[var(--color-accent)] font-semibold">Contact us</Link> to re-activate.
+              </motion.div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 6 }}>
                 <input
                   type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  aria-label="Email address for newsletter"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
@@ -145,11 +158,11 @@ export function Footer() {
 
           {/* Explore */}
           <div>
-            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 16 }}>Explore</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 14 }}>Explore</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {EXPLORE_LINKS.map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] transition-colors">
+                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="inline-block py-1 hover:text-[var(--color-accent)] transition-colors">
                     {label}
                   </Link>
                 </li>
@@ -159,21 +172,21 @@ export function Footer() {
 
           {/* Company + Legal */}
           <div>
-            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 16 }}>Company</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 14 }}>Company</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {COMPANY_LINKS.map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] transition-colors">
+                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="inline-block py-1 hover:text-[var(--color-accent)] transition-colors">
                     {label}
                   </Link>
                 </li>
               ))}
             </ul>
-            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 16 }}>Legal</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 14 }}>Legal</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {LEGAL_LINKS.map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] transition-colors">
+                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="inline-block py-1 hover:text-[var(--color-accent)] transition-colors">
                     {label}
                   </Link>
                 </li>
@@ -183,11 +196,11 @@ export function Footer() {
 
           {/* Tools */}
           <div>
-            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 16 }}>Quick Tools</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-tertiary)', marginBottom: 14 }}>Quick Tools</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {TOOL_LINKS.map(([label, href]) => (
                 <li key={label}>
-                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="hover:text-[var(--color-accent)] transition-colors">
+                  <Link href={href} style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--color-ink-secondary)', textDecoration: 'none' }} className="inline-block py-1 hover:text-[var(--color-accent)] transition-colors">
                     {label}
                   </Link>
                 </li>

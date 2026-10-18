@@ -146,7 +146,7 @@ export default function ToolsHubPage() {
                           {tool.name}
                         </h3>
                         {tool.tag && (
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                             tool.tag === 'Popular' ? 'bg-[var(--color-accent-light)] text-[var(--color-accent)]' :
                             tool.tag === 'New' ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' :
                             'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400'
