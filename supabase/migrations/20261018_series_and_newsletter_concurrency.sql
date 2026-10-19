@@ -24,6 +24,13 @@ ALTER TABLE IF EXISTS public.series
 
 
 -- ── 2. Fix Newsletter Concurrency Double-Send Guard ───────────────────────────
+-- Deduplicate any existing duplicate entries per series and week before applying unique index
+DELETE FROM public.newsletter_log a
+USING public.newsletter_log b
+WHERE a.id < b.id
+  AND a.series = b.series
+  AND date_trunc('week', a.sent_at AT TIME ZONE 'UTC') = date_trunc('week', b.sent_at AT TIME ZONE 'UTC');
+
 -- Prevent concurrent cron executions from inserting multiple sentinel rows
 -- for the same newsletter series in the same calendar week.
 CREATE UNIQUE INDEX IF NOT EXISTS newsletter_log_series_week_idx

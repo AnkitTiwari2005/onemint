@@ -10,7 +10,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Tooling scripts use CommonJS — exempt from ESM import rule
+    // Tooling scripts use Node/CommonJS — exempt from Next.js browser rules
+    "scripts/**",
     "generate-tools.js",
   ]),
   {

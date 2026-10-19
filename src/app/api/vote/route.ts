@@ -22,10 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Use IP + user-agent as anonymous fingerprint
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-      req.headers.get('x-real-ip') ||
-      'unknown';
+    const ip = getClientIP(req);
     const ua = req.headers.get('user-agent') || '';
     const raw = `${ip}-${ua}-${suggestionId}`;
     const fingerprint = Buffer.from(raw).toString('base64').slice(0, 64);

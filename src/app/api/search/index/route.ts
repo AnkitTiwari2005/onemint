@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
         read_time_minutes, published_at, created_at,
         categories(name), authors(name)
       `)
-      .eq('status', 'published');
+      .eq('status', 'published')
+      .is('deleted_at', null);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

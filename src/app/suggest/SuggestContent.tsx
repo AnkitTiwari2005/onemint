@@ -69,6 +69,7 @@ export default function SuggestContent() {
         const { data } = await supabase
           .from('topic_suggestions')
           .select('*')
+          .is('deleted_at', null)
           .order('votes', { ascending: false });
         if (data && data.length > 0) {
           // Filter out records with missing required fields or unknown status values

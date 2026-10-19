@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
           'categories(name, slug), authors(name)'
         )
         .eq('status', 'published')
+        .is('deleted_at', null)
         .or(`title.ilike.${pattern},excerpt.ilike.${pattern}`)
         .order('published_at', { ascending: false })
         .limit(10);

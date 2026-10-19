@@ -22,9 +22,10 @@ export default function HomeLoanEMIPage() {
   const [tenure, setTenure] = useState(20);
 
   const { emi, totalInterest, totalPayment, chartData, amortization } = useMemo(() => {
+    const wholeTenure = Math.min(30, Math.max(1, Math.round(tenure)));
     const P = loanAmount;
     const r = interestRate / 12 / 100;
-    const n = tenure * 12;
+    const n = wholeTenure * 12;
 
     // EMI = P × r × (1+r)^n / ((1+r)^n - 1)
     const emiCalc = r === 0 ? P / n : (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
@@ -38,7 +39,7 @@ export default function HomeLoanEMIPage() {
     const amort: { year: number; principal: number; interest: number; balance: number; totalPaid: number }[] = [];
     const chart: { year: string; principal: number; interest: number; balance: number }[] = [];
 
-    for (let year = 1; year <= tenure; year++) {
+    for (let year = 1; year <= wholeTenure; year++) {
       let yearPrincipal = 0;
       let yearInterest = 0;
 
@@ -134,10 +135,13 @@ export default function HomeLoanEMIPage() {
                   <input
                     type="number"
                     min="100000"
-                    max="100000000"
+                    max="50000000"
                     step="100000"
                     value={loanAmount}
-                    onChange={(e) => setLoanAmount(Math.max(0, Number(e.target.value)))}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setLoanAmount(isNaN(v) ? 100000 : Math.min(50000000, Math.max(0, v)));
+                    }}
                     className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Loan Amount in rupees"
                   />
@@ -165,10 +169,13 @@ export default function HomeLoanEMIPage() {
                   <input
                     type="number"
                     min="1"
-                    max="30"
+                    max="25"
                     step="0.05"
                     value={interestRate}
-                    onChange={(e) => setInterestRate(Math.max(0, Number(e.target.value)))}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setInterestRate(isNaN(v) ? 8.5 : Math.min(25, Math.max(0.1, v)));
+                    }}
                     className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Interest Rate percentage"
                   />
@@ -197,10 +204,13 @@ export default function HomeLoanEMIPage() {
                   <input
                     type="number"
                     min="1"
-                    max="40"
+                    max="30"
                     step="1"
                     value={tenure}
-                    onChange={(e) => setTenure(Math.max(1, Number(e.target.value)))}
+                    onChange={(e) => {
+                      const v = Math.round(Number(e.target.value));
+                      setTenure(isNaN(v) ? 20 : Math.min(30, Math.max(1, v)));
+                    }}
                     className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Loan Tenure in years"
                   />

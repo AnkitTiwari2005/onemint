@@ -45,7 +45,7 @@ async function requireAdminAuth(): Promise<NextResponse | null> {
 /** Send a welcome-to-the-team email to a new author */
 async function sendAuthorWelcomeEmail(name: string, email: string, slug: string): Promise<void> {
   if (!ENV.BREVO_API_KEY || !email) return;
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.in';
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.com';
   const senderName  = process.env.BREVO_SENDER_NAME  || 'OneMint';
   const profileUrl  = `${ENV.SITE_URL}/author/${slug}`;
 

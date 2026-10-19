@@ -46,12 +46,23 @@ export async function POST(req: NextRequest) {
   const successUrl = `${siteUrl}/unsubscribe?success=1`;
 
   let token = req.nextUrl.searchParams.get('token') || '';
+  let isOneClick = req.nextUrl.searchParams.get('List-Unsubscribe') === 'One-Click';
 
   const contentType = req.headers.get('content-type') || '';
-  if (!token && contentType.includes('application/x-www-form-urlencoded')) {
+  const acceptHeader = req.headers.get('accept') || '';
+
+  if (contentType.includes('application/x-www-form-urlencoded')) {
     try {
+      const clonedReq = req.clone();
+      const rawText = await clonedReq.text();
+      if (rawText.includes('List-Unsubscribe=One-Click')) {
+        isOneClick = true;
+      }
       const formData = await req.formData();
-      token = (formData.get('token') as string) || '';
+      if (!token) token = (formData.get('token') as string) || '';
+      if (formData.get('List-Unsubscribe') === 'One-Click') {
+        isOneClick = true;
+      }
     } catch {
       // ignore form parsing error
     }
@@ -59,26 +70,29 @@ export async function POST(req: NextRequest) {
     try {
       const body = await req.json();
       token = body?.token || '';
+      if (body?.['List-Unsubscribe'] === 'One-Click') isOneClick = true;
     } catch {
       // ignore json parsing error
     }
   }
 
-  const isBrowserForm = contentType.includes('application/x-www-form-urlencoded') || req.headers.get('accept')?.includes('text/html');
+  // A browser form submission is when the client explicitly asks for an HTML document
+  // AND is not an RFC 8058 automated one-click client.
+  const isBrowserForm = !isOneClick && acceptHeader.includes('text/html');
 
   if (!token) {
-    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    if (isBrowserForm) return NextResponse.redirect(errorUrl, { status: 303 });
     return NextResponse.json({ error: 'Token required' }, { status: 400 });
   }
 
   const email = verifyUnsubscribeToken(token);
   if (!email) {
-    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    if (isBrowserForm) return NextResponse.redirect(errorUrl, { status: 303 });
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
   }
 
   if (!supabaseAdmin) {
-    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    if (isBrowserForm) return NextResponse.redirect(errorUrl, { status: 303 });
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
 
@@ -89,16 +103,16 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error('[Unsubscribe] DB error:', error.message);
-    if (isBrowserForm) return NextResponse.redirect(errorUrl);
+    if (isBrowserForm) return NextResponse.redirect(errorUrl, { status: 303 });
     return NextResponse.json({ error: 'Failed to update subscription status' }, { status: 500 });
   }
 
   console.log('[Unsubscribe] Successfully unsubscribed recipient');
 
   if (isBrowserForm) {
-    return NextResponse.redirect(successUrl);
+    return NextResponse.redirect(successUrl, { status: 303 });
   }
 
-  // RFC 8058 one-click expects a 200 response
+  // RFC 8058 one-click and API clients expect a 200 response
   return new NextResponse(null, { status: 200 });
 }

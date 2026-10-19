@@ -8,10 +8,7 @@ const VALID_EMOJIS = ['👍', '❤️', '🔥', '💡', '😂'];
 
 /** Derive a stable, anonymised fingerprint from IP + User-Agent. */
 function getFingerprint(req: NextRequest): string {
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown';
+  const ip = getClientIP(req);
   const ua = req.headers.get('user-agent') || 'unknown';
   return createHash('sha256').update(`${ip}:${ua}`).digest('hex').slice(0, 40);
 }

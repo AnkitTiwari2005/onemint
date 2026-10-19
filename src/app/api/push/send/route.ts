@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   // ── VAPID config ───────────────────────────────────────────────────────────
   const vapidPublic  = getCleanEnv('NEXT_PUBLIC_VAPID_PUBLIC_KEY');
   const vapidPrivate = getCleanEnv('VAPID_PRIVATE_KEY');
-  const vapidSubject = (process.env.VAPID_SUBJECT || 'mailto:contact@onemint.in').trim();
+  const vapidSubject = (process.env.VAPID_SUBJECT || 'mailto:contact@onemint.com').trim();
 
   if (!vapidPublic || !vapidPrivate) {
     return NextResponse.json(

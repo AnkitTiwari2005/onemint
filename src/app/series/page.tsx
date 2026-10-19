@@ -58,6 +58,7 @@ async function fetchSeries(): Promise<Series[]> {
         .from('series')
         .select('*')
         .eq('status', 'published')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (data && data.length > 0) {

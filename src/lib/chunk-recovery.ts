@@ -45,9 +45,10 @@ function isChunkErrorMessage(message: string): boolean {
 }
 
 export function reloadOnceForChunkError(): boolean {
-  if (typeof window === 'undefined' || !window.sessionStorage) return false;
+  if (typeof window === 'undefined') return false;
 
   try {
+    if (!window.sessionStorage) return false;
     const now = Date.now();
     const raw = sessionStorage.getItem(STORAGE_KEY);
     let state: ReloadState = raw ? JSON.parse(raw) : { count: 0, time: now };

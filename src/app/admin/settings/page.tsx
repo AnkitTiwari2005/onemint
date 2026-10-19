@@ -27,7 +27,7 @@ type SettingsState = {
 const DEFAULTS: SettingsState = {
   siteName: 'OneMint',
   tagline: 'One Rupee at a Time — Finance, Technology, Health & Career',
-  adminEmail: 'contact@onemint.in',
+  adminEmail: 'contact@onemint.com',
   siteUrl: 'https://www.onemint.com',
   twitterHandle: '@OneMint',
   gaTrackingId: '',
@@ -35,7 +35,7 @@ const DEFAULTS: SettingsState = {
   newsletterProvider: 'Brevo',
   newsletterApiKey: '',
   newsletterListId: '',
-  contactFormEmail: 'contact@onemint.in',
+  contactFormEmail: 'contact@onemint.com',
   footerCopyright: '© 2026 OneMint. All rights reserved.',
   defaultCategory: 'finance',
   articlesPerPage: 12,

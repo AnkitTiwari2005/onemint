@@ -46,8 +46,10 @@ export interface PublicArticle {
   } | null;
 }
 
+export { staticArticles };
+
 /** Map a static article to the shared PublicArticle shape */
-function staticToPublic(a: typeof staticArticles[number]): PublicArticle {
+export function staticToPublic(a: typeof staticArticles[number]): PublicArticle {
   const cat = getCategoryById(a.categoryId);
   return {
     id: a.id,

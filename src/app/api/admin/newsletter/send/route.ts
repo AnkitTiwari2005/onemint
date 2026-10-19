@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No active subscribers to send to.' }, { status: 400 });
     }
 
-    const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.in';
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.com';
     const senderName = process.env.BREVO_SENDER_NAME || 'OneMint';
     const listId = ENV.BREVO_LIST_ID;
 

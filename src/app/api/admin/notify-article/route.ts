@@ -3,8 +3,8 @@ import { ENV, getCleanEnv } from '@/lib/env';
 
 
 // ── Configuration ────────────────────────────────────────────────────────────
-// Set NOTIFY_EMAIL in env vars (e.g. contact@onemint.in) — never hardcode personal emails in source.
-const NOTIFY_TO_EMAIL = process.env.NOTIFY_EMAIL || 'contact@onemint.in';
+// Set NOTIFY_EMAIL in env vars (e.g. contact@onemint.com) — never hardcode personal emails in source.
+const NOTIFY_TO_EMAIL = process.env.NOTIFY_EMAIL || 'contact@onemint.com';
 const NOTIFY_TO_NAME  = process.env.NOTIFY_NAME  || 'OneMint Team';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.onemint.com';
 
@@ -244,7 +244,7 @@ export async function POST(req: NextRequest) {
       publishedAt:  body.publishedAt,
     });
 
-    const senderEmail = process.env.BREVO_SENDER_EMAIL ?? 'contact@onemint.in';
+    const senderEmail = process.env.BREVO_SENDER_EMAIL ?? 'contact@onemint.com';
     const senderName  = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
 
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {

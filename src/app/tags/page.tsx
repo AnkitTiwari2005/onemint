@@ -27,7 +27,8 @@ async function fetchTags(): Promise<Record<string, number>> {
       const { data } = await supabaseAdmin
         .from('articles')
         .select('tags')
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .is('deleted_at', null);
       if (data && data.length > 0) {
         data.forEach((row: { tags: string[] | null }) => {
           (row.tags ?? []).forEach(tag => {

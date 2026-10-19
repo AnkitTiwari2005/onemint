@@ -49,17 +49,15 @@ export async function POST(req: NextRequest) {
     // Set DEBUG_AUTH=true in hPanel env vars temporarily when troubleshooting login issues.
     if (process.env.DEBUG_AUTH === 'true') {
       console.log(
-        '[AdminAuth][DEBUG] hash_len=%d hash_prefix=%s hash_suffix=%s pw_len=%d',
-        hash.length,
-        hash.slice(0, 7),   // always "$2b$12$" if well-formed
-        hash.slice(-4),      // last 4 chars
-        (password as string).length
+        '[AdminAuth][DEBUG] hash_configured=%s hash_prefix=%s',
+        Boolean(hash),
+        hash.slice(0, 7)
       );
     }
 
     const valid = await bcrypt.compare(password, hash);
     if (!valid) {
-      console.warn('[AdminAuth] bcrypt.compare returned false — hash_len=%d', hash.length);
+      console.warn('[AdminAuth] bcrypt.compare returned false');
       await new Promise(r => setTimeout(r, 600)); // slow brute-force
       return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
     }

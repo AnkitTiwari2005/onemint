@@ -163,26 +163,9 @@ const nextConfig = {
         source: '/((?!api|_next|static|fonts|favicon\\.ico|.*\\..*).*)',
         headers: [
           {
-            // Forces CDN & browser to never store HTML/RSC without validating fresh state.
-            // Prevents edge CDNs and browsers from serving stale HTML with deleted chunk hashes.
-            key: 'Cache-Control',
-            value: 'private, no-cache, max-age=0, must-revalidate',
-          },
-          {
-            key: 'CDN-Cache-Control',
-            value: 'no-store',
-          },
-          {
-            key: 'Cloudflare-CDN-Cache-Control',
-            value: 'no-store',
-          },
-          {
-            key: 'Surrogate-Control',
-            value: 'no-store',
-          },
-          {
-            key: 'X-LiteSpeed-Cache-Control',
-            value: 'no-cache',
+            // HTTP Strict Transport Security — enforce HTTPS across domain & subdomains
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
           },
           {
             // Prevent site from being embedded in iframes (clickjacking defence)

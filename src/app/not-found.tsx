@@ -23,6 +23,7 @@ async function getRecentArticles() {
       .from('articles')
       .select('slug, title, category_id, read_time_minutes, categories(name, slug)')
       .eq('status', 'published')
+      .is('deleted_at', null)
       .order('published_at', { ascending: false })
       .limit(50); // Fetch 50 most recent — keyword matcher picks the best 3
 

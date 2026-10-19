@@ -35,5 +35,6 @@ create or replace view public.public_authors as
   from public.authors
   where deleted_at is null and status = 'active';
 
--- 5. Permissions
+-- 5. Permissions: Revoke direct access to base authors table, grant access to sanitized view
+revoke select on public.authors from anon, authenticated;
 grant select on public.public_authors to anon, authenticated;

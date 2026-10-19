@@ -37,6 +37,7 @@ async function fetchTopicData(): Promise<Record<string, TopicData>> {
         .from('articles')
         .select('title, slug, category_id, categories(slug)')
         .eq('status', 'published')
+        .is('deleted_at', null)
         .order('published_at', { ascending: false });
 
       if (data && data.length > 0) {

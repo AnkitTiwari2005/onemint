@@ -17,6 +17,20 @@ import { rateLimit, getClientIP } from '@/lib/rate-limit';
  *   );
  */
 
+const TRUSTED_PUSH_DOMAINS = [
+  'googleapis.com',
+  'push.apple.com',
+  'notify.windows.com',
+  'mozilla.com',
+  'web.push.apple.com',
+];
+
+function isTrustedPushEndpoint(url: URL): boolean {
+  return TRUSTED_PUSH_DOMAINS.some(domain =>
+    url.hostname === domain || url.hostname.endsWith('.' + domain)
+  );
+}
+
 export async function POST(req: NextRequest) {
   // 10 push subscription registrations per IP per hour
   const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'push-subscribe', 10, 60 * 60 * 1000);
@@ -27,7 +41,6 @@ export async function POST(req: NextRequest) {
     );
   }
   try {
-
     const body = await req.json();
     const { endpoint, keys } = body;
 
@@ -39,6 +52,9 @@ export async function POST(req: NextRequest) {
       const parsedEndpoint = new URL(endpoint);
       if (parsedEndpoint.protocol !== 'https:') {
         return NextResponse.json({ error: 'Endpoint must use HTTPS' }, { status: 400 });
+      }
+      if (!isTrustedPushEndpoint(parsedEndpoint)) {
+        return NextResponse.json({ error: 'Untrusted push service endpoint' }, { status: 400 });
       }
     } catch {
       return NextResponse.json({ error: 'Invalid endpoint URL' }, { status: 400 });
@@ -65,6 +81,14 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const { limited, retryAfterSec } = rateLimit(getClientIP(req), 'push-unsubscribe', 20, 60 * 60 * 1000);
+  if (limited) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSec) } }
+    );
+  }
+
   try {
     const { endpoint } = await req.json();
     if (!endpoint) return NextResponse.json({ error: 'endpoint required' }, { status: 400 });

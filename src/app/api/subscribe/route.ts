@@ -14,7 +14,7 @@ async function sendWelcomeEmail(email: string, name: string): Promise<void> {
 
   const displayName = name?.trim() || 'there';
   // Set BREVO_SENDER_EMAIL in Vercel to your verified sender (e.g. hello@yourdomain.com)
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.in';
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.com';
   const senderName  = process.env.BREVO_SENDER_NAME  || 'OneMint';
 
   const payload = WELCOME_TEMPLATE_ID
@@ -97,7 +97,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { email, name } = await req.json();
+    const { email, name, honeypot, hp } = await req.json();
+    if ((honeypot && typeof honeypot === 'string' && honeypot.trim()) || (hp && typeof hp === 'string' && hp.trim())) {
+      console.warn('[Subscribe] Bot submission detected via honeypot field');
+      return NextResponse.json({ success: true, message: 'Subscribed successfully' });
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
@@ -118,29 +122,13 @@ export async function POST(req: NextRequest) {
 
       isNewSubscriber = !existing;
 
-      // If previously unsubscribed, reactivate on explicit user resubmission
+      // If previously unsubscribed, honor privacy and return UI-aligned status
       if (existing?.status === 'unsubscribed') {
-        const { error: reactivateErr } = await supabaseAdmin
-          .from('newsletter_subscribers')
-          .update({
-            status: 'active',
-            name: displayName || undefined,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('email', normalizedEmail);
-
-        if (reactivateErr) {
-          console.error('[Subscribe] Reactivation error:', reactivateErr.message);
-        } else {
-          sendWelcomeEmail(normalizedEmail, displayName).catch(err => {
-            console.error('[Subscribe] Welcome email failed:', err);
-          });
-          return NextResponse.json({
-            success: true,
-            status: 'reactivated',
-            message: 'Welcome back! Your newsletter subscription has been reactivated.',
-          });
-        }
+        return NextResponse.json({
+          success: true,
+          status: 'previously_unsubscribed',
+          message: 'This email was previously unsubscribed from OneMint. To protect your privacy, we do not automatically resubscribe accounts. Please contact us to reactivate.',
+        });
       }
 
       // Only upsert if subscriber is new or already active

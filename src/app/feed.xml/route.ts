@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fetchPublishedArticles } from '@/lib/articles';
+import { fetchPublishedArticles, staticArticles, staticToPublic, type PublicArticle } from '@/lib/articles';
 import { ENV } from '@/lib/env';
 
 export const revalidate = 3600; // 1 hour
@@ -9,8 +9,16 @@ function escapeCdata(str: string): string {
 }
 
 export async function GET() {
-  const { articles } = await fetchPublishedArticles();
-  const recentArticles = (articles || []).slice(0, 25);
+  let articles: PublicArticle[] = [];
+  try {
+    const res = await fetchPublishedArticles();
+    articles = res.articles || [];
+  } catch (err) {
+    console.error('[feed.xml] Failed to fetch articles:', err);
+    articles = staticArticles.map(staticToPublic);
+  }
+
+  const recentArticles = articles.slice(0, 25);
   const siteUrl = ENV.SITE_URL || 'https://www.onemint.com';
   const buildDate = new Date().toUTCString();
 
@@ -23,8 +31,8 @@ export async function GET() {
       const categoryName = article.categories?.name
         ? `<category><![CDATA[${escapeCdata(article.categories.name)}]]></category>`
         : '';
-      const authorName = article.authors?.name
-        ? `<author><![CDATA[${escapeCdata(article.authors.name)}]]></author>`
+      const authorCreator = article.authors?.name
+        ? `<dc:creator><![CDATA[${escapeCdata(article.authors.name)}]]></dc:creator>`
         : '';
 
       return `    <item>
@@ -34,13 +42,13 @@ export async function GET() {
       <pubDate>${pubDate}</pubDate>
       <description><![CDATA[${escapeCdata(article.excerpt || '')}]]></description>
       ${categoryName}
-      ${authorName}
+      ${authorCreator}
     </item>`;
     })
     .join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>OneMint — Personal Finance, Technology &amp; Health</title>
     <link>${siteUrl}</link>

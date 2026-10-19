@@ -135,6 +135,7 @@ async function fetchFromSupabaseViewCount(limit: number): Promise<string[] | nul
       .from('articles')
       .select('slug, view_count')
       .eq('status', 'published')
+      .is('deleted_at', null)
       .order('view_count', { ascending: false, nullsFirst: false })
       .limit(limit);
     if (error || !data || data.length === 0) return null;

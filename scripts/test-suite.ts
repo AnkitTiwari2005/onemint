@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { generateUnsubscribeToken, verifyUnsubscribeToken } from '../src/lib/unsubscribe';
-import { buildOrganization, buildArticle, buildWebApplication, buildBreadcrumbs } from '../src/lib/jsonld';
+import { buildOrganization, buildArticle, buildBreadcrumbs } from '../src/lib/jsonld';
 import sitemap from '../src/app/sitemap';
 import robots from '../src/app/robots';
 

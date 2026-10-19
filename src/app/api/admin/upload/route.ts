@@ -42,18 +42,19 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Magic-byte validation — trust content, not just MIME/extension
-    const isPNG  = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
-    const isJPEG = buffer[0] === 0xFF && buffer[1] === 0xD8;
-    const isWebP = buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
-    const isGIF  = buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
+    const isPNG  = buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+    const isJPEG = buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+    const isWebP = buffer.length >= 12 && buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+    const isGIF  = buffer.length >= 6 && buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38 && (buffer[4] === 0x37 || buffer[4] === 0x39) && buffer[5] === 0x61;
     if (!isPNG && !isJPEG && !isWebP && !isGIF) {
       return NextResponse.json(
         { error: 'Invalid image format. Only PNG, JPEG, WebP, and GIF are accepted.' },
         { status: 400 }
       );
     }
-    // Derive extension from verified magic bytes — never trust user-supplied filename
+    // Derive extension and content-type from verified magic bytes — never trust user-supplied filename or MIME
     const ext = isPNG ? 'png' : isJPEG ? 'jpg' : isWebP ? 'webp' : 'gif';
+    const mimeType = isPNG ? 'image/png' : isJPEG ? 'image/jpeg' : isWebP ? 'image/webp' : 'image/gif';
     const filename = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     await R2.send(
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
         Bucket: ENV.R2_BUCKET,
         Key: filename,
         Body: buffer,
-        ContentType: file.type,
+        ContentType: mimeType,
         CacheControl: 'public, max-age=31536000',
       })
     );

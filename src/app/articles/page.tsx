@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { fetchPublishedArticles } from '@/lib/articles';
+import { fetchPublishedArticles, staticArticles, staticToPublic, type PublicArticle } from '@/lib/articles';
 import ArticlesClientShell from './ArticlesClientShell';
 
 // ISR: cache the articles list for 60 seconds — new articles appear within 1 minute.
@@ -47,7 +47,17 @@ export default async function ArticlesPage({
   const { page } = await searchParams;
   const pageNum = Math.max(1, parseInt(String(page ?? '1'), 10) || 1);
 
-  const { articles, degraded } = await fetchPublishedArticles();
+  let articles: PublicArticle[] = [];
+  let degraded = false;
+  try {
+    const res = await fetchPublishedArticles();
+    articles = res.articles || [];
+    degraded = res.degraded;
+  } catch (err) {
+    console.error('[ArticlesPage] Failed to fetch articles:', err);
+    articles = staticArticles.map(staticToPublic);
+    degraded = true;
+  }
 
   const totalCount = articles.length;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);

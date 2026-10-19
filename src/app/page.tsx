@@ -8,7 +8,7 @@
  */
 
 import type { Metadata } from 'next';
-import { fetchPublishedArticles, toArticle } from '@/lib/articles';
+import { fetchPublishedArticles, toArticle, staticArticles, staticToPublic, type PublicArticle } from '@/lib/articles';
 import { getMostReadWeekly, getTrendingDaily } from '@/lib/analyticsData';
 import { HomePageClient } from '@/components/HomePageClient';
 import { JsonLd } from '@/components/JsonLd';
@@ -41,7 +41,14 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   // Fetch articles server-side — Google crawls real titles/links in initial HTML
-  const { articles: raw } = await fetchPublishedArticles();
+  let raw: PublicArticle[] = [];
+  try {
+    const res = await fetchPublishedArticles();
+    raw = res.articles || [];
+  } catch (err) {
+    console.error('[HomePage] Failed to fetch articles:', err);
+    raw = staticArticles.map(staticToPublic);
+  }
 
   // Map to the Article shape expected by all components (includes embedded author data)
   const articles = raw.map((a, i) => toArticle(a, i));

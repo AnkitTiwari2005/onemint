@@ -136,6 +136,7 @@ async function fetchArticlesBySlugs(slugs: string[]): Promise<ArticleCard[]> {
     .from('articles')
     .select('title, slug, deck, cover_image, read_time_minutes, categories(name, slug)')
     .eq('status', 'published')
+    .is('deleted_at', null)
     .in('slug', slugs);
 
   if (!data) return [];
@@ -161,6 +162,7 @@ async function fetchRecentArticles(
     .from('articles')
     .select('title, slug, deck, cover_image, read_time_minutes, categories(name, slug)')
     .eq('status', 'published')
+    .is('deleted_at', null)
     .order('published_at', { ascending: false })
     .limit(limit * 3); // over-fetch so we can filter in memory
 
@@ -251,6 +253,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
       .from('newsletter_subscribers')
       .select('email, name')
       .eq('status', 'active')
+      .order('created_at', { ascending: true })
       .range(from, from + CHUNK_SIZE - 1);
 
     if (error) {
@@ -269,7 +272,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
 
   const apiKey     = ENV.BREVO_API_KEY;
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
-  const senderMail = process.env.BREVO_SENDER_EMAIL ?? 'no-reply@onemint.in';
+  const senderMail = process.env.BREVO_SENDER_EMAIL ?? 'no-reply@onemint.com';
 
 
   // Send in sequential batches of 25 individual Brevo calls per batch.
@@ -295,7 +298,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
       personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, unsubUrl);
       listUnsubscribeHeader = `<${unsubUrl}>`;
     } else {
-      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.in?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
+      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.com?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
     }
 
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -356,23 +359,23 @@ async function alreadySentThisWeek(series: Series): Promise<boolean> {
   return (data?.length ?? 0) > 0;
 }
 
-async function logIssue(series: Series, slugs: string[], count: number): Promise<void> {
-  if (!supabaseAdmin) return;
-  await supabaseAdmin.from('newsletter_log').insert({
-    series,
-    article_slugs:    slugs,
-    subscriber_count: count,
-  });
-}
-
 /** Insert a sentinel log row BEFORE sending to prevent concurrent cron double-sends. */
 async function logIssueEarly(series: Series): Promise<number | null> {
   if (!supabaseAdmin) return null;
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('newsletter_log')
     .insert({ series, article_slugs: [], subscriber_count: 0 })
     .select('id')
     .single();
+
+  if (error) {
+    if (error.code === '23505') {
+      console.warn(`[newsletter] Concurrent run prevented for ${series}: unique index 23505 triggered`);
+    } else {
+      console.error('[newsletter] Failed to insert sentinel log row:', error.message);
+    }
+    return null;
+  }
   return (data as { id?: number } | null)?.id ?? null;
 }
 
@@ -472,26 +475,38 @@ export async function runNewsletter(
   const subject = subjectMap[series];
 
   // ── 8. Send (skip in preview mode) ──────────────────────────────────────
-  // Insert sentinel log row before sending to prevent concurrent runs
-  let sentinelLogId: number | null = null;
-  if (!preview) {
-    sentinelLogId = await logIssueEarly(series);
-  }
-
   let subscriberCount = 0;
   if (!preview) {
-    subscriberCount = await sendToSubscribers(subject, html);
-    // Update the sentinel row with real data, or insert fresh if sentinel failed
-    if (sentinelLogId && supabaseAdmin) {
-      await supabaseAdmin
-        .from('newsletter_log')
-        .update({
-          article_slugs: articles.map(a => a.slug),
-          subscriber_count: subscriberCount,
-        })
-        .eq('id', sentinelLogId);
-    } else {
-      await logIssue(series, articles.map(a => a.slug), subscriberCount);
+    const sentinelLogId = await logIssueEarly(series);
+    if (!sentinelLogId) {
+      console.warn(`[newsletter] Cannot acquire exclusive sentinel lock for ${series} — skipping send`);
+      return {
+        series,
+        articleCount:    0,
+        subscriberCount: 0,
+        subject:         '',
+        html:            '',
+        skipped:         'concurrency_lock_failed: send already in progress or completed for this week',
+      };
+    }
+
+    try {
+      subscriberCount = await sendToSubscribers(subject, html);
+      if (supabaseAdmin) {
+        await supabaseAdmin
+          .from('newsletter_log')
+          .update({
+            article_slugs: articles.map(a => a.slug),
+            subscriber_count: subscriberCount,
+          })
+          .eq('id', sentinelLogId);
+      }
+    } catch (err) {
+      console.error('[newsletter] Send failed — rolling back sentinel:', err);
+      if (supabaseAdmin) {
+        await supabaseAdmin.from('newsletter_log').delete().eq('id', sentinelLogId);
+      }
+      throw err;
     }
   }
 
