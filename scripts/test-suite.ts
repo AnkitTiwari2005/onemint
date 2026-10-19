@@ -382,6 +382,74 @@ async function run() {
     assert.ok(!code.includes("'use client'"), 'ArticleBodyClient should not have use client');
   });
 
+  await test('Home Loan Calculator: clamp-on-blur rules for rate, tenure & amount', () => {
+    const clampRate = (raw: string) => {
+      const parsed = parseFloat(raw);
+      return !isNaN(parsed) && parsed > 0 ? Math.min(20, Math.max(5, Math.round(parsed * 100) / 100)) : 8.5;
+    };
+    const clampTenure = (raw: string) => {
+      const parsed = parseInt(raw, 10);
+      return !isNaN(parsed) && parsed > 0 ? Math.min(30, Math.max(1, parsed)) : 20;
+    };
+    const clampAmount = (raw: string) => {
+      const parsed = Number(raw.replace(/,/g, ''));
+      return !isNaN(parsed) && parsed > 0 ? Math.min(50000000, Math.max(100000, Math.round(parsed))) : 5000000;
+    };
+
+    // Regression: typing 7.5 yields 7.5 (NOT 0.175)
+    assert.equal(clampRate('7.5'), 7.5);
+    // Boundary clamp: 0.5 snaps to min 5%
+    assert.equal(clampRate('0.5'), 5);
+    // Boundary clamp: 25 snaps to max 20%
+    assert.equal(clampRate('25'), 20);
+
+    // Regression: typing 25 tenure yields 25 (NOT 30)
+    assert.equal(clampTenure('25'), 25);
+    // Boundary clamp: 45 snaps to max 30
+    assert.equal(clampTenure('45'), 30);
+    // Boundary clamp: 0 snaps to min 1
+    assert.equal(clampTenure('0'), 20); // invalid/empty falls back
+
+    // Loan amount
+    assert.equal(clampAmount('7500000'), 7500000);
+    assert.equal(clampAmount('50000'), 100000); // snaps to min 1L
+    assert.equal(clampAmount('60000000'), 50000000); // snaps to max 5Cr
+  });
+
+  await test('HSTS Trial Configuration: safe rollout without preload or includeSubDomains', () => {
+    const nextConfigPath = path.resolve(process.cwd(), 'next.config.mjs');
+    const code = fs.readFileSync(nextConfigPath, 'utf8');
+    assert.ok(code.includes("key: 'Strict-Transport-Security'"));
+    assert.ok(code.includes("max-age=86400"));
+    assert.ok(!code.includes("max-age=63072000; includeSubDomains; preload"));
+  });
+
+  await test('Newsletter Concurrency Lock: sentinel rollback on total send failure', () => {
+    const enginePath = path.resolve(process.cwd(), 'src/lib/newsletter-engine.ts');
+    const code = fs.readFileSync(enginePath, 'utf8');
+    assert.ok(code.includes('total > 0 && subscriberCount === 0'));
+    assert.ok(code.includes("delete().eq('id', sentinelLogId)"));
+  });
+
+  await test('RSS Feed: 503 Retry-After on degraded/outage state', () => {
+    const feedPath = path.resolve(process.cwd(), 'src/app/feed.xml/route.ts');
+    const code = fs.readFileSync(feedPath, 'utf8');
+    assert.ok(code.includes('status: 503'));
+    assert.ok(code.includes("'Retry-After': '300'"));
+  });
+
+  await test('Honeypot Bot Protection: active in all subscribe forms', () => {
+    const footerCode = fs.readFileSync(path.resolve(process.cwd(), 'src/components/Footer.tsx'), 'utf8');
+    const scrollCode = fs.readFileSync(path.resolve(process.cwd(), 'src/components/NewsletterScrollCTA.tsx'), 'utf8');
+    const homeCode = fs.readFileSync(path.resolve(process.cwd(), 'src/components/HomePageClient.tsx'), 'utf8');
+    const contentCode = fs.readFileSync(path.resolve(process.cwd(), 'src/app/newsletter/NewsletterContent.tsx'), 'utf8');
+
+    assert.ok(footerCode.includes('name="hp"'));
+    assert.ok(scrollCode.includes('name="hp"'));
+    assert.ok(homeCode.includes('name="hp"'));
+    assert.ok(contentCode.includes('name="hp"'));
+  });
+
   console.log('\n======================================================');
   console.log(`TOTAL TESTS: ${totalTests}`);
   console.log(`\x1b[32mPASSED: ${passedTests}\x1b[0m`);

@@ -65,6 +65,7 @@ function calculateTax(income: number, slabs: Slab[]): { tax: number; breakdown: 
 
 export default function IncomeTaxPage() {
   const [income, setIncome] = useState(1200000);
+  const [incomeDraft, setIncomeDraft] = useState<string | null>(null);
   const [regime, setRegime] = useState<Regime>('new');
   const [deductions80C, setDeductions80C] = useState(150000);
   const [deductions80D, setDeductions80D] = useState(25000);
@@ -207,12 +208,21 @@ export default function IncomeTaxPage() {
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
                   <span className="text-[var(--color-ink-tertiary)] font-bold mr-1">₹</span>
                   <input
-                    type="number"
-                    min="100000"
-                    max="500000000"
-                    step="50000"
-                    value={income}
-                    onChange={(e) => setIncome(Math.max(0, Number(e.target.value)))}
+                    type="text"
+                    inputMode="numeric"
+                    value={incomeDraft !== null ? incomeDraft : income}
+                    onFocus={() => setIncomeDraft(String(income))}
+                    onChange={(e) => setIncomeDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = Number((incomeDraft ?? '').replace(/,/g, ''));
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setIncome(Math.min(500000000, Math.max(100000, Math.round(parsed))));
+                      }
+                      setIncomeDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    }}
                     className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Annual Income in rupees"
                   />
@@ -221,7 +231,11 @@ export default function IncomeTaxPage() {
               <input
                 id="tax-income-slider"
                 type="range" min="300000" max="10000000" step="50000"
-                value={income} onChange={(e) => setIncome(Number(e.target.value))}
+                value={income}
+                onChange={(e) => {
+                  setIncome(Number(e.target.value));
+                  setIncomeDraft(null);
+                }}
                 aria-label="Annual Income Slider"
                 aria-valuetext={`₹${formatIndianNumber(income)} per year`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"

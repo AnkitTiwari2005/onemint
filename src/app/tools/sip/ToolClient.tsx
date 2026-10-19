@@ -62,9 +62,15 @@ export default function SIPCalculatorPage() {
   const [showInflation, setShowInflation]         = useState(false);
   const rateInputRef                              = useRef<HTMLInputElement>(null);
 
+  // String draft states for input fields so typing doesn't clamp mid-keystroke or force leading zeros
+  const [monthlyDraft, setMonthlyDraft] = useState<string | null>(null);
+  const [rateDraft, setRateDraft]       = useState<string | null>(null);
+  const [yearsDraft, setYearsDraft]     = useState<string | null>(null);
+
   // When user moves the rate slider manually, deselect scenario tabs
   function handleRateChange(rate: number) {
     setReturnRate(rate);
+    setRateDraft(null);
     const matched = SCENARIOS.findIndex(s => s.rate === rate);
     setActiveScenario(matched === -1 ? null : matched);
   }
@@ -168,12 +174,21 @@ export default function SIPCalculatorPage() {
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
                   <span className="text-[var(--color-ink-tertiary)] font-bold mr-1">₹</span>
                   <input
-                    type="number"
-                    min="500"
-                    max="10000000"
-                    step="500"
-                    value={monthlyInvestment}
-                    onChange={(e) => setMonthlyInvestment(Math.max(0, Number(e.target.value)))}
+                    type="text"
+                    inputMode="numeric"
+                    value={monthlyDraft !== null ? monthlyDraft : monthlyInvestment}
+                    onFocus={() => setMonthlyDraft(String(monthlyInvestment))}
+                    onChange={(e) => setMonthlyDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = Number((monthlyDraft ?? '').replace(/,/g, ''));
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setMonthlyInvestment(Math.max(500, Math.round(parsed)));
+                      }
+                      setMonthlyDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    }}
                     className="w-28 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Monthly Investment Amount"
                   />
@@ -184,7 +199,10 @@ export default function SIPCalculatorPage() {
                 type="range"
                 min="500" max="100000" step="500"
                 value={monthlyInvestment}
-                onChange={(e) => setMonthlyInvestment(Number(e.target.value))}
+                onChange={(e) => {
+                  setMonthlyInvestment(Number(e.target.value));
+                  setMonthlyDraft(null);
+                }}
                 aria-label="Monthly Investment Slider"
                 aria-valuetext={`₹${formatIndianNumber(monthlyInvestment)} per month`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
@@ -201,12 +219,22 @@ export default function SIPCalculatorPage() {
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
                   <input
                     ref={rateInputRef}
-                    type="number"
-                    min="0.1"
-                    max="50"
-                    step="0.1"
-                    value={returnRate}
-                    onChange={(e) => handleRateChange(Number(e.target.value))}
+                    type="text"
+                    inputMode="decimal"
+                    value={rateDraft !== null ? rateDraft : returnRate}
+                    onFocus={() => setRateDraft(String(returnRate))}
+                    onChange={(e) => setRateDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = parseFloat(rateDraft ?? '');
+                      if (!isNaN(parsed) && parsed > 0) {
+                        const clamped = Math.min(50, Math.max(0.1, Math.round(parsed * 10) / 10));
+                        handleRateChange(clamped);
+                      }
+                      setRateDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    }}
                     className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Expected Return Rate percentage"
                   />
@@ -218,7 +246,10 @@ export default function SIPCalculatorPage() {
                 type="range"
                 min="1" max="30" step="0.5"
                 value={returnRate}
-                onChange={(e) => handleRateChange(Number(e.target.value))}
+                onChange={(e) => {
+                  handleRateChange(Number(e.target.value));
+                  setRateDraft(null);
+                }}
                 aria-label="Expected Return Rate Slider"
                 aria-valuetext={`${returnRate} percent per year`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
@@ -234,12 +265,21 @@ export default function SIPCalculatorPage() {
                 <label htmlFor="sip-years-slider" className="font-semibold text-[var(--color-ink)]">Time Period</label>
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-cat-finance)] focus-within:ring-1 focus-within:ring-[var(--color-cat-finance)]">
                   <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    step="1"
-                    value={years}
-                    onChange={(e) => setYears(Math.max(1, Number(e.target.value)))}
+                    type="text"
+                    inputMode="numeric"
+                    value={yearsDraft !== null ? yearsDraft : years}
+                    onFocus={() => setYearsDraft(String(years))}
+                    onChange={(e) => setYearsDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = parseInt(yearsDraft ?? '', 10);
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setYears(Math.min(50, Math.max(1, parsed)));
+                      }
+                      setYearsDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    }}
                     className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Investment Time Period in years"
                   />
@@ -251,7 +291,10 @@ export default function SIPCalculatorPage() {
                 type="range"
                 min="1" max="40" step="1"
                 value={years}
-                onChange={(e) => setYears(Number(e.target.value))}
+                onChange={(e) => {
+                  setYears(Number(e.target.value));
+                  setYearsDraft(null);
+                }}
                 aria-label="Investment Time Period Slider"
                 aria-valuetext={`${years} years`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"

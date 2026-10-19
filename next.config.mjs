@@ -169,9 +169,10 @@ const nextConfig = {
         source: '/((?!api|_next|static|fonts|favicon\\.ico|.*\\..*).*)',
         headers: [
           {
-            // HTTP Strict Transport Security — enforce HTTPS across domain & subdomains
+            // HTTP Strict Transport Security — trial rollout without preload or includeSubDomains
+            // until all subdomains (mail, autodiscover, hPanel) are audited.
             key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
+            value: 'max-age=86400',
           },
           {
             // Prevent site from being embedded in iframes (clickjacking defence)

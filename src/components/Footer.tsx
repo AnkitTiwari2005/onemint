@@ -49,6 +49,7 @@ const TOOL_LINKS = [
 
 export function Footer() {
   const [email, setEmail] = useState('');
+  const [hp, setHp] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
   const copyright = `© ${CURRENT_YEAR} OneMint. All rights reserved. Not SEBI registered. Educational content only.`;
 
@@ -60,7 +61,7 @@ export function Footer() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, hp }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error('failed');
@@ -134,6 +135,16 @@ export function Footer() {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  name="hp"
+                  value={hp}
+                  onChange={e => setHp(e.target.value)}
+                  style={{ display: 'none' }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
                 <input
                   type="email"
                   autoComplete="email"

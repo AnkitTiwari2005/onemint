@@ -23,6 +23,7 @@ export function NewsletterScrollCTA() {
   const [dismissed,  setDismissed]  = useState(false);
   const [isMobile,   setIsMobile]   = useState(false);
   const [email,      setEmail]      = useState('');
+  const [hp,         setHp]         = useState('');
   const [formState,  setFormState]  = useState<FormState>('idle');
 
   // ── Initialise ────────────────────────────────────────────────────────────
@@ -71,7 +72,7 @@ export function NewsletterScrollCTA() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, hp }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error('failed');
@@ -200,6 +201,16 @@ export function NewsletterScrollCTA() {
                     /* Email row */
                     <form onSubmit={handleSubmit} className="flex gap-2 px-4 pb-4">
                       <input
+                        type="text"
+                        name="hp"
+                        value={hp}
+                        onChange={e => setHp(e.target.value)}
+                        style={{ display: 'none' }}
+                        tabIndex={-1}
+                        autoComplete="off"
+                        aria-hidden="true"
+                      />
+                      <input
                         type="email"
                         autoComplete="email"
                         inputMode="email"
@@ -322,6 +333,16 @@ export function NewsletterScrollCTA() {
                       </div>
                     ) : (
                       <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+                        <input
+                          type="text"
+                          name="hp"
+                          value={hp}
+                          onChange={e => setHp(e.target.value)}
+                          style={{ display: 'none' }}
+                          tabIndex={-1}
+                          autoComplete="off"
+                          aria-hidden="true"
+                        />
                         <input
                           type="email"
                           autoComplete="email"

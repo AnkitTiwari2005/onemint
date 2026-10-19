@@ -17,6 +17,7 @@ type FormState = 'idle' | 'loading' | 'success' | 'previously_unsubscribed' | 'e
 
 export default function NewsletterContent() {
   const [email, setEmail] = useState('');
+  const [hp, setHp] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,7 +28,7 @@ export default function NewsletterContent() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, hp }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error('failed');
@@ -104,6 +105,16 @@ export default function NewsletterContent() {
                   onSubmit={handleSubmit}
                   className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
                 >
+                  <input
+                    type="text"
+                    name="hp"
+                    value={hp}
+                    onChange={e => setHp(e.target.value)}
+                    style={{ display: 'none' }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
                   <input
                     type="email"
                     autoComplete="email"

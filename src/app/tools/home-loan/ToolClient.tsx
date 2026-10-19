@@ -21,6 +21,11 @@ export default function HomeLoanEMIPage() {
   const [interestRate, setInterestRate] = useState(8.5);
   const [tenure, setTenure] = useState(20);
 
+  // String draft states for input fields so typing doesn't clamp mid-keystroke
+  const [amountDraft, setAmountDraft] = useState<string | null>(null);
+  const [rateDraft, setRateDraft] = useState<string | null>(null);
+  const [tenureDraft, setTenureDraft] = useState<string | null>(null);
+
   const { emi, totalInterest, totalPayment, chartData, amortization } = useMemo(() => {
     const wholeTenure = Math.min(30, Math.max(1, Math.round(tenure)));
     const P = loanAmount;
@@ -133,14 +138,20 @@ export default function HomeLoanEMIPage() {
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)]">
                   <span className="text-[var(--color-ink-tertiary)] font-bold mr-1">₹</span>
                   <input
-                    type="number"
-                    min="100000"
-                    max="50000000"
-                    step="100000"
-                    value={loanAmount}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setLoanAmount(isNaN(v) ? 100000 : Math.min(50000000, Math.max(0, v)));
+                    type="text"
+                    inputMode="numeric"
+                    value={amountDraft !== null ? amountDraft : loanAmount}
+                    onFocus={() => setAmountDraft(String(loanAmount))}
+                    onChange={(e) => setAmountDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = Number((amountDraft ?? '').replace(/,/g, ''));
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setLoanAmount(Math.min(50000000, Math.max(100000, Math.round(parsed))));
+                      }
+                      setAmountDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                     }}
                     className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Loan Amount in rupees"
@@ -151,7 +162,10 @@ export default function HomeLoanEMIPage() {
                 id="hl-amount-slider"
                 type="range" min="100000" max="50000000" step="100000"
                 value={loanAmount}
-                onChange={(e) => setLoanAmount(Number(e.target.value))}
+                onChange={(e) => {
+                  setLoanAmount(Number(e.target.value));
+                  setAmountDraft(null);
+                }}
                 aria-label="Loan Amount Slider"
                 aria-valuetext={`₹${formatIndianNumber(loanAmount)}`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
@@ -167,14 +181,20 @@ export default function HomeLoanEMIPage() {
                 <label htmlFor="hl-rate-slider" className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Interest Rate (p.a.)</label>
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)]">
                   <input
-                    type="number"
-                    min="1"
-                    max="25"
-                    step="0.05"
-                    value={interestRate}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setInterestRate(isNaN(v) ? 8.5 : Math.min(25, Math.max(0.1, v)));
+                    type="text"
+                    inputMode="decimal"
+                    value={rateDraft !== null ? rateDraft : interestRate}
+                    onFocus={() => setRateDraft(String(interestRate))}
+                    onChange={(e) => setRateDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = parseFloat(rateDraft ?? '');
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setInterestRate(Math.min(20, Math.max(5, Math.round(parsed * 100) / 100)));
+                      }
+                      setRateDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                     }}
                     className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Interest Rate percentage"
@@ -186,7 +206,10 @@ export default function HomeLoanEMIPage() {
                 id="hl-rate-slider"
                 type="range" min="5" max="20" step="0.1"
                 value={interestRate}
-                onChange={(e) => setInterestRate(Number(e.target.value))}
+                onChange={(e) => {
+                  setInterestRate(Number(e.target.value));
+                  setRateDraft(null);
+                }}
                 aria-label="Interest Rate Slider"
                 aria-valuetext={`${interestRate} percent`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
@@ -202,14 +225,20 @@ export default function HomeLoanEMIPage() {
                 <label htmlFor="hl-tenure-slider" className="font-semibold text-[var(--color-ink)] font-[family-name:var(--font-ui)]">Loan Tenure</label>
                 <div className="flex items-center bg-[var(--color-surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--color-border)] focus-within:border-[var(--color-accent)] focus-within:ring-1 focus-within:ring-[var(--color-accent)]">
                   <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    step="1"
-                    value={tenure}
-                    onChange={(e) => {
-                      const v = Math.round(Number(e.target.value));
-                      setTenure(isNaN(v) ? 20 : Math.min(30, Math.max(1, v)));
+                    type="text"
+                    inputMode="numeric"
+                    value={tenureDraft !== null ? tenureDraft : tenure}
+                    onFocus={() => setTenureDraft(String(tenure))}
+                    onChange={(e) => setTenureDraft(e.target.value)}
+                    onBlur={() => {
+                      const parsed = parseInt(tenureDraft ?? '', 10);
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setTenure(Math.min(30, Math.max(1, parsed)));
+                      }
+                      setTenureDraft(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                     }}
                     className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Loan Tenure in years"
@@ -221,7 +250,10 @@ export default function HomeLoanEMIPage() {
                 id="hl-tenure-slider"
                 type="range" min="1" max="30" step="1"
                 value={tenure}
-                onChange={(e) => setTenure(Number(e.target.value))}
+                onChange={(e) => {
+                  setTenure(Number(e.target.value));
+                  setTenureDraft(null);
+                }}
                 aria-label="Loan Tenure Slider"
                 aria-valuetext={`${tenure} years`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"

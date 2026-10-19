@@ -113,6 +113,7 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
 
   // ── Newsletter form state ─────────────────────────────────────────────────
   const [nlEmail, setNlEmail] = useState('');
+  const [nlHp, setNlHp] = useState('');
   const [nlState, setNlState] = useState<NewsletterState>('idle');
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
@@ -123,7 +124,7 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: nlEmail }),
+        body: JSON.stringify({ email: nlEmail, hp: nlHp }),
       });
       if (!res.ok) throw new Error('Subscription failed');
       setNlState('success');
@@ -378,6 +379,16 @@ export function HomePageClient({ articles, trendingSlugs = [], mostReadSlugs = [
                 </div>
               ) : (
                 <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+                  <input
+                    type="text"
+                    name="hp"
+                    value={nlHp}
+                    onChange={(e) => setNlHp(e.target.value)}
+                    style={{ display: 'none' }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
                   <input
                     type="email"
                     value={nlEmail}

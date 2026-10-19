@@ -240,8 +240,8 @@ Return ONLY the 2 sentences — nothing else.`;
 
 // ── Brevo — send to all active subscribers ────────────────────────────────────
 
-async function sendToSubscribers(subject: string, html: string): Promise<number> {
-  if (!supabaseAdmin) return 0;
+async function sendToSubscribers(subject: string, html: string): Promise<{ sent: number; total: number }> {
+  if (!supabaseAdmin) return { sent: 0, total: 0 };
 
   // Paginate query in chunks of 500 to prevent PostgREST's 1000-row default truncation
   const CHUNK_SIZE = 500;
@@ -268,7 +268,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
   }
 
   const subs = allSubs;
-  if (subs.length === 0) return 0;
+  if (subs.length === 0) return { sent: 0, total: 0 };
 
   const apiKey     = ENV.BREVO_API_KEY;
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
@@ -333,7 +333,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<number>
     sent += results.filter(r => r.status === 'fulfilled').length;
   }
 
-  return sent;
+  return { sent, total: subs.length };
 }
 
 // ── newsletter_log deduplication ─────────────────────────────────────────────
@@ -491,7 +491,19 @@ export async function runNewsletter(
     }
 
     try {
-      subscriberCount = await sendToSubscribers(subject, html);
+      const { sent, total } = await sendToSubscribers(subject, html);
+      subscriberCount = sent;
+
+      // V8-3 fix: If there were active subscribers to send to, but 0 succeeded
+      // (e.g. Brevo auth failure, sender unverified, network failure), treat as fatal
+      // and throw so the sentinel lock is deleted. This allows subsequent retries
+      // instead of permanently blocking the week with alreadySentThisWeek.
+      if (total > 0 && subscriberCount === 0) {
+        throw new Error(
+          `[newsletter] Total send failure: 0 of ${total} emails delivered. Rolling back sentinel lock to allow retries.`
+        );
+      }
+
       if (supabaseAdmin) {
         await supabaseAdmin
           .from('newsletter_log')

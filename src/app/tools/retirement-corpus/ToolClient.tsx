@@ -12,6 +12,49 @@ const RetirementChart = dynamic(() => import('./RetirementChart'), {
   loading: () => <div className="h-[220px] w-full animate-pulse bg-[var(--color-surface-alt)] rounded-xl" />,
 });
 
+function AgeInput({
+  label,
+  value,
+  min,
+  max,
+  set,
+  suffix,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  set: (v: number) => void;
+  suffix: string;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+
+  return (
+    <div className="text-center">
+      <label className="text-xs font-medium text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] block mb-2">{label}</label>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={draft !== null ? draft : value}
+        onFocus={() => setDraft(String(value))}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          const parsed = parseInt(draft ?? '', 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            set(Math.min(max, Math.max(min, parsed)));
+          }
+          setDraft(null);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+        }}
+        className="w-full text-center border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] text-[var(--color-ink)] font-bold text-lg py-2.5 font-[family-name:var(--font-ui)] focus:outline-none focus:border-[var(--color-accent)]"
+      />
+      <span className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{suffix}</span>
+    </div>
+  );
+}
+
 export default function RetirementCorpusPage() {
   const [currentAge, setCurrentAge] = useState(30);
   const [retirementAge, setRetirementAge] = useState(60);
@@ -75,24 +118,9 @@ export default function RetirementCorpusPage() {
   const inputs = (
     <div className="space-y-8">
       <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Current Age', value: currentAge, min: 18, max: 55, set: setCurrentAge, suffix: ' yr' },
-          { label: 'Retire At', value: retirementAge, min: currentAge + 1, max: 70, set: setRetirementAge, suffix: ' yr' },
-          { label: 'Life Expectancy', value: lifeExpectancy, min: retirementAge + 5, max: 100, set: setLifeExpectancy, suffix: ' yr' },
-        ].map(({ label, value, min, max, set, suffix }) => (
-          <div key={label} className="text-center">
-            <label className="text-xs font-medium text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] block mb-2">{label}</label>
-            <input
-              type="number"
-              value={value}
-              min={min}
-              max={max}
-              onChange={e => set(Math.min(max, Math.max(min, Number(e.target.value))))}
-              className="w-full text-center border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] text-[var(--color-ink)] font-bold text-lg py-2.5 font-[family-name:var(--font-ui)] focus:outline-none focus:border-[var(--color-accent)]"
-            />
-            <span className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{suffix}</span>
-          </div>
-        ))}
+        <AgeInput label="Current Age" value={currentAge} min={18} max={55} set={setCurrentAge} suffix=" yr" />
+        <AgeInput label="Retire At" value={retirementAge} min={currentAge + 1} max={70} set={setRetirementAge} suffix=" yr" />
+        <AgeInput label="Life Expectancy" value={lifeExpectancy} min={retirementAge + 5} max={100} set={setLifeExpectancy} suffix=" yr" />
       </div>
 
       <SliderInput label="Monthly Expenses Today" value={monthlyExpenses} min={10000} max={500000} step={5000} prefix="₹" onChange={setMonthlyExpenses} hint="Current cost of living" />
