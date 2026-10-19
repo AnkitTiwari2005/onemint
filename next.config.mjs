@@ -25,6 +25,12 @@ const nextConfig = {
   trailingSlash: false,
   // Remove X-Powered-By: Next.js header — no functional effect, pure security hygiene
   poweredByHeader: false,
+  // Cap build concurrency to 4 workers.
+  // Prevents "OS can't spawn worker thread: Resource temporarily unavailable (os error 11)"
+  // on cloud build environments (Hostinger) where the host has 64 vCPUs but strict cgroup thread limits.
+  experimental: {
+    cpus: 4,
+  },
   images: {
     // Use Cloudinary as the image optimization CDN instead of Vercel's optimizer.
     // This completely bypasses Vercel's 5,000/month free-tier image transformation limit.
