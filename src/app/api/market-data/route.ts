@@ -25,8 +25,11 @@ const FALLBACK: MarketItem[] = [
 ];
 
 function getAlphaVantageKeys(): string[] {
-  const raw = ENV.ALPHAVANTAGE_KEY || process.env.ALPHAVANTAGE_KEY || '';
-  return raw.split(',').map(k => k.trim()).filter(Boolean);
+  const raw = (ENV.ALPHAVANTAGE_KEY || process.env.ALPHAVANTAGE_KEY || '').trim().replace(/^["']|["']$/g, '');
+  return raw
+    .split(',')
+    .map(k => k.trim().replace(/^["']|["']$/g, ''))
+    .filter(Boolean);
 }
 
 let keyIndex = 0;
