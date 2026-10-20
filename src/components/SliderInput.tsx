@@ -1,6 +1,8 @@
 'use client';
 
 import { useId, useCallback, useRef, useState } from 'react';
+import { computeClampNotice } from '@/lib/calculator-bounds';
+import { AlertTriangle } from 'lucide-react';
 
 interface SliderInputProps {
   label: string;
@@ -37,6 +39,7 @@ export function SliderInput({
   const id = useId();
   const [inputFocused, setInputFocused] = useState(false);
   const [localInput, setLocalInput] = useState('');
+  const [notice, setNotice] = useState<string | null>(null);
   const sliderRef = useRef<HTMLInputElement>(null);
 
   const percent = ((value - min) / (max - min)) * 100;
@@ -46,6 +49,7 @@ export function SliderInput({
   const handleSliderChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange(Number(e.target.value));
+      setNotice(null);
     },
     [onChange]
   );
@@ -57,15 +61,22 @@ export function SliderInput({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalInput(e.target.value);
+    if (notice) setNotice(null);
   };
 
   const handleInputBlur = () => {
     setInputFocused(false);
-    const parsed = parseFloat(localInput.replace(/,/g, ''));
-    if (!isNaN(parsed)) {
-      const clamped = Math.min(max, Math.max(min, parsed));
-      onChange(clamped);
-    }
+    const res = computeClampNotice({
+      raw: localInput,
+      min,
+      max,
+      label,
+      fallback: value,
+      isCurrency: prefix.includes('₹'),
+      unit: suffix.trim(),
+    });
+    onChange(res.clampedValue);
+    setNotice(res.notice);
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
@@ -146,6 +157,14 @@ export function SliderInput({
         <span>{prefix}{min.toLocaleString('en-IN')}{suffix}</span>
         <span>{prefix}{max.toLocaleString('en-IN')}{suffix}</span>
       </div>
+
+      {/* Accessible status notice on clamp / reset */}
+      {notice && (
+        <p role="status" className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5 pt-0.5">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          <span>{notice}</span>
+        </p>
+      )}
     </div>
   );
 }

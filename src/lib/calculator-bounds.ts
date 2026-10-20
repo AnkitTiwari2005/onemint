@@ -65,7 +65,8 @@ export function computeClampNotice({
     };
   }
 
-  const clean = isCurrency ? trimmed.replace(/,/g, '') : trimmed;
+  // Strip currency symbols (₹, $), percent signs (%), and thousand commas (,)
+  const clean = trimmed.replace(/[₹$,%]/g, '').trim();
   const parsed = Number(clean);
 
   if (isNaN(parsed) || parsed <= 0) {

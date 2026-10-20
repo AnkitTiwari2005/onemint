@@ -7,6 +7,7 @@ import { buildOrganization, buildArticle, buildBreadcrumbs } from '../src/lib/js
 import sitemap from '../src/app/sitemap';
 import robots from '../src/app/robots';
 import { generateRssFeedXml } from '../src/lib/feed-generator';
+import { evaluateInitialConsent, getConsentInitScript } from '../src/lib/consent';
 import {
   HOME_LOAN_BOUNDS,
   SIP_BOUNDS,
@@ -608,6 +609,116 @@ async function run() {
     assert.ok(scrollCode.includes('name="hp"'));
     assert.ok(homeCode.includes('name="hp"'));
     assert.ok(contentCode.includes('name="hp"'));
+  });
+
+  // ──────────────────────────────────────────────────────────
+  // 6. CONSENT MODE V2, UNIT SYMBOL STRIPPING & PII PROTECTION
+  // ──────────────────────────────────────────────────────────
+  console.log('\n\x1b[1m[Suite 6] Consent Mode v2, Bounds Stripping & PII Protection\x1b[0m');
+
+  await test('Consent Mode v2: evaluateInitialConsent for new, returning, declined, and storage-blocked visitors (N13-1 to N13-4)', () => {
+    // 1. New visitor (no stored consent): all signals denied, sendPageView false
+    const newVisitor = evaluateInitialConsent(null);
+    assert.equal(newVisitor.analytics_storage, 'denied');
+    assert.equal(newVisitor.ad_storage, 'denied');
+    assert.equal(newVisitor.ad_user_data, 'denied');
+    assert.equal(newVisitor.ad_personalization, 'denied');
+    assert.equal(newVisitor.sendPageView, false);
+
+    // 2. Returning visitor who accepted all: all signals granted, sendPageView true
+    const acceptedVisitor = evaluateInitialConsent(JSON.stringify({
+      accepted: true,
+      prefs: { analytics: true, advertising: true },
+    }));
+    assert.equal(acceptedVisitor.analytics_storage, 'granted');
+    assert.equal(acceptedVisitor.ad_storage, 'granted');
+    assert.equal(acceptedVisitor.ad_user_data, 'granted');
+    assert.equal(acceptedVisitor.ad_personalization, 'granted');
+    assert.equal(acceptedVisitor.sendPageView, true);
+
+    // 3. Returning visitor who declined: all signals denied, sendPageView false
+    const declinedVisitor = evaluateInitialConsent(JSON.stringify({
+      accepted: false,
+      prefs: { analytics: false, advertising: false },
+    }));
+    assert.equal(declinedVisitor.analytics_storage, 'denied');
+    assert.equal(declinedVisitor.ad_storage, 'denied');
+    assert.equal(declinedVisitor.sendPageView, false);
+
+    // 4. Storage blocked / corrupt JSON: safely default-deny without throwing
+    const corruptVisitor = evaluateInitialConsent('{not-valid-json}');
+    assert.equal(corruptVisitor.analytics_storage, 'denied');
+    assert.equal(corruptVisitor.sendPageView, false);
+
+    // 5. Generated inline script validation: universal default-deny, no invalid 'EEA' region code
+    const script = getConsentInitScript('G-TEST12345');
+    assert.ok(script.includes("analytics_storage: 'denied'"));
+    assert.ok(script.includes("send_page_view: false"));
+    assert.ok(!script.includes("region: ['EEA'"), "Must not use invalid 'EEA' ISO country code");
+  });
+
+  await test('Calculator Bounds: computeClampNotice strips currency (₹, $), percent (%), and thousand separators (,) without failing (N12-2)', () => {
+    // 1. Percent signs stripped: "8.5%" -> 8.5
+    const rateWithPercent = computeClampNotice({
+      raw: '8.5%',
+      min: 5,
+      max: 20,
+      label: 'Interest Rate',
+      fallback: 8.5,
+      unit: '%',
+      precision: 1,
+    });
+    assert.equal(rateWithPercent.clampedValue, 8.5);
+    assert.equal(rateWithPercent.notice, null);
+
+    // 2. Spaced percent: " 12 % " -> 12
+    const rateSpaced = computeClampNotice({
+      raw: ' 12 % ',
+      min: 1,
+      max: 30,
+      label: 'Expected Return',
+      fallback: 12,
+      unit: '%',
+    });
+    assert.equal(rateSpaced.clampedValue, 12);
+    assert.equal(rateSpaced.notice, null);
+
+    // 3. Currency symbols and thousand separators: "₹50,000" -> 50000
+    const currencyFormatted = computeClampNotice({
+      raw: '₹50,000',
+      min: 500,
+      max: 1000000,
+      label: 'Monthly Investment',
+      fallback: 25000,
+      isCurrency: true,
+    });
+    assert.equal(currencyFormatted.clampedValue, 50000);
+    assert.equal(currencyFormatted.notice, null);
+
+    // 4. Dollar symbol if entered: "$10,000" -> 10000
+    const dollarFormatted = computeClampNotice({
+      raw: '$10,000',
+      min: 500,
+      max: 1000000,
+      label: 'Amount',
+      fallback: 5000,
+      isCurrency: true,
+    });
+    assert.equal(dollarFormatted.clampedValue, 10000);
+    assert.equal(dollarFormatted.notice, null);
+  });
+
+  await test('SliderInput: integrates computeClampNotice and accessible notice on clamp/reset (N12-1)', () => {
+    const sliderCode = fs.readFileSync(path.resolve(process.cwd(), 'src/components/SliderInput.tsx'), 'utf8');
+    assert.ok(sliderCode.includes('computeClampNotice'));
+    assert.ok(sliderCode.includes('role="status"'));
+    assert.ok(sliderCode.includes('setNotice(res.notice)'));
+  });
+
+  await test('Newsletter Cron 207: masks recipient emails to prevent PII exposure (N12-4)', () => {
+    const cronCode = fs.readFileSync(path.resolve(process.cwd(), 'src/app/api/cron/newsletter/route.ts'), 'utf8');
+    assert.ok(cronCode.includes('maskEmail'));
+    assert.ok(cronCode.includes('failedRecipients: result.failedRecipients?.map(maskEmail)'));
   });
 
   console.log('\n======================================================');

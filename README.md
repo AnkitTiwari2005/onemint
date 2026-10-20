@@ -59,10 +59,9 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY
 VAPID_SUBJECT              # mailto:contact@onemint.in
 
-GA4_CLIENT_ID
-GA4_CLIENT_SECRET
-GA4_REFRESH_TOKEN
-GA4_PROPERTY_ID
+GA4_PROPERTY_ID             # e.g. 537336599
+GA4_SERVICE_ACCOUNT_KEY     # Base64 or JSON of Google Service Account key for GA4 Data API
+NEXT_PUBLIC_GA4_MEASUREMENT_ID # e.g. G-64VNWTB5ME (gtag snippet in layout.tsx)
 
 NVIDIA_API_KEY             # for AI newsletter intro generation
 

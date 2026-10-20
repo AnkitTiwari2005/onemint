@@ -56,6 +56,16 @@ function isAuthorised(req: NextRequest): boolean {
   return false;
 }
 
+// Redact full email PII before surfacing in monitoring API responses
+function maskEmail(email: string): string {
+  const at = email.indexOf('@');
+  if (at <= 1) return '***';
+  const name = email.slice(0, at);
+  const domain = email.slice(at + 1);
+  const visible = name.slice(0, 2);
+  return `${visible}***@${domain}`;
+}
+
 export async function GET(req: NextRequest) {
   // ── Auth ────────────────────────────────────────────────────────────────
   if (!isAuthorised(req)) {
@@ -113,7 +123,7 @@ export async function GET(req: NextRequest) {
       articleCount: result.articleCount,
       subscriberCount: result.subscriberCount,
       failedCount: result.failedCount,
-      failedRecipients: result.failedRecipients,
+      failedRecipients: result.failedRecipients?.map(maskEmail),
       warning: `${result.failedCount} recipient(s) permanently failed delivery after in-run retries. Sentinel lock retained to prevent duplicate sends to successful recipients.`,
     }, { status: 207 });
   }
