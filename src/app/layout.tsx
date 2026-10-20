@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ClientLayout } from "@/components/ClientLayout";
@@ -129,6 +128,57 @@ const themeScript = `
 })();
 `;
 
+// Synchronous consent init script — runs before GA4/GTM scripts load, restores stored consent
+const consentScript = `
+(function() {
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+
+  var consent = null;
+  try {
+    var raw = localStorage.getItem('cookie_consent_v2');
+    if (raw) consent = JSON.parse(raw);
+  } catch(e) {}
+
+  if (consent && consent.accepted && consent.prefs) {
+    // 1. Returning user who previously accepted cookies:
+    gtag('consent', 'default', {
+      analytics_storage: consent.prefs.analytics ? 'granted' : 'denied',
+      ad_storage: consent.prefs.advertising ? 'granted' : 'denied',
+      ad_user_data: consent.prefs.advertising ? 'granted' : 'denied',
+      ad_personalization: consent.prefs.advertising ? 'granted' : 'denied'
+    });
+  } else if (consent && !consent.accepted) {
+    // 2. Returning user who previously declined:
+    gtag('consent', 'default', {
+      analytics_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+  } else {
+    // 3. New visitor:
+    // Apply default-deny strictly to GDPR jurisdictions (EEA & UK):
+    gtag('consent', 'default', {
+      analytics_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      region: ['EEA', 'GB'],
+      wait_for_update: 500
+    });
+    // For non-EEA visitors (e.g. India, US, global), default to granted for analytics measurement:
+    gtag('consent', 'default', {
+      analytics_storage: 'granted',
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted'
+    });
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -158,30 +208,14 @@ export default function RootLayout({
         {/* JSON-LD: WebSite (enables Sitelinks Search Box) + Organization */}
         <JsonLd data={buildWebSite()} />
         <JsonLd data={buildOrganization()} />
-        {/* Consent Mode v2 — default-deny before any measurement scripts load */}
+        {/* Consent Mode v2 — restores stored preference or defaults by region before measurement scripts load */}
+        <script dangerouslySetInnerHTML={{ __html: consentScript }} />
+        {/* Google Analytics 4 — page-view tracking */}
         <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('consent', 'default', {
-                analytics_storage: 'denied',
-                ad_storage: 'denied',
-                ad_user_data: 'denied',
-                ad_personalization: 'denied',
-                wait_for_update: 500
-              });
-            `,
-          }}
-        />
-        {/* Google Analytics 4 — page-view tracking (afterInteractive so it never blocks hydration/LCP) */}
-        <Script
-          strategy="afterInteractive"
+          async
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? 'G-64VNWTB5ME'}`}
         />
-        <Script
-          id="ga4-init"
-          strategy="afterInteractive"
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];

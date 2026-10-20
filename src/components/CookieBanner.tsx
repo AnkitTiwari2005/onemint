@@ -28,8 +28,18 @@ export function CookieBanner() {
   useEffect(() => {
     try {
       const consent = getCookieConsent();
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (!consent) setVisible(true);
+      if (!consent) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setVisible(true);
+      } else if (typeof window !== 'undefined' && typeof (window as Window & { gtag?: (...args: unknown[]) => void }).gtag === 'function') {
+        // Synchronize consent signals on mount for returning visitors
+        (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('consent', 'update', {
+          analytics_storage: consent.prefs.analytics ? 'granted' : 'denied',
+          ad_storage: consent.prefs.advertising ? 'granted' : 'denied',
+          ad_user_data: consent.prefs.advertising ? 'granted' : 'denied',
+          ad_personalization: consent.prefs.advertising ? 'granted' : 'denied',
+        });
+      }
     } catch {
       setVisible(true);
     }
@@ -59,6 +69,10 @@ export function CookieBanner() {
         ad_user_data: p.advertising ? 'granted' : 'denied',
         ad_personalization: p.advertising ? 'granted' : 'denied',
       });
+      // Fire page_view immediately if analytics consent was just granted
+      if (p.analytics) {
+        (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'page_view');
+      }
     }
     setVisible(false);
     setShowManage(false);
