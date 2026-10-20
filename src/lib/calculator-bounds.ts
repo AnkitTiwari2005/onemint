@@ -11,7 +11,13 @@ export const HOME_LOAN_BOUNDS = {
 } as const;
 
 export const SIP_BOUNDS = {
-  monthly: { min: 500, max: 1000000, step: 500, default: 25000 }, // ₹500 to ₹10 Lakhs/mo
+  monthly: {
+    min: 500,
+    max: 1000000,        // Max allowed for typed amount (₹10 Lakhs/mo)
+    sliderMax: 100000,   // Max for the range slider (₹1 Lakh/mo) for responsive mobile dragging
+    step: 500,
+    default: 25000,
+  },
   rate:    { min: 1, max: 30, step: 0.5, default: 12 },            // 1% to 30% p.a.
   years:   { min: 1, max: 40, step: 1, default: 10 },              // 1 to 40 years
 } as const;

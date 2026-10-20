@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
 import { clampHomeLoanAmount, clampHomeLoanRate, clampHomeLoanTenure, HOME_LOAN_BOUNDS } from '@/lib/calculator-bounds';
 import dynamic from 'next/dynamic';
-import { Home, Info, ArrowLeft } from 'lucide-react';
+import { Home, Info, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const HomeLoanPieChart = dynamic(() => import('./HomeLoanPieChart'), {
   ssr: false,
@@ -26,6 +26,11 @@ export default function HomeLoanEMIPage() {
   const [amountDraft, setAmountDraft] = useState<string | null>(null);
   const [rateDraft, setRateDraft] = useState<string | null>(null);
   const [tenureDraft, setTenureDraft] = useState<string | null>(null);
+
+  // Boundary notice feedback so users are informed if a value was adjusted (N-2)
+  const [amountNotice, setAmountNotice] = useState<string | null>(null);
+  const [rateNotice, setRateNotice] = useState<string | null>(null);
+  const [tenureNotice, setTenureNotice] = useState<string | null>(null);
 
   const { emi, totalInterest, totalPayment, chartData, amortization } = useMemo(() => {
     const wholeTenure = Math.min(30, Math.max(1, Math.round(tenure)));
@@ -143,9 +148,25 @@ export default function HomeLoanEMIPage() {
                     inputMode="numeric"
                     value={amountDraft !== null ? amountDraft : loanAmount}
                     onFocus={() => setAmountDraft(String(loanAmount))}
-                    onChange={(e) => setAmountDraft(e.target.value)}
+                    onChange={(e) => {
+                      setAmountDraft(e.target.value);
+                      if (amountNotice) setAmountNotice(null);
+                    }}
                     onBlur={() => {
-                      setLoanAmount(clampHomeLoanAmount(amountDraft ?? '', loanAmount));
+                      const raw = amountDraft ?? '';
+                      const parsed = Number(raw.replace(/,/g, ''));
+                      if (raw !== '') {
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setAmountNotice('Invalid amount — restored previous value');
+                        } else if (parsed < HOME_LOAN_BOUNDS.amount.min) {
+                          setAmountNotice('Minimum loan amount is ₹1,00,000 (adjusted)');
+                        } else if (parsed > HOME_LOAN_BOUNDS.amount.max) {
+                          setAmountNotice('Maximum loan amount is ₹5 Crore (adjusted)');
+                        } else {
+                          setAmountNotice(null);
+                        }
+                      }
+                      setLoanAmount(clampHomeLoanAmount(raw, loanAmount));
                       setAmountDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -167,6 +188,7 @@ export default function HomeLoanEMIPage() {
                 onChange={(e) => {
                   setLoanAmount(Number(e.target.value));
                   setAmountDraft(null);
+                  if (amountNotice) setAmountNotice(null);
                 }}
                 aria-label="Loan Amount Slider"
                 aria-valuetext={`₹${formatIndianNumber(loanAmount)}`}
@@ -175,6 +197,12 @@ export default function HomeLoanEMIPage() {
               <div id="hl-amount-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>₹1L</span><span>₹5Cr</span>
               </div>
+              {amountNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{amountNotice}</span>
+                </div>
+              )}
             </div>
 
             {/* Interest Rate */}
@@ -187,9 +215,25 @@ export default function HomeLoanEMIPage() {
                     inputMode="decimal"
                     value={rateDraft !== null ? rateDraft : interestRate}
                     onFocus={() => setRateDraft(String(interestRate))}
-                    onChange={(e) => setRateDraft(e.target.value)}
+                    onChange={(e) => {
+                      setRateDraft(e.target.value);
+                      if (rateNotice) setRateNotice(null);
+                    }}
                     onBlur={() => {
-                      setInterestRate(clampHomeLoanRate(rateDraft ?? '', interestRate));
+                      const raw = rateDraft ?? '';
+                      const parsed = parseFloat(raw);
+                      if (raw !== '') {
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setRateNotice('Invalid rate — restored previous value');
+                        } else if (parsed < HOME_LOAN_BOUNDS.rate.min) {
+                          setRateNotice(`Minimum interest rate is ${HOME_LOAN_BOUNDS.rate.min}% (adjusted)`);
+                        } else if (parsed > HOME_LOAN_BOUNDS.rate.max) {
+                          setRateNotice(`Maximum interest rate is ${HOME_LOAN_BOUNDS.rate.max}% (adjusted)`);
+                        } else {
+                          setRateNotice(null);
+                        }
+                      }
+                      setInterestRate(clampHomeLoanRate(raw, interestRate));
                       setRateDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -212,6 +256,7 @@ export default function HomeLoanEMIPage() {
                 onChange={(e) => {
                   setInterestRate(Number(e.target.value));
                   setRateDraft(null);
+                  if (rateNotice) setRateNotice(null);
                 }}
                 aria-label="Interest Rate Slider"
                 aria-valuetext={`${interestRate} percent`}
@@ -220,6 +265,12 @@ export default function HomeLoanEMIPage() {
               <div id="hl-rate-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>5%</span><span>20%</span>
               </div>
+              {rateNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{rateNotice}</span>
+                </div>
+              )}
             </div>
 
             {/* Tenure */}
@@ -232,9 +283,25 @@ export default function HomeLoanEMIPage() {
                     inputMode="numeric"
                     value={tenureDraft !== null ? tenureDraft : tenure}
                     onFocus={() => setTenureDraft(String(tenure))}
-                    onChange={(e) => setTenureDraft(e.target.value)}
+                    onChange={(e) => {
+                      setTenureDraft(e.target.value);
+                      if (tenureNotice) setTenureNotice(null);
+                    }}
                     onBlur={() => {
-                      setTenure(clampHomeLoanTenure(tenureDraft ?? '', tenure));
+                      const raw = tenureDraft ?? '';
+                      const parsed = parseInt(raw, 10);
+                      if (raw !== '') {
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setTenureNotice('Invalid tenure — restored previous value');
+                        } else if (parsed < HOME_LOAN_BOUNDS.tenure.min) {
+                          setTenureNotice(`Minimum tenure is ${HOME_LOAN_BOUNDS.tenure.min} year (adjusted)`);
+                        } else if (parsed > HOME_LOAN_BOUNDS.tenure.max) {
+                          setTenureNotice(`Maximum tenure is ${HOME_LOAN_BOUNDS.tenure.max} years (adjusted)`);
+                        } else {
+                          setTenureNotice(null);
+                        }
+                      }
+                      setTenure(clampHomeLoanTenure(raw, tenure));
                       setTenureDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -257,6 +324,7 @@ export default function HomeLoanEMIPage() {
                 onChange={(e) => {
                   setTenure(Number(e.target.value));
                   setTenureDraft(null);
+                  if (tenureNotice) setTenureNotice(null);
                 }}
                 aria-label="Loan Tenure Slider"
                 aria-valuetext={`${tenure} years`}
@@ -265,6 +333,12 @@ export default function HomeLoanEMIPage() {
               <div id="hl-tenure-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>1 Yr</span><span>30 Yr</span>
               </div>
+              {tenureNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{tenureNotice}</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm flex gap-3 border border-amber-100 font-[family-name:var(--font-body)]">

@@ -6,6 +6,7 @@ import { generateUnsubscribeToken, verifyUnsubscribeToken } from '../src/lib/uns
 import { buildOrganization, buildArticle, buildBreadcrumbs } from '../src/lib/jsonld';
 import sitemap from '../src/app/sitemap';
 import robots from '../src/app/robots';
+import { generateRssFeedXml } from '../src/lib/feed-generator';
 import {
   HOME_LOAN_BOUNDS,
   SIP_BOUNDS,
@@ -427,6 +428,10 @@ async function run() {
     assert.equal(clampSipMonthly('10,00,000'), 1000000); // parses Indian commas
     assert.equal(clampSipMonthly('', 25000), 25000); // empty fallback
 
+    // N10-1 fix: sliderMax is separate (₹1 Lakh) from typed max (₹10 Lakhs) for mobile drag usability
+    assert.equal(SIP_BOUNDS.monthly.sliderMax, 100000);
+    assert.ok(SIP_BOUNDS.monthly.sliderMax < SIP_BOUNDS.monthly.max);
+
     // Expected return rate (aligned with 1%–30% slider)
     assert.equal(clampSipRate('12'), 12);
     assert.equal(clampSipRate('0.1'), 1); // snaps to min 1%
@@ -455,7 +460,7 @@ async function run() {
     assert.ok(!code.includes("max-age=63072000; includeSubDomains; preload"));
   });
 
-  await test('Newsletter Concurrency Lock: sentinel rollback on subscriber fetch error or send failure', () => {
+  await test('Newsletter Concurrency & Partial Failure Protection (N-4 & N-5)', () => {
     const enginePath = path.resolve(process.cwd(), 'src/lib/newsletter-engine.ts');
     const code = fs.readFileSync(enginePath, 'utf8');
     // N-4 fix: throws on fetch error rather than breaking and keeping sentinel
@@ -463,16 +468,36 @@ async function run() {
     // V8-3 fix: rollback sentinel when send delivers 0 of N
     assert.ok(code.includes('total > 0 && subscriberCount === 0'));
     assert.ok(code.includes("delete().eq('id', sentinelLogId)"));
+    // N-5 fix: retries failed recipients before concluding, and preserves sentinel on partial success
+    assert.ok(code.includes('Retrying'));
+    assert.ok(code.includes('Partial send completion'));
   });
 
-  await test('RSS Feed: 503 only on degraded state; 200 on empty channel', () => {
-    const feedPath = path.resolve(process.cwd(), 'src/app/feed.xml/route.ts');
-    const code = fs.readFileSync(feedPath, 'utf8');
-    // N-3 fix: branches on res.degraded only
-    assert.ok(code.includes('if (res.degraded)'));
-    assert.ok(code.includes('status: 503'));
-    assert.ok(code.includes("'Retry-After': '300'"));
-    assert.ok(code.includes('articles = res.articles || []'));
+  await test('RSS Feed: generateRssFeedXml produces valid XML for empty and populated channels (direct function test)', () => {
+    // 1. Authoritative empty channel (N-3 fix verification)
+    const emptyXml = generateRssFeedXml([], 'https://www.onemint.com', 'Mon, 20 Oct 2026 12:00:00 GMT');
+    assert.ok(emptyXml.includes('<rss version="2.0"'));
+    assert.ok(emptyXml.includes('<channel>'));
+    assert.ok(emptyXml.includes('<title>OneMint — Personal Finance, Technology &amp; Health</title>'));
+    assert.ok(emptyXml.includes('<atom:link href="https://www.onemint.com/feed.xml"'));
+    assert.ok(!emptyXml.includes('<item>'), 'Empty articles array must produce channel with zero items');
+
+    // 2. Populated channel with CDATA escaping
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sampleArticle: any = {
+      slug: 'test-article-guide',
+      title: 'Top 5 Investment Strategies & Tips',
+      excerpt: 'Learn how to invest wisely with index funds.',
+      published_at: '2026-10-15T08:00:00Z',
+      categories: { name: 'Personal Finance' },
+      authors: { name: 'Ankit Tiwari' },
+    };
+    const populatedXml = generateRssFeedXml([sampleArticle], 'https://www.onemint.com');
+    assert.ok(populatedXml.includes('<item>'));
+    assert.ok(populatedXml.includes('<title><![CDATA[Top 5 Investment Strategies & Tips]]></title>'));
+    assert.ok(populatedXml.includes('<link>https://www.onemint.com/articles/test-article-guide</link>'));
+    assert.ok(populatedXml.includes('<category><![CDATA[Personal Finance]]></category>'));
+    assert.ok(populatedXml.includes('<dc:creator><![CDATA[Ankit Tiwari]]></dc:creator>'));
   });
 
   await test('Honeypot Bot Protection: active in all subscribe forms', () => {

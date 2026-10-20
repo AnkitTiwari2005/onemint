@@ -240,8 +240,8 @@ Return ONLY the 2 sentences — nothing else.`;
 
 // ── Brevo — send to all active subscribers ────────────────────────────────────
 
-async function sendToSubscribers(subject: string, html: string): Promise<{ sent: number; total: number }> {
-  if (!supabaseAdmin) return { sent: 0, total: 0 };
+async function sendToSubscribers(subject: string, html: string): Promise<{ sent: number; total: number; failedRecipients: string[] }> {
+  if (!supabaseAdmin) return { sent: 0, total: 0, failedRecipients: [] };
 
   // Paginate query in chunks of 500 to prevent PostgREST's 1000-row default truncation
   const CHUNK_SIZE = 500;
@@ -268,7 +268,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
   }
 
   const subs = allSubs;
-  if (subs.length === 0) return { sent: 0, total: 0 };
+  if (subs.length === 0) return { sent: 0, total: 0, failedRecipients: [] };
 
   const apiKey     = ENV.BREVO_API_KEY;
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
@@ -280,6 +280,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
   //   182 subscribers → 8 batches × ~300ms each ≈ 2.5s total.
   const BATCH_SIZE = 25;
   let sent = 0;
+  const failedSubs: { email: string; name: string | null; reason: string }[] = [];
 
   const sendOne = async (email: string, name?: string | null) => {
     // Generate signed per-subscriber unsubscribe token ONCE
@@ -330,10 +331,47 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
     const results = await Promise.allSettled(
       batch.map(s => sendOne(s.email as string, s.name as string | null))
     );
-    sent += results.filter(r => r.status === 'fulfilled').length;
+    results.forEach((r, idx) => {
+      if (r.status === 'fulfilled') {
+        sent++;
+      } else {
+        failedSubs.push({
+          email: batch[idx].email as string,
+          name: batch[idx].name,
+          reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
+        });
+      }
+    });
   }
 
-  return { sent, total: subs.length };
+  // N-5 fix: If any recipients failed (e.g. transient Brevo rate limit or socket timeout),
+  // retry only those failed recipients in a single retry pass before concluding.
+  if (failedSubs.length > 0 && sent > 0) {
+    console.warn(`[Newsletter] Retrying ${failedSubs.length} failed recipient(s)...`);
+    const retryBatch = [...failedSubs];
+    failedSubs.length = 0;
+    await new Promise(r => setTimeout(r, 1000));
+    const retryResults = await Promise.allSettled(
+      retryBatch.map(s => sendOne(s.email, s.name))
+    );
+    retryResults.forEach((r, idx) => {
+      if (r.status === 'fulfilled') {
+        sent++;
+      } else {
+        failedSubs.push({
+          email: retryBatch[idx].email,
+          name: retryBatch[idx].name,
+          reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
+        });
+      }
+    });
+  }
+
+  if (failedSubs.length > 0) {
+    console.error(`[Newsletter] Permanent delivery failure for ${failedSubs.length} recipient(s):`, failedSubs.map(f => `${f.email} (${f.reason})`));
+  }
+
+  return { sent, total: subs.length, failedRecipients: failedSubs.map(f => f.email) };
 }
 
 // ── newsletter_log deduplication ─────────────────────────────────────────────
@@ -491,7 +529,7 @@ export async function runNewsletter(
     }
 
     try {
-      const { sent, total } = await sendToSubscribers(subject, html);
+      const { sent, total, failedRecipients } = await sendToSubscribers(subject, html);
       subscriberCount = sent;
 
       // V8-3 fix: If there were active subscribers to send to, but 0 succeeded
@@ -502,6 +540,12 @@ export async function runNewsletter(
         throw new Error(
           `[newsletter] Total send failure: 0 of ${total} emails delivered. Rolling back sentinel lock to allow retries.`
         );
+      }
+
+      // N-5 fix: On partial send (sent > 0, but some failed), keep the sentinel lock
+      // to protect already-delivered recipients from duplicate emails, and log the failures.
+      if (failedRecipients && failedRecipients.length > 0) {
+        console.warn(`[newsletter] Partial send completion: ${subscriberCount} of ${total} delivered. Failed recipients: ${failedRecipients.join(', ')}`);
       }
 
       if (supabaseAdmin) {

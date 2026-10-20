@@ -68,6 +68,11 @@ export default function SIPCalculatorPage() {
   const [rateDraft, setRateDraft]       = useState<string | null>(null);
   const [yearsDraft, setYearsDraft]     = useState<string | null>(null);
 
+  // Boundary notice feedback so users are informed if a value was adjusted (N-2)
+  const [monthlyNotice, setMonthlyNotice] = useState<string | null>(null);
+  const [rateNotice, setRateNotice]       = useState<string | null>(null);
+  const [yearsNotice, setYearsNotice]     = useState<string | null>(null);
+
   // When user moves the rate slider manually, deselect scenario tabs
   function handleRateChange(rate: number) {
     setReturnRate(rate);
@@ -179,9 +184,25 @@ export default function SIPCalculatorPage() {
                     inputMode="numeric"
                     value={monthlyDraft !== null ? monthlyDraft : monthlyInvestment}
                     onFocus={() => setMonthlyDraft(String(monthlyInvestment))}
-                    onChange={(e) => setMonthlyDraft(e.target.value)}
+                    onChange={(e) => {
+                      setMonthlyDraft(e.target.value);
+                      if (monthlyNotice) setMonthlyNotice(null);
+                    }}
                     onBlur={() => {
-                      setMonthlyInvestment(clampSipMonthly(monthlyDraft ?? '', monthlyInvestment));
+                      const raw = monthlyDraft ?? '';
+                      const parsed = Number(raw.replace(/,/g, ''));
+                      if (raw !== '') {
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setMonthlyNotice('Invalid amount — restored previous value');
+                        } else if (parsed < SIP_BOUNDS.monthly.min) {
+                          setMonthlyNotice(`Minimum SIP amount is ₹${formatIndianNumber(SIP_BOUNDS.monthly.min)} (adjusted)`);
+                        } else if (parsed > SIP_BOUNDS.monthly.max) {
+                          setMonthlyNotice('Maximum SIP amount is ₹10 Lakh (adjusted)');
+                        } else {
+                          setMonthlyNotice(null);
+                        }
+                      }
+                      setMonthlyInvestment(clampSipMonthly(raw, monthlyInvestment));
                       setMonthlyDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -197,20 +218,27 @@ export default function SIPCalculatorPage() {
                 id="sip-monthly-slider"
                 type="range"
                 min={SIP_BOUNDS.monthly.min}
-                max={SIP_BOUNDS.monthly.max}
+                max={SIP_BOUNDS.monthly.sliderMax}
                 step={SIP_BOUNDS.monthly.step}
-                value={monthlyInvestment}
+                value={Math.min(monthlyInvestment, SIP_BOUNDS.monthly.sliderMax)}
                 onChange={(e) => {
                   setMonthlyInvestment(Number(e.target.value));
                   setMonthlyDraft(null);
+                  if (monthlyNotice) setMonthlyNotice(null);
                 }}
                 aria-label="Monthly Investment Slider"
                 aria-valuetext={`₹${formatIndianNumber(monthlyInvestment)} per month`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
               <div id="sip-monthly-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
-                <span>₹500</span><span>₹10 Lakh</span>
+                <span>₹500</span><span>₹1 Lakh (slider max · type up to ₹10L)</span>
               </div>
+              {monthlyNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{monthlyNotice}</span>
+                </div>
+              )}
             </div>
 
             {/* Input: Expected Return */}
@@ -224,9 +252,25 @@ export default function SIPCalculatorPage() {
                     inputMode="decimal"
                     value={rateDraft !== null ? rateDraft : returnRate}
                     onFocus={() => setRateDraft(String(returnRate))}
-                    onChange={(e) => setRateDraft(e.target.value)}
+                    onChange={(e) => {
+                      setRateDraft(e.target.value);
+                      if (rateNotice) setRateNotice(null);
+                    }}
                     onBlur={() => {
-                      handleRateChange(clampSipRate(rateDraft ?? '', returnRate));
+                      const raw = rateDraft ?? '';
+                      const parsed = parseFloat(raw);
+                      if (raw !== '') {
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setRateNotice('Invalid rate — restored previous value');
+                        } else if (parsed < SIP_BOUNDS.rate.min) {
+                          setRateNotice(`Minimum return rate is ${SIP_BOUNDS.rate.min}% (adjusted)`);
+                        } else if (parsed > SIP_BOUNDS.rate.max) {
+                          setRateNotice(`Maximum return rate is ${SIP_BOUNDS.rate.max}% (adjusted)`);
+                        } else {
+                          setRateNotice(null);
+                        }
+                      }
+                      handleRateChange(clampSipRate(raw, returnRate));
                       setRateDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -249,6 +293,7 @@ export default function SIPCalculatorPage() {
                 onChange={(e) => {
                   handleRateChange(Number(e.target.value));
                   setRateDraft(null);
+                  if (rateNotice) setRateNotice(null);
                 }}
                 aria-label="Expected Return Rate Slider"
                 aria-valuetext={`${returnRate} percent per year`}
@@ -257,6 +302,12 @@ export default function SIPCalculatorPage() {
               <div id="sip-rate-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
                 <span>1%</span><span>30%</span>
               </div>
+              {rateNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{rateNotice}</span>
+                </div>
+              )}
             </div>
 
             {/* Input: Time Period */}
@@ -269,9 +320,25 @@ export default function SIPCalculatorPage() {
                     inputMode="numeric"
                     value={yearsDraft !== null ? yearsDraft : years}
                     onFocus={() => setYearsDraft(String(years))}
-                    onChange={(e) => setYearsDraft(e.target.value)}
+                    onChange={(e) => {
+                      setYearsDraft(e.target.value);
+                      if (yearsNotice) setYearsNotice(null);
+                    }}
                     onBlur={() => {
-                      setYears(clampSipYears(yearsDraft ?? '', years));
+                      const raw = yearsDraft ?? '';
+                      const parsed = parseInt(raw, 10);
+                      if (raw !== '') {
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setYearsNotice('Invalid period — restored previous value');
+                        } else if (parsed < SIP_BOUNDS.years.min) {
+                          setYearsNotice(`Minimum period is ${SIP_BOUNDS.years.min} year (adjusted)`);
+                        } else if (parsed > SIP_BOUNDS.years.max) {
+                          setYearsNotice(`Maximum period is ${SIP_BOUNDS.years.max} years (adjusted)`);
+                        } else {
+                          setYearsNotice(null);
+                        }
+                      }
+                      setYears(clampSipYears(raw, years));
                       setYearsDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -294,6 +361,7 @@ export default function SIPCalculatorPage() {
                 onChange={(e) => {
                   setYears(Number(e.target.value));
                   setYearsDraft(null);
+                  if (yearsNotice) setYearsNotice(null);
                 }}
                 aria-label="Investment Time Period Slider"
                 aria-valuetext={`${years} years`}
@@ -302,6 +370,12 @@ export default function SIPCalculatorPage() {
               <div id="sip-years-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
                 <span>1 Yr</span><span>40 Yr</span>
               </div>
+              {yearsNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{yearsNotice}</span>
+                </div>
+              )}
             </div>
 
             {/* Inflation toggle */}
