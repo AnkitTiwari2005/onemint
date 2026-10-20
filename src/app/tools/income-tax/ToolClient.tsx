@@ -3,8 +3,9 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { formatIndianNumber } from '@/lib/utils';
+import { computeClampNotice, INCOME_TAX_BOUNDS } from '@/lib/calculator-bounds';
 import dynamic from 'next/dynamic';
-import { IndianRupee, Info, ArrowLeft, ScrollText, Sparkles, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { IndianRupee, Info, ArrowLeft, ScrollText, Sparkles, Lightbulb, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const IncomeTaxChart = dynamic(() => import('./IncomeTaxChart'), {
   ssr: false,
@@ -66,6 +67,7 @@ function calculateTax(income: number, slabs: Slab[]): { tax: number; breakdown: 
 export default function IncomeTaxPage() {
   const [income, setIncome] = useState(1200000);
   const [incomeDraft, setIncomeDraft] = useState<string | null>(null);
+  const [incomeNotice, setIncomeNotice] = useState<string | null>(null);
   const [regime, setRegime] = useState<Regime>('new');
   const [deductions80C, setDeductions80C] = useState(150000);
   const [deductions80D, setDeductions80D] = useState(25000);
@@ -212,12 +214,21 @@ export default function IncomeTaxPage() {
                     inputMode="numeric"
                     value={incomeDraft !== null ? incomeDraft : income}
                     onFocus={() => setIncomeDraft(String(income))}
-                    onChange={(e) => setIncomeDraft(e.target.value)}
+                    onChange={(e) => {
+                      setIncomeDraft(e.target.value);
+                      if (incomeNotice) setIncomeNotice(null);
+                    }}
                     onBlur={() => {
-                      const parsed = Number((incomeDraft ?? '').replace(/,/g, ''));
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setIncome(Math.min(500000000, Math.max(100000, Math.round(parsed))));
-                      }
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: incomeDraft ?? '',
+                        min: INCOME_TAX_BOUNDS.income.min,
+                        max: INCOME_TAX_BOUNDS.income.max,
+                        label: 'annual income',
+                        fallback: income,
+                        isCurrency: true,
+                      });
+                      setIncome(clampedValue);
+                      setIncomeNotice(notice);
                       setIncomeDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -225,6 +236,7 @@ export default function IncomeTaxPage() {
                     }}
                     className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Annual Income in rupees"
+                    aria-describedby="tax-income-range"
                   />
                 </div>
               </div>
@@ -235,14 +247,21 @@ export default function IncomeTaxPage() {
                 onChange={(e) => {
                   setIncome(Number(e.target.value));
                   setIncomeDraft(null);
+                  if (incomeNotice) setIncomeNotice(null);
                 }}
                 aria-label="Annual Income Slider"
                 aria-valuetext={`₹${formatIndianNumber(income)} per year`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
-                <span>₹3L</span><span>₹1Cr</span>
+              <div id="tax-income-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
+                <span>₹3L</span><span>₹1Cr (type up to ₹50Cr)</span>
               </div>
+              {incomeNotice && (
+                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium" role="status">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-600" />
+                  <span>{incomeNotice}</span>
+                </div>
+              )}
             </div>
 
             {/* Deductions (Old Regime only) */}

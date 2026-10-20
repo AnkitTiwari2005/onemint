@@ -10,6 +10,7 @@ import { generateRssFeedXml } from '../src/lib/feed-generator';
 import {
   HOME_LOAN_BOUNDS,
   SIP_BOUNDS,
+  INCOME_TAX_BOUNDS,
   clampHomeLoanAmount,
   clampHomeLoanRate,
   clampHomeLoanTenure,
@@ -17,6 +18,7 @@ import {
   clampSipRate,
   clampSipYears,
   clampAge,
+  computeClampNotice,
 } from '../src/lib/calculator-bounds';
 
 // Setup environment for testing
@@ -452,6 +454,80 @@ async function run() {
     assert.equal(clampAge('invalid', 18, 55, 30), 30); // fallback on invalid input
   });
 
+  await test('Universal computeClampNotice: handles empty draft, NaN, out-of-bounds, and notices across units (N11-1)', () => {
+    // 1. Empty draft restores fallback with notice
+    const emptyRes = computeClampNotice({
+      raw: '',
+      min: HOME_LOAN_BOUNDS.amount.min,
+      max: HOME_LOAN_BOUNDS.amount.max,
+      label: 'Loan Amount',
+      fallback: 5000000,
+      isCurrency: true,
+    });
+    assert.equal(emptyRes.clampedValue, 5000000);
+    assert.equal(emptyRes.notice, 'Field was empty — restored previous value');
+
+    // 2. Whitespace-only draft restores fallback
+    const whitespaceRes = computeClampNotice({
+      raw: '   ',
+      min: 18,
+      max: 75,
+      label: 'Age',
+      fallback: 30,
+    });
+    assert.equal(whitespaceRes.clampedValue, 30);
+    assert.equal(whitespaceRes.notice, 'Field was empty — restored previous value');
+
+    // 3. Invalid/NaN draft
+    const nanRes = computeClampNotice({
+      raw: 'abc',
+      min: 100000,
+      max: 50000000,
+      label: 'Annual Income',
+      fallback: 1200000,
+      isCurrency: true,
+    });
+    assert.equal(nanRes.clampedValue, 1200000);
+    assert.equal(nanRes.notice, 'Invalid Annual Income — restored previous value');
+
+    // 4. Below minimum currency value
+    const belowMinRes = computeClampNotice({
+      raw: '500',
+      min: 100000,
+      max: 50000000,
+      label: 'Loan Amount',
+      fallback: 5000000,
+      isCurrency: true,
+    });
+    assert.equal(belowMinRes.clampedValue, 100000);
+    assert.equal(belowMinRes.notice, 'Minimum Loan Amount is ₹1,00,000 (adjusted)');
+
+    // 5. Above maximum currency value
+    const aboveMaxRes = computeClampNotice({
+      raw: '9999999999',
+      min: 100000,
+      max: 50000000,
+      label: 'Loan Amount',
+      fallback: 5000000,
+      isCurrency: true,
+    });
+    assert.equal(aboveMaxRes.clampedValue, 50000000);
+    assert.equal(aboveMaxRes.notice, 'Maximum Loan Amount is ₹5,00,00,000 (adjusted)');
+
+    // 6. Valid percentage within range
+    const validRateRes = computeClampNotice({
+      raw: '8.5',
+      min: 5,
+      max: 20,
+      label: 'Interest Rate',
+      fallback: 8.5,
+      unit: '%',
+      precision: 1,
+    });
+    assert.equal(validRateRes.clampedValue, 8.5);
+    assert.equal(validRateRes.notice, null);
+  });
+
   await test('HSTS Trial Configuration: safe rollout without preload or includeSubDomains', () => {
     const nextConfigPath = path.resolve(process.cwd(), 'next.config.mjs');
     const code = fs.readFileSync(nextConfigPath, 'utf8');
@@ -460,20 +536,34 @@ async function run() {
     assert.ok(!code.includes("max-age=63072000; includeSubDomains; preload"));
   });
 
-  await test('Newsletter Concurrency & Partial Failure Protection (N-4 & N-5)', () => {
+  await test('Newsletter Concurrency, Retry Classification & HTTP 207 Partial Delivery (N-4, N-5, N11-2 & N11-3)', () => {
     const enginePath = path.resolve(process.cwd(), 'src/lib/newsletter-engine.ts');
-    const code = fs.readFileSync(enginePath, 'utf8');
+    const engineCode = fs.readFileSync(enginePath, 'utf8');
+
     // N-4 fix: throws on fetch error rather than breaking and keeping sentinel
-    assert.ok(code.includes('throw new Error(`[Newsletter] Failed to fetch subscribers: ${error.message}`)'));
+    assert.ok(engineCode.includes('throw new Error(`[Newsletter] Failed to fetch subscribers: ${error.message}`)'));
     // V8-3 fix: rollback sentinel when send delivers 0 of N
-    assert.ok(code.includes('total > 0 && subscriberCount === 0'));
-    assert.ok(code.includes("delete().eq('id', sentinelLogId)"));
-    // N-5 fix: retries failed recipients before concluding, and preserves sentinel on partial success
-    assert.ok(code.includes('Retrying'));
-    assert.ok(code.includes('Partial send completion'));
+    assert.ok(engineCode.includes('total > 0 && subscriberCount === 0'));
+    assert.ok(engineCode.includes("delete().eq('id', sentinelLogId)"));
+
+    // N11-3 fix: differentiates retryable (429/5xx) vs non-retryable (400/404/422) Brevo errors
+    assert.ok(engineCode.includes('res.status === 429 || res.status >= 500'));
+    assert.ok(engineCode.includes('retryableBatch'));
+    assert.ok(engineCode.includes('permanentBatch'));
+
+    // N11-2 fix: surfaces partial delivery, failedCount and failedRecipients
+    assert.ok(engineCode.includes('partial:         hasFailures'));
+    assert.ok(engineCode.includes('failedRecipients: hasFailures ? failedRecipients : undefined'));
+
+    // Cron route N11-2 fix: returns HTTP 207 Multi-Status when partial === true
+    const cronPath = path.resolve(process.cwd(), 'src/app/api/cron/newsletter/route.ts');
+    const cronCode = fs.readFileSync(cronPath, 'utf8');
+    assert.ok(cronCode.includes('if (result.partial)'));
+    assert.ok(cronCode.includes('{ status: 207 }'));
+    assert.ok(cronCode.includes('failedRecipients: result.failedRecipients'));
   });
 
-  await test('RSS Feed: generateRssFeedXml produces valid XML for empty and populated channels (direct function test)', () => {
+  await test('RSS Feed Route & Generator: valid XML on empty/populated, and 503 Retry-After on degraded DB (N-3 & N11-4)', () => {
     // 1. Authoritative empty channel (N-3 fix verification)
     const emptyXml = generateRssFeedXml([], 'https://www.onemint.com', 'Mon, 20 Oct 2026 12:00:00 GMT');
     assert.ok(emptyXml.includes('<rss version="2.0"'));
@@ -498,6 +588,14 @@ async function run() {
     assert.ok(populatedXml.includes('<link>https://www.onemint.com/articles/test-article-guide</link>'));
     assert.ok(populatedXml.includes('<category><![CDATA[Personal Finance]]></category>'));
     assert.ok(populatedXml.includes('<dc:creator><![CDATA[Ankit Tiwari]]></dc:creator>'));
+
+    // 3. N11-4 Route Contract: route-level degraded handling returns 503 and Retry-After
+    const routePath = path.resolve(process.cwd(), 'src/app/feed.xml/route.ts');
+    const routeCode = fs.readFileSync(routePath, 'utf8');
+    assert.ok(routeCode.includes('if (res.degraded)'));
+    assert.ok(routeCode.includes('status: 503'));
+    assert.ok(routeCode.includes("'Retry-After': '300'"));
+    assert.ok(routeCode.includes('no-store, no-cache, must-revalidate'));
   });
 
   await test('Honeypot Bot Protection: active in all subscribe forms', () => {

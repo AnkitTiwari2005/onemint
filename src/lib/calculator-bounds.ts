@@ -1,8 +1,10 @@
 /**
- * Shared bounds and clamp validators for financial calculators.
+ * Shared bounds, clamp validators, and boundary notification helpers for financial calculators.
  * Ensures number inputs, sliders, and automated test assertions share
- * the exact same range, step, and boundary logic.
+ * the exact same range, step, and boundary notice logic.
  */
+
+import { formatIndianNumber } from '@/lib/utils';
 
 export const HOME_LOAN_BOUNDS = {
   amount: { min: 100000, max: 50000000, step: 100000, default: 5000000 },
@@ -25,6 +27,79 @@ export const SIP_BOUNDS = {
 export const INCOME_TAX_BOUNDS = {
   income: { min: 100000, max: 500000000, step: 50000, default: 1200000 },
 } as const;
+
+export interface ClampNoticeResult {
+  clampedValue: number;
+  notice: string | null;
+}
+
+/**
+ * Universal validator that parses an input draft, clamps it to [min, max],
+ * and returns both the clamped numeric value and an accessible user notice.
+ * Covers: empty fields, below min, above max, and invalid/NaN input.
+ */
+export function computeClampNotice({
+  raw,
+  min,
+  max,
+  label,
+  fallback,
+  isCurrency = false,
+  unit = '',
+  precision = 0,
+}: {
+  raw: string;
+  min: number;
+  max: number;
+  label: string;
+  fallback: number;
+  isCurrency?: boolean;
+  unit?: string;
+  precision?: number;
+}): ClampNoticeResult {
+  const trimmed = raw.trim();
+  if (trimmed === '') {
+    return {
+      clampedValue: fallback,
+      notice: 'Field was empty — restored previous value',
+    };
+  }
+
+  const clean = isCurrency ? trimmed.replace(/,/g, '') : trimmed;
+  const parsed = Number(clean);
+
+  if (isNaN(parsed) || parsed <= 0) {
+    return {
+      clampedValue: fallback,
+      notice: `Invalid ${label} — restored previous value`,
+    };
+  }
+
+  const factor = Math.pow(10, precision);
+  const rounded = Math.round(parsed * factor) / factor;
+
+  const minFormatted = isCurrency ? `₹${formatIndianNumber(min)}` : `${min}${unit ? ` ${unit}` : ''}`;
+  const maxFormatted = isCurrency ? `₹${formatIndianNumber(max)}` : `${max}${unit ? ` ${unit}` : ''}`;
+
+  if (rounded < min) {
+    return {
+      clampedValue: min,
+      notice: `Minimum ${label} is ${minFormatted} (adjusted)`,
+    };
+  }
+
+  if (rounded > max) {
+    return {
+      clampedValue: max,
+      notice: `Maximum ${label} is ${maxFormatted} (adjusted)`,
+    };
+  }
+
+  return {
+    clampedValue: rounded,
+    notice: null,
+  };
+}
 
 /** Clamp Home Loan principal amount between ₹1L and ₹5Cr */
 export function clampHomeLoanAmount(val: number | string, fallback: number = HOME_LOAN_BOUNDS.amount.default): number {

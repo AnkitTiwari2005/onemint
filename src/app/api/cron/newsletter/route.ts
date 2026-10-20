@@ -100,7 +100,24 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // ── Success ─────────────────────────────────────────────────────────────
+  // ── Success or Partial Multi-Status ─────────────────────────────────────
+  if (result.partial) {
+    console.warn(
+      `[Newsletter][${series}] Partial delivery: ${result.subscriberCount} delivered, ${result.failedCount} failed (${result.failedRecipients?.join(', ')}).`,
+    );
+    return NextResponse.json({
+      ok: false,
+      partial: true,
+      series: result.series,
+      subject: result.subject,
+      articleCount: result.articleCount,
+      subscriberCount: result.subscriberCount,
+      failedCount: result.failedCount,
+      failedRecipients: result.failedRecipients,
+      warning: `${result.failedCount} recipient(s) permanently failed delivery after in-run retries. Sentinel lock retained to prevent duplicate sends to successful recipients.`,
+    }, { status: 207 });
+  }
+
   console.log(
     `[Newsletter][${series}] Sent "${result.subject}" — ${result.articleCount} articles, ${result.subscriberCount} subscribers.`,
   );

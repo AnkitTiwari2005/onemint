@@ -4,7 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
-import { clampSipMonthly, clampSipRate, clampSipYears, SIP_BOUNDS } from '@/lib/calculator-bounds';
+import { computeClampNotice, SIP_BOUNDS } from '@/lib/calculator-bounds';
 import { Calculator, Info, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const SipChart = dynamic(() => import('./SipChart'), {
@@ -189,20 +189,16 @@ export default function SIPCalculatorPage() {
                       if (monthlyNotice) setMonthlyNotice(null);
                     }}
                     onBlur={() => {
-                      const raw = monthlyDraft ?? '';
-                      const parsed = Number(raw.replace(/,/g, ''));
-                      if (raw !== '') {
-                        if (isNaN(parsed) || parsed <= 0) {
-                          setMonthlyNotice('Invalid amount — restored previous value');
-                        } else if (parsed < SIP_BOUNDS.monthly.min) {
-                          setMonthlyNotice(`Minimum SIP amount is ₹${formatIndianNumber(SIP_BOUNDS.monthly.min)} (adjusted)`);
-                        } else if (parsed > SIP_BOUNDS.monthly.max) {
-                          setMonthlyNotice('Maximum SIP amount is ₹10 Lakh (adjusted)');
-                        } else {
-                          setMonthlyNotice(null);
-                        }
-                      }
-                      setMonthlyInvestment(clampSipMonthly(raw, monthlyInvestment));
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: monthlyDraft ?? '',
+                        min: SIP_BOUNDS.monthly.min,
+                        max: SIP_BOUNDS.monthly.max,
+                        label: 'SIP amount',
+                        fallback: monthlyInvestment,
+                        isCurrency: true,
+                      });
+                      setMonthlyInvestment(clampedValue);
+                      setMonthlyNotice(notice);
                       setMonthlyDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -257,20 +253,17 @@ export default function SIPCalculatorPage() {
                       if (rateNotice) setRateNotice(null);
                     }}
                     onBlur={() => {
-                      const raw = rateDraft ?? '';
-                      const parsed = parseFloat(raw);
-                      if (raw !== '') {
-                        if (isNaN(parsed) || parsed <= 0) {
-                          setRateNotice('Invalid rate — restored previous value');
-                        } else if (parsed < SIP_BOUNDS.rate.min) {
-                          setRateNotice(`Minimum return rate is ${SIP_BOUNDS.rate.min}% (adjusted)`);
-                        } else if (parsed > SIP_BOUNDS.rate.max) {
-                          setRateNotice(`Maximum return rate is ${SIP_BOUNDS.rate.max}% (adjusted)`);
-                        } else {
-                          setRateNotice(null);
-                        }
-                      }
-                      handleRateChange(clampSipRate(raw, returnRate));
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: rateDraft ?? '',
+                        min: SIP_BOUNDS.rate.min,
+                        max: SIP_BOUNDS.rate.max,
+                        label: 'return rate',
+                        fallback: returnRate,
+                        unit: '%',
+                        precision: 1,
+                      });
+                      handleRateChange(clampedValue);
+                      setRateNotice(notice);
                       setRateDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -325,20 +318,16 @@ export default function SIPCalculatorPage() {
                       if (yearsNotice) setYearsNotice(null);
                     }}
                     onBlur={() => {
-                      const raw = yearsDraft ?? '';
-                      const parsed = parseInt(raw, 10);
-                      if (raw !== '') {
-                        if (isNaN(parsed) || parsed <= 0) {
-                          setYearsNotice('Invalid period — restored previous value');
-                        } else if (parsed < SIP_BOUNDS.years.min) {
-                          setYearsNotice(`Minimum period is ${SIP_BOUNDS.years.min} year (adjusted)`);
-                        } else if (parsed > SIP_BOUNDS.years.max) {
-                          setYearsNotice(`Maximum period is ${SIP_BOUNDS.years.max} years (adjusted)`);
-                        } else {
-                          setYearsNotice(null);
-                        }
-                      }
-                      setYears(clampSipYears(raw, years));
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: yearsDraft ?? '',
+                        min: SIP_BOUNDS.years.min,
+                        max: SIP_BOUNDS.years.max,
+                        label: 'time period',
+                        fallback: years,
+                        unit: 'years',
+                      });
+                      setYears(clampedValue);
+                      setYearsNotice(notice);
                       setYearsDraft(null);
                     }}
                     onKeyDown={(e) => {

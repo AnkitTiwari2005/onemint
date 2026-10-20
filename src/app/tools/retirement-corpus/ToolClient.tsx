@@ -4,9 +4,9 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
-import { clampAge } from '@/lib/calculator-bounds';
+import { computeClampNotice } from '@/lib/calculator-bounds';
 import dynamic from 'next/dynamic';
-import { Sunset } from 'lucide-react';
+import { Sunset, AlertTriangle } from 'lucide-react';
 
 const RetirementChart = dynamic(() => import('./RetirementChart'), {
   ssr: false,
@@ -29,6 +29,7 @@ function AgeInput({
   suffix: string;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const inputId = `age-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
   const hintId = `${inputId}-hint`;
 
@@ -41,9 +42,21 @@ function AgeInput({
         inputMode="numeric"
         value={draft !== null ? draft : value}
         onFocus={() => setDraft(String(value))}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          if (notice) setNotice(null);
+        }}
         onBlur={() => {
-          set(clampAge(draft ?? '', min, max, value));
+          const { clampedValue, notice: newNotice } = computeClampNotice({
+            raw: draft ?? '',
+            min,
+            max,
+            label: label.toLowerCase(),
+            fallback: value,
+            unit: 'years',
+          });
+          set(clampedValue);
+          setNotice(newNotice);
           setDraft(null);
         }}
         onKeyDown={(e) => {
@@ -54,6 +67,12 @@ function AgeInput({
         aria-describedby={hintId}
       />
       <span id={hintId} className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] block mt-1">{min}–{max}{suffix}</span>
+      {notice && (
+        <div className="flex items-center justify-center gap-1 text-[11px] text-amber-700 dark:text-amber-400 mt-1.5 font-medium" role="status">
+          <AlertTriangle size={12} className="shrink-0 text-amber-600" />
+          <span>{notice}</span>
+        </div>
+      )}
     </div>
   );
 }

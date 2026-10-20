@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
-import { clampHomeLoanAmount, clampHomeLoanRate, clampHomeLoanTenure, HOME_LOAN_BOUNDS } from '@/lib/calculator-bounds';
+import { computeClampNotice, HOME_LOAN_BOUNDS } from '@/lib/calculator-bounds';
 import dynamic from 'next/dynamic';
 import { Home, Info, ArrowLeft, AlertTriangle } from 'lucide-react';
 
@@ -153,20 +153,16 @@ export default function HomeLoanEMIPage() {
                       if (amountNotice) setAmountNotice(null);
                     }}
                     onBlur={() => {
-                      const raw = amountDraft ?? '';
-                      const parsed = Number(raw.replace(/,/g, ''));
-                      if (raw !== '') {
-                        if (isNaN(parsed) || parsed <= 0) {
-                          setAmountNotice('Invalid amount — restored previous value');
-                        } else if (parsed < HOME_LOAN_BOUNDS.amount.min) {
-                          setAmountNotice('Minimum loan amount is ₹1,00,000 (adjusted)');
-                        } else if (parsed > HOME_LOAN_BOUNDS.amount.max) {
-                          setAmountNotice('Maximum loan amount is ₹5 Crore (adjusted)');
-                        } else {
-                          setAmountNotice(null);
-                        }
-                      }
-                      setLoanAmount(clampHomeLoanAmount(raw, loanAmount));
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: amountDraft ?? '',
+                        min: HOME_LOAN_BOUNDS.amount.min,
+                        max: HOME_LOAN_BOUNDS.amount.max,
+                        label: 'loan amount',
+                        fallback: loanAmount,
+                        isCurrency: true,
+                      });
+                      setLoanAmount(clampedValue);
+                      setAmountNotice(notice);
                       setAmountDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -220,20 +216,17 @@ export default function HomeLoanEMIPage() {
                       if (rateNotice) setRateNotice(null);
                     }}
                     onBlur={() => {
-                      const raw = rateDraft ?? '';
-                      const parsed = parseFloat(raw);
-                      if (raw !== '') {
-                        if (isNaN(parsed) || parsed <= 0) {
-                          setRateNotice('Invalid rate — restored previous value');
-                        } else if (parsed < HOME_LOAN_BOUNDS.rate.min) {
-                          setRateNotice(`Minimum interest rate is ${HOME_LOAN_BOUNDS.rate.min}% (adjusted)`);
-                        } else if (parsed > HOME_LOAN_BOUNDS.rate.max) {
-                          setRateNotice(`Maximum interest rate is ${HOME_LOAN_BOUNDS.rate.max}% (adjusted)`);
-                        } else {
-                          setRateNotice(null);
-                        }
-                      }
-                      setInterestRate(clampHomeLoanRate(raw, interestRate));
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: rateDraft ?? '',
+                        min: HOME_LOAN_BOUNDS.rate.min,
+                        max: HOME_LOAN_BOUNDS.rate.max,
+                        label: 'interest rate',
+                        fallback: interestRate,
+                        unit: '%',
+                        precision: 2,
+                      });
+                      setInterestRate(clampedValue);
+                      setRateNotice(notice);
                       setRateDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -288,20 +281,16 @@ export default function HomeLoanEMIPage() {
                       if (tenureNotice) setTenureNotice(null);
                     }}
                     onBlur={() => {
-                      const raw = tenureDraft ?? '';
-                      const parsed = parseInt(raw, 10);
-                      if (raw !== '') {
-                        if (isNaN(parsed) || parsed <= 0) {
-                          setTenureNotice('Invalid tenure — restored previous value');
-                        } else if (parsed < HOME_LOAN_BOUNDS.tenure.min) {
-                          setTenureNotice(`Minimum tenure is ${HOME_LOAN_BOUNDS.tenure.min} year (adjusted)`);
-                        } else if (parsed > HOME_LOAN_BOUNDS.tenure.max) {
-                          setTenureNotice(`Maximum tenure is ${HOME_LOAN_BOUNDS.tenure.max} years (adjusted)`);
-                        } else {
-                          setTenureNotice(null);
-                        }
-                      }
-                      setTenure(clampHomeLoanTenure(raw, tenure));
+                      const { clampedValue, notice } = computeClampNotice({
+                        raw: tenureDraft ?? '',
+                        min: HOME_LOAN_BOUNDS.tenure.min,
+                        max: HOME_LOAN_BOUNDS.tenure.max,
+                        label: 'tenure',
+                        fallback: tenure,
+                        unit: 'years',
+                      });
+                      setTenure(clampedValue);
+                      setTenureNotice(notice);
                       setTenureDraft(null);
                     }}
                     onKeyDown={(e) => {

@@ -240,6 +240,11 @@ Return ONLY the 2 sentences — nothing else.`;
 
 // ── Brevo — send to all active subscribers ────────────────────────────────────
 
+interface SendError extends Error {
+  status?: number;
+  retryable?: boolean;
+}
+
 async function sendToSubscribers(subject: string, html: string): Promise<{ sent: number; total: number; failedRecipients: string[] }> {
   if (!supabaseAdmin) return { sent: 0, total: 0, failedRecipients: [] };
 
@@ -280,7 +285,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
   //   182 subscribers → 8 batches × ~300ms each ≈ 2.5s total.
   const BATCH_SIZE = 25;
   let sent = 0;
-  const failedSubs: { email: string; name: string | null; reason: string }[] = [];
+  const failedSubs: { email: string; name: string | null; reason: string; retryable: boolean }[] = [];
 
   const sendOne = async (email: string, name?: string | null) => {
     // Generate signed per-subscriber unsubscribe token ONCE
@@ -322,7 +327,12 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
       const body = await res.json().catch(() => ({}));
       const errMsg = `[Newsletter] Brevo rejected send to subscriber: ${JSON.stringify(body)}`;
       console.error(errMsg);
-      throw new Error(errMsg);
+      const sendErr: SendError = new Error(errMsg);
+      sendErr.status = res.status;
+      // HTTP 429 (rate limit) or 5xx (Brevo server errors) are transient/retryable.
+      // HTTP 400, 401, 403, 404, 422 are permanent errors (e.g. malformed address, invalid sender, blacklisted)
+      sendErr.retryable = res.status === 429 || res.status >= 500;
+      throw sendErr;
     }
   };
 
@@ -335,36 +345,47 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
       if (r.status === 'fulfilled') {
         sent++;
       } else {
+        const err = r.reason as SendError | undefined;
+        // Network/socket aborts without an HTTP status code are treated as transient
+        const isRetryable = err && typeof err === 'object' && 'retryable' in err
+          ? Boolean(err.retryable)
+          : true;
         failedSubs.push({
           email: batch[idx].email as string,
           name: batch[idx].name,
           reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
+          retryable: isRetryable,
         });
       }
     });
   }
 
-  // N-5 fix: If any recipients failed (e.g. transient Brevo rate limit or socket timeout),
-  // retry only those failed recipients in a single retry pass before concluding.
-  if (failedSubs.length > 0 && sent > 0) {
-    console.warn(`[Newsletter] Retrying ${failedSubs.length} failed recipient(s)...`);
-    const retryBatch = [...failedSubs];
-    failedSubs.length = 0;
+  // N-5 & N11-3 fix: If any recipients failed transiently, retry ONLY those retryable recipients
+  // in a single retry pass with backoff before concluding. Permanent client errors (4xx) are NOT retried.
+  const retryableBatch = failedSubs.filter(s => s.retryable);
+  const permanentBatch = failedSubs.filter(s => !s.retryable);
+
+  if (retryableBatch.length > 0) {
+    console.warn(`[Newsletter] Retrying ${retryableBatch.length} transiently failed recipient(s)...`);
     await new Promise(r => setTimeout(r, 1000));
     const retryResults = await Promise.allSettled(
-      retryBatch.map(s => sendOne(s.email, s.name))
+      retryableBatch.map(s => sendOne(s.email, s.name))
     );
+    const stillFailed: typeof failedSubs = [];
     retryResults.forEach((r, idx) => {
       if (r.status === 'fulfilled') {
         sent++;
       } else {
-        failedSubs.push({
-          email: retryBatch[idx].email,
-          name: retryBatch[idx].name,
+        stillFailed.push({
+          email: retryableBatch[idx].email,
+          name: retryableBatch[idx].name,
           reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
+          retryable: false, // marked as exhausted retry
         });
       }
     });
+    failedSubs.length = 0;
+    failedSubs.push(...permanentBatch, ...stillFailed);
   }
 
   if (failedSubs.length > 0) {
@@ -426,6 +447,9 @@ export interface NewsletterResult {
   subject:         string;
   html:            string;        // always returned — used by preview mode too
   skipped?:        string;        // set when the run was skipped (e.g. already sent)
+  partial?:        boolean;       // true when some recipients failed permanently
+  failedCount?:    number;
+  failedRecipients?: string[];
 }
 
 export async function runNewsletter(
@@ -542,9 +566,10 @@ export async function runNewsletter(
         );
       }
 
-      // N-5 fix: On partial send (sent > 0, but some failed), keep the sentinel lock
-      // to protect already-delivered recipients from duplicate emails, and log the failures.
-      if (failedRecipients && failedRecipients.length > 0) {
+      // N-5 / N11-2 fix: On partial send (sent > 0, but some failed), keep the sentinel lock
+      // to protect already-delivered recipients from duplicate emails, and surface the failures.
+      const hasFailures = Boolean(failedRecipients && failedRecipients.length > 0);
+      if (hasFailures) {
         console.warn(`[newsletter] Partial send completion: ${subscriberCount} of ${total} delivered. Failed recipients: ${failedRecipients.join(', ')}`);
       }
 
@@ -557,6 +582,17 @@ export async function runNewsletter(
           })
           .eq('id', sentinelLogId);
       }
+
+      return {
+        series,
+        articleCount:    articles.length,
+        subscriberCount,
+        subject,
+        html,
+        partial:         hasFailures,
+        failedCount:     hasFailures ? failedRecipients.length : undefined,
+        failedRecipients: hasFailures ? failedRecipients : undefined,
+      };
     } catch (err) {
       console.error('[newsletter] Send failed — rolling back sentinel:', err);
       if (supabaseAdmin) {
