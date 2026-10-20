@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { CalculatorLayout } from '@/components/CalculatorLayout';
 import { SliderInput } from '@/components/SliderInput';
 import { formatIndianNumber } from '@/lib/utils';
+import { clampAge } from '@/lib/calculator-bounds';
 import dynamic from 'next/dynamic';
 import { Sunset } from 'lucide-react';
 
@@ -28,29 +29,31 @@ function AgeInput({
   suffix: string;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const inputId = `age-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  const hintId = `${inputId}-hint`;
 
   return (
     <div className="text-center">
-      <label className="text-xs font-medium text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] block mb-2">{label}</label>
+      <label htmlFor={inputId} className="text-xs font-medium text-[var(--color-ink-secondary)] font-[family-name:var(--font-ui)] block mb-2">{label}</label>
       <input
+        id={inputId}
         type="text"
         inputMode="numeric"
         value={draft !== null ? draft : value}
         onFocus={() => setDraft(String(value))}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => {
-          const parsed = parseInt(draft ?? '', 10);
-          if (!isNaN(parsed) && parsed > 0) {
-            set(Math.min(max, Math.max(min, parsed)));
-          }
+          set(clampAge(draft ?? '', min, max, value));
           setDraft(null);
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
         }}
         className="w-full text-center border border-[var(--color-border)] rounded-xl bg-[var(--color-surface)] text-[var(--color-ink)] font-bold text-lg py-2.5 font-[family-name:var(--font-ui)] focus:outline-none focus:border-[var(--color-accent)]"
+        aria-label={`${label} in years`}
+        aria-describedby={hintId}
       />
-      <span className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)]">{suffix}</span>
+      <span id={hintId} className="text-xs text-[var(--color-ink-tertiary)] font-[family-name:var(--font-ui)] block mt-1">{min}–{max}{suffix}</span>
     </div>
   );
 }

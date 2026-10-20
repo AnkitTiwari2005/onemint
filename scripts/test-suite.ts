@@ -6,6 +6,17 @@ import { generateUnsubscribeToken, verifyUnsubscribeToken } from '../src/lib/uns
 import { buildOrganization, buildArticle, buildBreadcrumbs } from '../src/lib/jsonld';
 import sitemap from '../src/app/sitemap';
 import robots from '../src/app/robots';
+import {
+  HOME_LOAN_BOUNDS,
+  SIP_BOUNDS,
+  clampHomeLoanAmount,
+  clampHomeLoanRate,
+  clampHomeLoanTenure,
+  clampSipMonthly,
+  clampSipRate,
+  clampSipYears,
+  clampAge,
+} from '../src/lib/calculator-bounds';
 
 // Setup environment for testing
 process.env.ADMIN_SESSION_SECRET = 'test-secret-for-hmac-verification-32chars!';
@@ -382,38 +393,58 @@ async function run() {
     assert.ok(!code.includes("'use client'"), 'ArticleBodyClient should not have use client');
   });
 
-  await test('Home Loan Calculator: clamp-on-blur rules for rate, tenure & amount', () => {
-    const clampRate = (raw: string) => {
-      const parsed = parseFloat(raw);
-      return !isNaN(parsed) && parsed > 0 ? Math.min(20, Math.max(5, Math.round(parsed * 100) / 100)) : 8.5;
-    };
-    const clampTenure = (raw: string) => {
-      const parsed = parseInt(raw, 10);
-      return !isNaN(parsed) && parsed > 0 ? Math.min(30, Math.max(1, parsed)) : 20;
-    };
-    const clampAmount = (raw: string) => {
-      const parsed = Number(raw.replace(/,/g, ''));
-      return !isNaN(parsed) && parsed > 0 ? Math.min(50000000, Math.max(100000, Math.round(parsed))) : 5000000;
-    };
-
+  await test('Home Loan Calculator: clamp-on-blur rules for rate, tenure & amount (direct function test)', () => {
     // Regression: typing 7.5 yields 7.5 (NOT 0.175)
-    assert.equal(clampRate('7.5'), 7.5);
+    assert.equal(clampHomeLoanRate('7.5'), 7.5);
     // Boundary clamp: 0.5 snaps to min 5%
-    assert.equal(clampRate('0.5'), 5);
+    assert.equal(clampHomeLoanRate('0.5'), 5);
     // Boundary clamp: 25 snaps to max 20%
-    assert.equal(clampRate('25'), 20);
+    assert.equal(clampHomeLoanRate('25'), 20);
+    // Fallback for empty/NaN
+    assert.equal(clampHomeLoanRate('', 8.5), 8.5);
 
     // Regression: typing 25 tenure yields 25 (NOT 30)
-    assert.equal(clampTenure('25'), 25);
+    assert.equal(clampHomeLoanTenure('25'), 25);
     // Boundary clamp: 45 snaps to max 30
-    assert.equal(clampTenure('45'), 30);
-    // Boundary clamp: 0 snaps to min 1
-    assert.equal(clampTenure('0'), 20); // invalid/empty falls back
+    assert.equal(clampHomeLoanTenure('45'), 30);
+    // Empty/0 falls back to provided default
+    assert.equal(clampHomeLoanTenure('0', 20), 20);
+    // Boundary clamp: 1 year is accepted
+    assert.equal(clampHomeLoanTenure('1'), 1);
 
     // Loan amount
-    assert.equal(clampAmount('7500000'), 7500000);
-    assert.equal(clampAmount('50000'), 100000); // snaps to min 1L
-    assert.equal(clampAmount('60000000'), 50000000); // snaps to max 5Cr
+    assert.equal(clampHomeLoanAmount('7500000'), 7500000);
+    assert.equal(clampHomeLoanAmount('50,000'), 100000); // snaps to min 1L (handles commas)
+    assert.equal(clampHomeLoanAmount('6,00,00,000'), 50000000); // snaps to max 5Cr (handles commas)
+    assert.equal(clampHomeLoanAmount('invalid', 5000000), 5000000);
+  });
+
+  await test('SIP Calculator: clamp rules for monthly, rate & years (direct function test)', () => {
+    // Monthly amount upper and lower bounds (Fix N-1)
+    assert.equal(clampSipMonthly('25000'), 25000);
+    assert.equal(clampSipMonthly('100'), 500); // snaps to min ₹500
+    assert.equal(clampSipMonthly('999999999999'), 1000000); // capped at ₹10 Lakhs (never produces ridiculous Cr)
+    assert.equal(clampSipMonthly('10,00,000'), 1000000); // parses Indian commas
+    assert.equal(clampSipMonthly('', 25000), 25000); // empty fallback
+
+    // Expected return rate (aligned with 1%–30% slider)
+    assert.equal(clampSipRate('12'), 12);
+    assert.equal(clampSipRate('0.1'), 1); // snaps to min 1%
+    assert.equal(clampSipRate('50'), 30); // capped at max 30% (matches slider)
+    assert.equal(clampSipRate('15.5'), 15.5); // single decimal precision
+
+    // Time period (aligned with 1–40 yr slider)
+    assert.equal(clampSipYears('10'), 10);
+    assert.equal(clampSipYears('0', 10), 10); // fallback on 0
+    assert.equal(clampSipYears('50'), 40); // capped at max 40 yrs (matches slider)
+    assert.equal(clampSipYears('1'), 1); // min 1 yr
+  });
+
+  await test('Retirement Corpus: clampAge validator (direct function test)', () => {
+    assert.equal(clampAge('30', 18, 55, 30), 30);
+    assert.equal(clampAge('10', 18, 55, 30), 18); // snaps to min
+    assert.equal(clampAge('75', 18, 55, 30), 55); // snaps to max
+    assert.equal(clampAge('invalid', 18, 55, 30), 30); // fallback on invalid input
   });
 
   await test('HSTS Trial Configuration: safe rollout without preload or includeSubDomains', () => {
@@ -424,18 +455,24 @@ async function run() {
     assert.ok(!code.includes("max-age=63072000; includeSubDomains; preload"));
   });
 
-  await test('Newsletter Concurrency Lock: sentinel rollback on total send failure', () => {
+  await test('Newsletter Concurrency Lock: sentinel rollback on subscriber fetch error or send failure', () => {
     const enginePath = path.resolve(process.cwd(), 'src/lib/newsletter-engine.ts');
     const code = fs.readFileSync(enginePath, 'utf8');
+    // N-4 fix: throws on fetch error rather than breaking and keeping sentinel
+    assert.ok(code.includes('throw new Error(`[Newsletter] Failed to fetch subscribers: ${error.message}`)'));
+    // V8-3 fix: rollback sentinel when send delivers 0 of N
     assert.ok(code.includes('total > 0 && subscriberCount === 0'));
     assert.ok(code.includes("delete().eq('id', sentinelLogId)"));
   });
 
-  await test('RSS Feed: 503 Retry-After on degraded/outage state', () => {
+  await test('RSS Feed: 503 only on degraded state; 200 on empty channel', () => {
     const feedPath = path.resolve(process.cwd(), 'src/app/feed.xml/route.ts');
     const code = fs.readFileSync(feedPath, 'utf8');
+    // N-3 fix: branches on res.degraded only
+    assert.ok(code.includes('if (res.degraded)'));
     assert.ok(code.includes('status: 503'));
     assert.ok(code.includes("'Retry-After': '300'"));
+    assert.ok(code.includes('articles = res.articles || []'));
   });
 
   await test('Honeypot Bot Protection: active in all subscribe forms', () => {

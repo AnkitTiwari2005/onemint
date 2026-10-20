@@ -13,8 +13,8 @@ async function sendWelcomeEmail(email: string, name: string): Promise<void> {
   if (!ENV.BREVO_API_KEY) return;
 
   const displayName = name?.trim() || 'there';
-  // Set BREVO_SENDER_EMAIL in Vercel to your verified sender (e.g. hello@yourdomain.com)
-  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@onemint.com';
+  // Set BREVO_SENDER_EMAIL in hosting to your verified sender (e.g. contact@onemint.in)
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'contact@onemint.in';
   const senderName  = process.env.BREVO_SENDER_NAME  || 'OneMint';
 
   const payload = WELCOME_TEMPLATE_ID

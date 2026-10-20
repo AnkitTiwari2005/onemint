@@ -258,7 +258,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
 
     if (error) {
       console.error('[Newsletter] Error fetching subscribers:', error.message);
-      break;
+      throw new Error(`[Newsletter] Failed to fetch subscribers: ${error.message}`);
     }
     if (!data || data.length === 0) break;
 
@@ -272,7 +272,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
 
   const apiKey     = ENV.BREVO_API_KEY;
   const senderName = process.env.BREVO_SENDER_NAME  ?? 'OneMint';
-  const senderMail = process.env.BREVO_SENDER_EMAIL ?? 'no-reply@onemint.com';
+  const senderMail = process.env.BREVO_SENDER_EMAIL ?? 'contact@onemint.in';
 
 
   // Send in sequential batches of 25 individual Brevo calls per batch.
@@ -298,7 +298,7 @@ async function sendToSubscribers(subject: string, html: string): Promise<{ sent:
       personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, unsubUrl);
       listUnsubscribeHeader = `<${unsubUrl}>`;
     } else {
-      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.com?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
+      personalizedHtml = html.replace(/\{\{unsubscribe\}\}/g, `mailto:contact@onemint.in?subject=Unsubscribe&body=${encodeURIComponent(email)}`);
     }
 
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {

@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
+import { clampSipMonthly, clampSipRate, clampSipYears, SIP_BOUNDS } from '@/lib/calculator-bounds';
 import { Calculator, Info, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const SipChart = dynamic(() => import('./SipChart'), {
@@ -180,10 +181,7 @@ export default function SIPCalculatorPage() {
                     onFocus={() => setMonthlyDraft(String(monthlyInvestment))}
                     onChange={(e) => setMonthlyDraft(e.target.value)}
                     onBlur={() => {
-                      const parsed = Number((monthlyDraft ?? '').replace(/,/g, ''));
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setMonthlyInvestment(Math.max(500, Math.round(parsed)));
-                      }
+                      setMonthlyInvestment(clampSipMonthly(monthlyDraft ?? '', monthlyInvestment));
                       setMonthlyDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -191,13 +189,16 @@ export default function SIPCalculatorPage() {
                     }}
                     className="w-28 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Monthly Investment Amount"
+                    aria-describedby="sip-monthly-range"
                   />
                 </div>
               </div>
               <input
                 id="sip-monthly-slider"
                 type="range"
-                min="500" max="100000" step="500"
+                min={SIP_BOUNDS.monthly.min}
+                max={SIP_BOUNDS.monthly.max}
+                step={SIP_BOUNDS.monthly.step}
                 value={monthlyInvestment}
                 onChange={(e) => {
                   setMonthlyInvestment(Number(e.target.value));
@@ -207,8 +208,8 @@ export default function SIPCalculatorPage() {
                 aria-valuetext={`₹${formatIndianNumber(monthlyInvestment)} per month`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
-                <span>₹500</span><span>₹1 Lakh</span>
+              <div id="sip-monthly-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
+                <span>₹500</span><span>₹10 Lakh</span>
               </div>
             </div>
 
@@ -225,11 +226,7 @@ export default function SIPCalculatorPage() {
                     onFocus={() => setRateDraft(String(returnRate))}
                     onChange={(e) => setRateDraft(e.target.value)}
                     onBlur={() => {
-                      const parsed = parseFloat(rateDraft ?? '');
-                      if (!isNaN(parsed) && parsed > 0) {
-                        const clamped = Math.min(50, Math.max(0.1, Math.round(parsed * 10) / 10));
-                        handleRateChange(clamped);
-                      }
+                      handleRateChange(clampSipRate(rateDraft ?? '', returnRate));
                       setRateDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -237,6 +234,7 @@ export default function SIPCalculatorPage() {
                     }}
                     className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Expected Return Rate percentage"
+                    aria-describedby="sip-rate-range"
                   />
                   <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">%</span>
                 </div>
@@ -244,7 +242,9 @@ export default function SIPCalculatorPage() {
               <input
                 id="sip-rate-slider"
                 type="range"
-                min="1" max="30" step="0.5"
+                min={SIP_BOUNDS.rate.min}
+                max={SIP_BOUNDS.rate.max}
+                step={SIP_BOUNDS.rate.step}
                 value={returnRate}
                 onChange={(e) => {
                   handleRateChange(Number(e.target.value));
@@ -254,7 +254,7 @@ export default function SIPCalculatorPage() {
                 aria-valuetext={`${returnRate} percent per year`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
+              <div id="sip-rate-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
                 <span>1%</span><span>30%</span>
               </div>
             </div>
@@ -271,10 +271,7 @@ export default function SIPCalculatorPage() {
                     onFocus={() => setYearsDraft(String(years))}
                     onChange={(e) => setYearsDraft(e.target.value)}
                     onBlur={() => {
-                      const parsed = parseInt(yearsDraft ?? '', 10);
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setYears(Math.min(50, Math.max(1, parsed)));
-                      }
+                      setYears(clampSipYears(yearsDraft ?? '', years));
                       setYearsDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -282,6 +279,7 @@ export default function SIPCalculatorPage() {
                     }}
                     className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Investment Time Period in years"
+                    aria-describedby="sip-years-range"
                   />
                   <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">Yr</span>
                 </div>
@@ -289,7 +287,9 @@ export default function SIPCalculatorPage() {
               <input
                 id="sip-years-slider"
                 type="range"
-                min="1" max="40" step="1"
+                min={SIP_BOUNDS.years.min}
+                max={SIP_BOUNDS.years.max}
+                step={SIP_BOUNDS.years.step}
                 value={years}
                 onChange={(e) => {
                   setYears(Number(e.target.value));
@@ -299,7 +299,7 @@ export default function SIPCalculatorPage() {
                 aria-valuetext={`${years} years`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-cat-finance)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
+              <div id="sip-years-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2">
                 <span>1 Yr</span><span>40 Yr</span>
               </div>
             </div>

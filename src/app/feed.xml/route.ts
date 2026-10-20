@@ -12,7 +12,7 @@ export async function GET() {
   let articles: PublicArticle[] = [];
   try {
     const res = await fetchPublishedArticles();
-    if (res.degraded || !res.articles || res.articles.length === 0) {
+    if (res.degraded) {
       // If DB is degraded/unreachable, do not inject static seed articles into the live RSS feed
       // which would cause RSS readers to publish ghost/duplicate historical articles.
       return new NextResponse('RSS feed temporarily unavailable. Please retry shortly.', {
@@ -24,7 +24,7 @@ export async function GET() {
         },
       });
     }
-    articles = res.articles;
+    articles = res.articles || [];
   } catch (err) {
     console.error('[feed.xml] Failed to fetch articles:', err);
     return new NextResponse('RSS feed temporarily unavailable. Please retry shortly.', {

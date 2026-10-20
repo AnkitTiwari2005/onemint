@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search, ArrowRight, FileQuestion } from 'lucide-react';
 
@@ -71,11 +70,19 @@ function scoreArticle(article: ArticleHint, keywords: string[]): number {
   }, 0);
 }
 
+const emptySubscribe = () => () => {};
+
 export default function NotFoundClient({ articles = [] }: NotFoundClientProps) {
   const pathname = usePathname();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   // ── Keyword extraction & scoring ─────────────────────────────────────────
-  const keywords = useMemo(() => extractKeywords(pathname ?? ''), [pathname]);
+  // SSR & initial client hydration must match to avoid React hydration mismatch error #418.
+  // Dynamic client pathname keywords are evaluated only after client mount.
+  const keywords = useMemo(() => {
+    if (!mounted) return [];
+    return extractKeywords(pathname ?? '');
+  }, [pathname, mounted]);
 
   const suggestions = useMemo((): ArticleHint[] => {
     if (!articles.length) return [];

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { formatIndianCurrency, formatIndianNumber } from '@/lib/utils';
+import { clampHomeLoanAmount, clampHomeLoanRate, clampHomeLoanTenure, HOME_LOAN_BOUNDS } from '@/lib/calculator-bounds';
 import dynamic from 'next/dynamic';
 import { Home, Info, ArrowLeft } from 'lucide-react';
 
@@ -144,10 +145,7 @@ export default function HomeLoanEMIPage() {
                     onFocus={() => setAmountDraft(String(loanAmount))}
                     onChange={(e) => setAmountDraft(e.target.value)}
                     onBlur={() => {
-                      const parsed = Number((amountDraft ?? '').replace(/,/g, ''));
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setLoanAmount(Math.min(50000000, Math.max(100000, Math.round(parsed))));
-                      }
+                      setLoanAmount(clampHomeLoanAmount(amountDraft ?? '', loanAmount));
                       setAmountDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -155,12 +153,16 @@ export default function HomeLoanEMIPage() {
                     }}
                     className="w-32 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Loan Amount in rupees"
+                    aria-describedby="hl-amount-range"
                   />
                 </div>
               </div>
               <input
                 id="hl-amount-slider"
-                type="range" min="100000" max="50000000" step="100000"
+                type="range"
+                min={HOME_LOAN_BOUNDS.amount.min}
+                max={HOME_LOAN_BOUNDS.amount.max}
+                step={HOME_LOAN_BOUNDS.amount.step}
                 value={loanAmount}
                 onChange={(e) => {
                   setLoanAmount(Number(e.target.value));
@@ -170,7 +172,7 @@ export default function HomeLoanEMIPage() {
                 aria-valuetext={`₹${formatIndianNumber(loanAmount)}`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
+              <div id="hl-amount-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>₹1L</span><span>₹5Cr</span>
               </div>
             </div>
@@ -187,10 +189,7 @@ export default function HomeLoanEMIPage() {
                     onFocus={() => setRateDraft(String(interestRate))}
                     onChange={(e) => setRateDraft(e.target.value)}
                     onBlur={() => {
-                      const parsed = parseFloat(rateDraft ?? '');
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setInterestRate(Math.min(20, Math.max(5, Math.round(parsed * 100) / 100)));
-                      }
+                      setInterestRate(clampHomeLoanRate(rateDraft ?? '', interestRate));
                       setRateDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -198,13 +197,17 @@ export default function HomeLoanEMIPage() {
                     }}
                     className="w-20 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Interest Rate percentage"
+                    aria-describedby="hl-rate-range"
                   />
                   <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">%</span>
                 </div>
               </div>
               <input
                 id="hl-rate-slider"
-                type="range" min="5" max="20" step="0.1"
+                type="range"
+                min={HOME_LOAN_BOUNDS.rate.min}
+                max={HOME_LOAN_BOUNDS.rate.max}
+                step={HOME_LOAN_BOUNDS.rate.step}
                 value={interestRate}
                 onChange={(e) => {
                   setInterestRate(Number(e.target.value));
@@ -214,7 +217,7 @@ export default function HomeLoanEMIPage() {
                 aria-valuetext={`${interestRate} percent`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
+              <div id="hl-rate-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>5%</span><span>20%</span>
               </div>
             </div>
@@ -231,10 +234,7 @@ export default function HomeLoanEMIPage() {
                     onFocus={() => setTenureDraft(String(tenure))}
                     onChange={(e) => setTenureDraft(e.target.value)}
                     onBlur={() => {
-                      const parsed = parseInt(tenureDraft ?? '', 10);
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setTenure(Math.min(30, Math.max(1, parsed)));
-                      }
+                      setTenure(clampHomeLoanTenure(tenureDraft ?? '', tenure));
                       setTenureDraft(null);
                     }}
                     onKeyDown={(e) => {
@@ -242,13 +242,17 @@ export default function HomeLoanEMIPage() {
                     }}
                     className="w-16 bg-transparent font-[family-name:var(--font-mono)] font-bold text-lg text-[var(--color-ink)] focus:outline-none"
                     aria-label="Loan Tenure in years"
+                    aria-describedby="hl-tenure-range"
                   />
                   <span className="text-[var(--color-ink-tertiary)] font-bold ml-1">Yr</span>
                 </div>
               </div>
               <input
                 id="hl-tenure-slider"
-                type="range" min="1" max="30" step="1"
+                type="range"
+                min={HOME_LOAN_BOUNDS.tenure.min}
+                max={HOME_LOAN_BOUNDS.tenure.max}
+                step={HOME_LOAN_BOUNDS.tenure.step}
                 value={tenure}
                 onChange={(e) => {
                   setTenure(Number(e.target.value));
@@ -258,7 +262,7 @@ export default function HomeLoanEMIPage() {
                 aria-valuetext={`${tenure} years`}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
-              <div className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
+              <div id="hl-tenure-range" className="flex justify-between text-xs text-[var(--color-ink-tertiary)] mt-2 font-[family-name:var(--font-mono)]">
                 <span>1 Yr</span><span>30 Yr</span>
               </div>
             </div>
