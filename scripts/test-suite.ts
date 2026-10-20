@@ -650,14 +650,15 @@ async function run() {
     assert.equal(corruptVisitor.analytics_storage, 'denied');
     assert.equal(corruptVisitor.sendPageView, false);
 
-    // 5. Generated inline script validation: universal default-deny, no invalid 'EEA' region code
+    // 5. Generated inline script validation: universal default-deny, no invalid 'EEA' region code, AdSense NPA
     const script = getConsentInitScript('G-TEST12345');
     assert.ok(script.includes("analytics_storage: 'denied'"));
     assert.ok(script.includes("send_page_view: false"));
     assert.ok(!script.includes("region: ['EEA'"), "Must not use invalid 'EEA' ISO country code");
+    assert.ok(script.includes("requestNonPersonalizedAds"), "Must configure AdSense NPA before consent");
   });
 
-  await test('Calculator Bounds: computeClampNotice strips currency (₹, $), percent (%), and thousand separators (,) without failing (N12-2)', () => {
+  await test('Calculator Bounds: computeClampNotice strips currency (₹, $), percent (%), thousand separators (,), and handles decimal commas (N12-2, N14-3, N14-4)', () => {
     // 1. Percent signs stripped: "8.5%" -> 8.5
     const rateWithPercent = computeClampNotice({
       raw: '8.5%',
@@ -671,41 +672,67 @@ async function run() {
     assert.equal(rateWithPercent.clampedValue, 8.5);
     assert.equal(rateWithPercent.notice, null);
 
-    // 2. Spaced percent: " 12 % " -> 12
-    const rateSpaced = computeClampNotice({
-      raw: ' 12 % ',
+    // 2. N14-3: Decimal comma handling: "7,5" -> 7.5 and "1,5" -> 1.5
+    const decimalComma = computeClampNotice({
+      raw: '7,5',
+      min: 5,
+      max: 20,
+      label: 'Interest Rate',
+      fallback: 8.5,
+      unit: '%',
+      precision: 1,
+    });
+    assert.equal(decimalComma.clampedValue, 7.5);
+    assert.equal(decimalComma.notice, null);
+
+    const decimalCommaPercent = computeClampNotice({
+      raw: '1,5%',
       min: 1,
       max: 30,
       label: 'Expected Return',
       fallback: 12,
       unit: '%',
+      precision: 1,
     });
-    assert.equal(rateSpaced.clampedValue, 12);
-    assert.equal(rateSpaced.notice, null);
+    assert.equal(decimalCommaPercent.clampedValue, 1.5);
+    assert.equal(decimalCommaPercent.notice, null);
 
-    // 3. Currency symbols and thousand separators: "₹50,000" -> 50000
-    const currencyFormatted = computeClampNotice({
-      raw: '₹50,000',
+    // 3. Thousand separators correctly stripped without treating as decimal: "1,00,000" and "50,000"
+    const thousandCommas = computeClampNotice({
+      raw: '1,00,000',
       min: 500,
       max: 1000000,
       label: 'Monthly Investment',
       fallback: 25000,
       isCurrency: true,
     });
-    assert.equal(currencyFormatted.clampedValue, 50000);
-    assert.equal(currencyFormatted.notice, null);
+    assert.equal(thousandCommas.clampedValue, 100000);
+    assert.equal(thousandCommas.notice, null);
 
-    // 4. Dollar symbol if entered: "$10,000" -> 10000
-    const dollarFormatted = computeClampNotice({
-      raw: '$10,000',
-      min: 500,
-      max: 1000000,
-      label: 'Amount',
-      fallback: 5000,
-      isCurrency: true,
+    // 4. N14-4: Clean unit formatting without stray space before % sign
+    const clampMinPercent = computeClampNotice({
+      raw: '2%',
+      min: 5,
+      max: 20,
+      label: 'Interest Rate',
+      fallback: 8.5,
+      unit: '%',
+      precision: 1,
     });
-    assert.equal(dollarFormatted.clampedValue, 10000);
-    assert.equal(dollarFormatted.notice, null);
+    assert.equal(clampMinPercent.clampedValue, 5);
+    assert.equal(clampMinPercent.notice, 'Minimum Interest Rate is 5% (adjusted)');
+
+    // 5. Unit formatting with space for non-percentage units
+    const clampMinAge = computeClampNotice({
+      raw: '10',
+      min: 18,
+      max: 75,
+      label: 'Age',
+      fallback: 30,
+      unit: 'yr',
+    });
+    assert.equal(clampMinAge.clampedValue, 18);
+    assert.equal(clampMinAge.notice, 'Minimum Age is 18 yr (adjusted)');
   });
 
   await test('SliderInput: integrates computeClampNotice and accessible notice on clamp/reset (N12-1)', () => {

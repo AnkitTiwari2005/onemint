@@ -74,6 +74,13 @@ export function getConsentInitScript(measurementId = 'G-64VNWTB5ME'): string {
     if (raw) consent = JSON.parse(raw);
   } catch(e) {}
 
+  var isAdGranted = Boolean(consent && consent.accepted === true && consent.prefs && consent.prefs.advertising);
+  try {
+    // N13-5: Google AdSense non-personalized mode — disables personalized ad cookies unless explicitly granted
+    window.adsbygoogle = window.adsbygoogle || [];
+    window.adsbygoogle.requestNonPersonalizedAds = isAdGranted ? 0 : 1;
+  } catch(e) {}
+
   if (consent && consent.accepted === true && consent.prefs) {
     // Returning visitor who accepted: restore granted signals immediately
     gtag('consent', 'default', {

@@ -65,8 +65,18 @@ export function computeClampNotice({
     };
   }
 
-  // Strip currency symbols (₹, $), percent signs (%), and thousand commas (,)
-  const clean = trimmed.replace(/[₹$,%]/g, '').trim();
+  // Strip currency symbols (₹, $) and percent signs (%)
+  let clean = trimmed.replace(/[₹$]/g, '').replace(/%/g, '').trim();
+
+  // N14-3: Support decimal commas (e.g. "1,5" -> "1.5" or "7,5" -> "7.5")
+  // If exactly one comma is followed by 1-2 digits and no dots, treat as decimal comma.
+  // Otherwise treat as thousand separator (e.g. "1,00,000" or "50,000") and strip.
+  if (/^\d+,\d{1,2}$/.test(clean)) {
+    clean = clean.replace(',', '.');
+  } else {
+    clean = clean.replace(/,/g, '');
+  }
+
   const parsed = Number(clean);
 
   if (isNaN(parsed) || parsed <= 0) {
@@ -79,8 +89,14 @@ export function computeClampNotice({
   const factor = Math.pow(10, precision);
   const rounded = Math.round(parsed * factor) / factor;
 
-  const minFormatted = isCurrency ? `₹${formatIndianNumber(min)}` : `${min}${unit ? ` ${unit}` : ''}`;
-  const maxFormatted = isCurrency ? `₹${formatIndianNumber(max)}` : `${max}${unit ? ` ${unit}` : ''}`;
+  // N14-4: Clean unit formatting without stray spaces before percent signs ("5%" vs "10 years")
+  const formatWithUnit = (val: number, u: string) => {
+    if (!u) return String(val);
+    return u.startsWith('%') ? `${val}${u}` : `${val} ${u}`;
+  };
+
+  const minFormatted = isCurrency ? `₹${formatIndianNumber(min)}` : formatWithUnit(min, unit);
+  const maxFormatted = isCurrency ? `₹${formatIndianNumber(max)}` : formatWithUnit(max, unit);
 
   if (rounded < min) {
     return {

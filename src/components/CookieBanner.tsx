@@ -74,6 +74,16 @@ export function CookieBanner() {
         (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'page_view');
       }
     }
+    // Update Google AdSense non-personalized ads flag
+    if (typeof window !== 'undefined') {
+      try {
+        const w = window as unknown as { adsbygoogle?: Array<Record<string, unknown>> & { requestNonPersonalizedAds?: number } };
+        w.adsbygoogle = w.adsbygoogle || [];
+        w.adsbygoogle.requestNonPersonalizedAds = p.advertising ? 0 : 1;
+      } catch {
+        // Non-fatal
+      }
+    }
     setVisible(false);
     setShowManage(false);
   };
