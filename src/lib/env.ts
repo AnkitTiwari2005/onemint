@@ -75,6 +75,14 @@ export const ENV = {
   // Get key at: https://build.nvidia.com → top-right → Get API Key
   NVIDIA_API_KEY: getCleanEnv('NVIDIA_API_KEY'),
 
+  // Unsubscribe token secret (isolated from ADMIN_SESSION_SECRET)
+  UNSUBSCRIBE_SECRET: getCleanEnv('UNSUBSCRIBE_SECRET'),
+
+  // Cookieless analytics — daily-rotating HMAC salt for unique-visitor estimation.
+  // Never stored in DB; only the count of unique visitors is persisted.
+  // Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ANALYTICS_SALT_SECRET: getCleanEnv('ANALYTICS_SALT_SECRET'),
+
   // Site
   SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onemint.com',
 };

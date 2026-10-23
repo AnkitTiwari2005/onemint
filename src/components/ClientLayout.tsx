@@ -17,6 +17,7 @@ const SearchOverlay = dynamic(
 import { ReadingProgressBar } from '@/components/ReadingProgressBar';
 import { CookieBanner } from '@/components/CookieBanner';
 import { BackToTop } from '@/components/BackToTop';
+import { PageViewTracker } from '@/components/PageViewTracker';
 
 const easeOut: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
@@ -115,6 +116,10 @@ export function ClientLayout({ children }: { children: ReactNode }) {
       <MobileBottomNav onSearchOpen={() => setSearchOpen(true)} />
       <CookieBanner />
       <BackToTop />
+      {/* Cookieless first-party page-view tracker — fires on every route change.
+          Works for all visitors regardless of GA4 consent status.
+          No cookies, no localStorage, no PII stored. */}
+      <PageViewTracker />
     </ToastProvider>
   );
 }

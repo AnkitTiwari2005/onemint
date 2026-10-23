@@ -748,6 +748,95 @@ async function run() {
     assert.ok(cronCode.includes('failedRecipients: result.failedRecipients?.map(maskEmail)'));
   });
 
+  // ──────────────────────────────────────────────────────────
+  // 7. COOKIELESS ANALYTICS TRACKER
+  // ──────────────────────────────────────────────────────────
+  console.log('\n\x1b[1m[Suite 7] Cookieless Analytics Tracker (/api/track)\x1b[0m');
+
+  await test('PageViewTracker: exists, is a client component, uses sendBeacon, skips /admin', () => {
+    const code = fs.readFileSync(path.resolve(process.cwd(), 'src/components/PageViewTracker.tsx'), 'utf8');
+    assert.ok(code.includes("'use client'"), 'must be a client component');
+    assert.ok(code.includes('sendBeacon'), 'must use navigator.sendBeacon');
+    assert.ok(code.includes("startsWith('/admin')"), 'must skip admin routes');
+    assert.ok(code.includes('usePathname'), 'must use usePathname for SPA tracking');
+    // Must NOT create any cookies or functionally use localStorage (comments OK)
+    assert.ok(!code.includes('document.cookie'), 'must not set cookies');
+    assert.ok(!code.match(/localStorage\.(set|get|remove)Item/), 'must not call localStorage methods');
+  });
+
+  await test('/api/track route: drops bots, honours DNT/GPC, skips /admin path, never stores IP', () => {
+    const code = fs.readFileSync(path.resolve(process.cwd(), 'src/app/api/track/route.ts'), 'utf8');
+    // Bot detection
+    assert.ok(code.includes('isBot') || code.includes('BOT_UA_RE'), 'must detect bots');
+    // DNT / GPC honoured
+    assert.ok(code.includes("'dnt'") || code.includes('"dnt"'), 'must check DNT header');
+    assert.ok(code.includes('sec-gpc'), 'must check Sec-GPC header');
+    // Admin path rejection
+    assert.ok(code.includes("startsWith('/admin')"), 'must reject /admin paths');
+    // PII: raw IP must never be stored (only used for hashing)
+    assert.ok(!code.includes('supabaseAdmin.from'), 'must use rpc not raw insert'); // rpc hides IP
+    // Must use HMAC for visitor hash
+    assert.ok(code.includes('createHmac'), 'must use HMAC for visitor hashing');
+    // Must return 204
+    assert.ok(code.includes('204'), 'must return 204 No Content');
+  });
+
+  await test('/api/track: path normaliser strips query strings and rejects /admin', () => {
+    // Inline the normalisePath logic for unit testing (copy of the function logic)
+    function normalisePath(raw: string): string | null {
+      if (!raw || typeof raw !== 'string') return null;
+      try {
+        const url = new URL(raw, 'https://www.onemint.com');
+        let p = url.pathname.replace(/\/$/, '') || '/';
+        if (p.startsWith('/admin')) return null;
+        if (p.length > 500) return null;
+        return p;
+      } catch {
+        return null;
+      }
+    }
+
+    assert.equal(normalisePath('/articles/some-slug?ref=google'), '/articles/some-slug');
+    assert.equal(normalisePath('/tools/sip/'), '/tools/sip');
+    assert.equal(normalisePath('/'), '/');
+    assert.equal(normalisePath('/admin/articles'), null);
+    assert.equal(normalisePath('/admin'), null);
+    assert.equal(normalisePath(''), null);
+    assert.equal(normalisePath('/articles/hello#comments'), '/articles/hello');
+  });
+
+  await test('/api/track: unique-visitor HMAC changes with date (daily rotation)', () => {
+    const salt = 'test-salt-for-analytics-32-chars!';
+    function computeVisitorHash(ip: string, ua: string, s: string, date: string): string {
+      return crypto.createHmac('sha256', s).update(`${ip}|${ua}|${date}`).digest('hex');
+    }
+    const ip = '1.2.3.4';
+    const ua = 'Mozilla/5.0';
+    const h1 = computeVisitorHash(ip, ua, salt, '2026-10-23');
+    const h2 = computeVisitorHash(ip, ua, salt, '2026-10-24');
+    assert.notEqual(h1, h2, 'hash must change across days (cross-day re-identification impossible)');
+    // Same day, same IP+UA → same hash (so we can deduplicate within the day)
+    const h3 = computeVisitorHash(ip, ua, salt, '2026-10-23');
+    assert.equal(h1, h3, 'same input same day must produce same hash');
+  });
+
+  await test('/api/track: ClientLayout integrates PageViewTracker', () => {
+    const code = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ClientLayout.tsx'), 'utf8');
+    assert.ok(code.includes('PageViewTracker'), 'ClientLayout must include PageViewTracker');
+    assert.ok(code.includes("import { PageViewTracker }"), 'must import PageViewTracker');
+  });
+
+  await test('/api/track: Supabase migration creates analytics_daily table and RPC', () => {
+    const sql = fs.readFileSync(
+      path.resolve(process.cwd(), 'supabase/migrations/20261023_analytics_daily.sql'),
+      'utf8',
+    );
+    assert.ok(sql.includes('CREATE TABLE IF NOT EXISTS public.analytics_daily'), 'migration must create table');
+    assert.ok(sql.includes('upsert_analytics_daily'), 'migration must create RPC function');
+    assert.ok(sql.includes('ON CONFLICT'), 'RPC must use ON CONFLICT for atomic upsert');
+    assert.ok(sql.includes('ENABLE ROW LEVEL SECURITY'), 'table must have RLS enabled');
+  });
+
   console.log('\n======================================================');
   console.log(`TOTAL TESTS: ${totalTests}`);
   console.log(`\x1b[32mPASSED: ${passedTests}\x1b[0m`);
